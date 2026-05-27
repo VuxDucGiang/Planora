@@ -4,8 +4,8 @@
 -- =========================
 CREATE TABLE roles
 (
-    id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-    role_name ENUM('ADMIN','VENDOR','USER') DEFAULT 'USER'
+    id        BIGINT PRIMARY KEY AUTO_INCREMENT,
+    role_name VARCHAR(50) NOT NULL UNIQUE
 );
 
 -- =========================
