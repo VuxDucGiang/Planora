@@ -1,5 +1,6 @@
 package com.fudn.planora.entity;
 
+import com.fudn.planora.enums.ERole;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,6 +17,7 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role_name", nullable = false, unique = true)
+    private ERole roleName;
 }

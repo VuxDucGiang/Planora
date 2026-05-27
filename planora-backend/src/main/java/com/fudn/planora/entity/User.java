@@ -36,9 +36,11 @@ public class User {
     private Role role;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "provider")
     private EUserProvider eUserProvider;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private EUserStatus eUserStatus;
 
     @Column(name = "created_at", updatable = false)
