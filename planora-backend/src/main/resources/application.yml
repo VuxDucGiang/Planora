@@ -12,3 +12,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+  app.jwt.secret=planora_secret_key_planora_secret_key_123456
+  app.jwt.expiration=86400000
