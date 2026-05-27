@@ -5,7 +5,7 @@
 CREATE TABLE roles
 (
     id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL UNIQUE
+    role_name ENUM('ADMIN','VENDOR','USER') DEFAULT 'USER'
 );
 
 -- =========================
@@ -531,10 +531,6 @@ CREATE TABLE payments
 -- =========================
 -- SEED DATA
 -- =========================
-INSERT INTO roles(name)
-VALUES ('CUSTOMER'),
-       ('VENDOR'),
-       ('ADMIN');
 
 INSERT INTO service_categories(name)
 VALUES ('Studio'),
