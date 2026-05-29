@@ -1,8 +1,10 @@
 package com.fudn.planora.controller;
 
+import com.fudn.planora.dto.request.GoogleLoginRequest;
 import com.fudn.planora.dto.request.LoginRequest;
 import com.fudn.planora.dto.response.LoginResponse;
 import com.fudn.planora.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,5 +27,8 @@ public class AuthController {
         return "Logout Succesfully";
     }
 
-
+    @PostMapping("/google")
+    public LoginResponse loginWithGoogle(@RequestBody @Valid GoogleLoginRequest googleLoginRequest) {
+        return authService.loginWithGoogle(googleLoginRequest);
+    }
 }
