@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, ChevronRight, Star } from 'lucide-react';
+import { Heart, ChevronRight, Star, Sparkles, Users, Palette, Compass } from 'lucide-react';
 
 interface Service {
   icon: React.ReactNode;
@@ -12,7 +12,8 @@ interface Service {
 interface Testimonial {
   quote: string;
   name: string;
-  date: string;
+  location: string;
+  tag: string;
 }
 
 const services: Service[] = [
@@ -38,26 +39,66 @@ const services: Service[] = [
   },
 ];
 
-const testimonials: Testimonial[] = [
+const col1Testimonials: Testimonial[] = [
   {
     quote: 'Planora transformed the way we planned our wedding. Everything was organized and stress-free.',
     name: 'Sarah & Michael',
-    date: 'June 2024',
+    location: 'New York',
+    tag: 'Full Planning',
   },
   {
-    quote: 'The platform is intuitive and made guest management incredibly easy. Highly recommended!',
-    name: 'Emma & James',
-    date: 'May 2024',
+    quote: 'The visual coordination tool is a game changer. We visualized our venue layout perfectly.',
+    name: 'Emily & David',
+    location: 'Los Angeles',
+    tag: 'Design & Decor',
   },
   {
-    quote: 'From venue selection to final details, Planora was our perfect planning partner.',
-    name: 'Lisa & David',
-    date: 'April 2024',
+    quote: 'We managed over 200 guests RSVPs without a single issue. The seating chart tool is magic.',
+    name: 'Sophia & James',
+    location: 'Chicago',
+    tag: 'RSVP Tool',
   },
+];
+
+const col2Testimonials: Testimonial[] = [
   {
     quote: 'The team was supportive throughout our entire planning journey. Truly exceptional service.',
     name: 'Jessica & Tom',
-    date: 'March 2024',
+    location: 'Seattle',
+    tag: 'Coordination',
+  },
+  {
+    quote: 'We saved hours of work using the auto-reminders for guest RSVPs. Highly recommended!',
+    name: 'Emma & John',
+    location: 'Boston',
+    tag: 'Guest RSVP',
+  },
+  {
+    quote: 'Finding trusted vendors in our area was so easy. The curated directory is outstanding.',
+    name: 'Olivia & Ryan',
+    location: 'Miami',
+    tag: 'Vendor Directory',
+  },
+];
+
+const col3Testimonials: Testimonial[] = [
+  {
+    quote: 'From venue selection to final details, Planora was our perfect planning partner.',
+    name: 'Lisa & David',
+    location: 'Austin',
+    tag: 'Full Planning',
+  },
+  {
+    quote: 'Our wedding day flowed flawlessly thanks to the timeline planning feature.',
+    name: 'Chloe & Matthew',
+    location: 'San Francisco',
+    tag: 'Timeline Control',
+  },
+  {
+    quote: 'Their customer support team went above and beyond to help us customize our invitation cards.',
+    name: 'Grace & Andrew',
+    location: 'Denver',
+    tag: 'Guest RSVP',
   },
 ];
 
@@ -74,41 +115,58 @@ export function WeddingLanding() {
 
   return (
     <div className="min-h-screen bg-cream overflow-hidden">
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-50 bg-cream/95 backdrop-blur-sm border-b border-hairline">
-        <nav className="max-w-7xl mx-auto px-6 sm:px-10 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-sage-green flex items-center justify-center flex-shrink-0">
-              <Heart className="w-4 h-4 text-cream" />
-            </div>
-            <span className="text-xl font-bold font-display text-ink hidden sm:inline">Planora</span>
-          </div>
-          <div className="hidden md:flex items-center gap-10">
-            <a href="#services" className="text-sm text-body-text hover:text-sage-green transition-editorial font-medium">
-              Services
-            </a>
-            <a href="#gallery" className="text-sm text-body-text hover:text-sage-green transition-editorial font-medium">
-              Gallery
-            </a>
-            <a href="#testimonials" className="text-sm text-body-text hover:text-sage-green transition-editorial font-medium">
-              Stories
-            </a>
-            <a href="#contact" className="text-sm text-body-text hover:text-sage-green transition-editorial font-medium">
-              Contact
-            </a>
-          </div>
-          <button className="px-5 py-2 rounded-sm text-sm font-semibold text-cream bg-sage-green hover:bg-sage-active transition-editorial">
-            Book Now
-          </button>
-        </nav>
-      </header>
+      {/* Top Section with Full-Bleed Background Image */}
+      <div className="relative min-h-screen lg:min-h-[90vh] flex flex-col">
+        {/* Background Image Layer */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/wedding-landing.jpg"
+            alt="Wedding Background"
+            className="w-full h-full object-cover"
+          />
+          {/* Gradients to guarantee text contrast and smooth page transition */}
+          <div className="absolute inset-0 bg-gradient-to-r from-cream/45 via-cream/15 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
+        </div>
 
-      {/* Hero Section */}
-      <section className="relative pt-12 pb-20">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="flex flex-col justify-center space-y-6">
+        {/* Navigation Header */}
+        <header className="sticky top-0 z-60 w-full px-4 py-4 sm:px-6 md:px-8 bg-transparent pointer-events-none">
+          <nav className="max-w-7xl mx-auto px-6 sm:px-10 h-16 flex items-center justify-between pointer-events-auto bg-cream/50 backdrop-blur-md border border-white/40 rounded-full shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] relative">
+            {/* Left: Navigation Menu */}
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#services" className="text-sm text-black hover:text-sage-green transition-editorial font-medium">
+                Services
+              </a>
+              <a href="#gallery" className="text-sm text-black hover:text-sage-green transition-editorial font-medium">
+                Gallery
+              </a>
+              <a href="#testimonials" className="text-sm text-black hover:text-sage-green transition-editorial font-medium">
+                Stories
+              </a>
+              <a href="#contact" className="text-sm text-black hover:text-sage-green transition-editorial font-medium">
+                Contact
+              </a>
+            </div>
+
+            {/* Center: Brand Logo */}
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+              <span className="text-xl font-bold font-display text-black">Planora</span>
+            </div>
+
+            {/* Right: CTA Button */}
+            <div className="flex items-center">
+              <button className="px-5 py-2 rounded-sm text-sm font-semibold text-cream bg-sage-green hover:bg-sage-active transition-editorial">
+                Book Now
+              </button>
+            </div>
+          </nav>
+        </header>
+
+        {/* Hero Section */}
+        <section className="relative z-10 flex-1 flex items-center pt-12 pb-24">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 w-full">
+            {/* Left Content Overlay */}
+            <div className="max-w-xl flex flex-col justify-center space-y-6">
               <div className="space-y-4">
                 <p className="text-xs font-bold text-sage-green tracking-widest">CELEBRATE TOGETHER</p>
                 <h1 className="text-6xl lg:text-7xl font-bold text-ink leading-tight" style={{ fontFamily: 'var(--font-hero)' }}>
@@ -130,19 +188,9 @@ export function WeddingLanding() {
                 </button>
               </div>
             </div>
-
-            {/* Right Image */}
-            <div className="relative h-96 lg:h-[500px] rounded-lg overflow-hidden">
-              <img 
-                src="/wedding-hero.png" 
-                alt="Bride and groom celebrating" 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-grey/20 to-transparent" />
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* Features Section */}
       <section className="py-20 bg-white/30">
@@ -195,35 +243,66 @@ export function WeddingLanding() {
       {/* Gallery Section */}
       <section id="gallery" className="py-24 bg-surface-soft">
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="text-center mb-16">
-            <p className="text-xs font-bold text-sage-green tracking-widest mb-4">OUR COLLECTION</p>
-            <h2 className="text-5xl font-display font-bold text-ink mb-4">
-              Beautiful moments
-            </h2>
-            <p className="text-lg text-muted-text max-w-2xl mx-auto">
-              Inspiration from real weddings we&apos;ve helped bring to life
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="group relative h-96 md:h-[450px] rounded-lg overflow-hidden cursor-pointer">
-              <img 
-                src="/wedding-planning.png" 
-                alt="Wedding planning details" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-editorial duration-500"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16 items-stretch">
+            {/* Left Column: Collection Showcase Image */}
+            <div className="order-last md:order-first relative w-full min-h-[350px] md:min-h-full rounded-3xl overflow-hidden shadow-lg group">
+              <img
+                src="/wedding-our-collection.jpg"
+                alt="Wedding Collection Showcase"
+                className="w-full h-full object-cover group-hover:scale-105 transition-editorial duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-grey/60 to-transparent flex items-end p-8">
-                <h3 className="text-cream font-display font-semibold text-2xl">Planning Details</h3>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
             </div>
-            <div className="group relative h-96 md:h-[450px] rounded-lg overflow-hidden cursor-pointer">
-              <img 
-                src="/wedding-venue.png" 
-                alt="Decorated wedding venue" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-editorial duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-grey/60 to-transparent flex items-end p-8">
-                <h3 className="text-cream font-display font-semibold text-2xl">Venue Decoration</h3>
+
+            {/* Right Column: Collection details & 2x2 grid */}
+            <div className="order-first md:order-second flex flex-col justify-center">
+              <p className="text-xs font-bold text-sage-green tracking-widest uppercase mb-4">OUR COLLECTION</p>
+              <h2 className="text-5xl lg:text-6xl font-serif text-ink leading-tight" style={{ fontFamily: 'var(--font-serif)', marginBottom: '40px' }}>
+                Moments that
+                <br />
+                linger.
+              </h2>
+              <p className="text-body-text leading-relaxed max-w-lg" style={{ marginBottom: '56px' }}>
+                We believe every wedding should be a gentle ritual, a celebration of love tailored specifically to you. Every detail is crafted with intention, ensuring your special day feels effortless and deeply personal.
+              </p>
+
+              {/* 2x2 Card Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  {
+                    icon: <Sparkles className="w-5 h-5" />,
+                    title: 'Tailored Planning',
+                    desc: 'Personalized templates and custom checklist.',
+                  },
+                  {
+                    icon: <Users className="w-5 h-5" />,
+                    title: 'Seamless RSVP',
+                    desc: 'Real-time guest lists and interactive seating chart.',
+                  },
+                  {
+                    icon: <Palette className="w-5 h-5" />,
+                    title: 'Visual Curation',
+                    desc: 'Curate color palettes and layout designs for your venue.',
+                  },
+                  {
+                    icon: <Compass className="w-5 h-5" />,
+                    title: 'Vendor Directory',
+                    desc: 'Connect with handpicked florists and caterers.',
+                  },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="p-6 rounded-2xl bg-white border border-hairline/60 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col gap-3"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-sage-green/10 flex items-center justify-center text-sage-green flex-shrink-0">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-ink text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-text leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -231,66 +310,137 @@ export function WeddingLanding() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-24">
+      <section id="testimonials" className="py-24 bg-cream overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="text-center mb-16">
-            <p className="text-xs font-bold text-sage-green tracking-widest mb-4">TESTIMONIALS</p>
-            <h2 className="text-5xl font-display font-bold text-ink">
-              Stories from our couples
+          <div className="text-center mb-20">
+            <p className="text-xs font-bold text-sage-green tracking-widest uppercase mb-4">KIND WORDS</p>
+            <h2 className="text-5xl lg:text-6xl font-serif text-ink" style={{ fontFamily: 'var(--font-serif)' }}>
+              Loved by thousands
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map((testimonial, idx) => (
-              <div 
-                key={idx} 
-                className="p-8 rounded-lg bg-white border border-hairline hover:border-sage-green transition-editorial"
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-sage-green text-sage-green" />
+          {/* Marquee Columns Container */}
+          <div className="relative h-[650px] overflow-hidden pause-hover">
+            {/* Gradient Mask Overlays */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream via-cream/80 to-transparent z-20" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream via-cream/80 to-transparent z-20" />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+              {/* Column 1: Moves Up */}
+              <div className="flex flex-col gap-6 overflow-hidden relative h-full">
+                <div className="flex flex-col gap-6 animate-marquee-up py-4">
+                  {[...col1Testimonials, ...col1Testimonials].map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
+                    >
+                      <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
+                        "{item.quote}"
+                      </p>
+                      <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
+                        <div>
+                          <p className="font-semibold text-ink text-sm">{item.name}</p>
+                          <p className="text-xs text-muted-text mt-0.5">{item.location}</p>
+                        </div>
+                        <span className="px-3 py-1 rounded-full bg-cream text-sage-green text-xs font-semibold border border-hairline/85">
+                          {item.tag}
+                        </span>
+                      </div>
+                    </div>
                   ))}
                 </div>
-                <p className="text-body-text mb-6 leading-relaxed text-sm italic font-serif">"{testimonial.quote}"</p>
-                <div className="border-t border-hairline pt-4">
-                  <p className="font-semibold text-ink text-sm">{testimonial.name}</p>
-                  <p className="text-xs text-muted-text">{testimonial.date}</p>
+              </div>
+
+              {/* Column 2: Moves Down */}
+              <div className="hidden md:flex flex-col gap-6 overflow-hidden relative h-full">
+                <div className="flex flex-col gap-6 animate-marquee-down py-4">
+                  {[...col2Testimonials, ...col2Testimonials].map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
+                    >
+                      <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
+                        "{item.quote}"
+                      </p>
+                      <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
+                        <div>
+                          <p className="font-semibold text-ink text-sm">{item.name}</p>
+                          <p className="text-xs text-muted-text mt-0.5">{item.location}</p>
+                        </div>
+                        <span className="px-3 py-1 rounded-full bg-cream text-sage-green text-xs font-semibold border border-hairline/85">
+                          {item.tag}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+
+              {/* Column 3: Moves Up */}
+              <div className="hidden md:flex flex-col gap-6 overflow-hidden relative h-full">
+                <div className="flex flex-col gap-6 animate-marquee-up py-4">
+                  {[...col3Testimonials, ...col3Testimonials].map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
+                    >
+                      <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
+                        "{item.quote}"
+                      </p>
+                      <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
+                        <div>
+                          <p className="font-semibold text-ink text-sm">{item.name}</p>
+                          <p className="text-xs text-muted-text mt-0.5">{item.location}</p>
+                        </div>
+                        <span className="px-3 py-1 rounded-full bg-cream text-sage-green text-xs font-semibold border border-hairline/85">
+                          {item.tag}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section id="contact" className="py-24 bg-sage-green text-cream">
-        <div className="max-w-3xl mx-auto px-6 sm:px-10 text-center">
-          <h2 className="text-5xl md:text-6xl font-display font-bold mb-6">
+      <section id="contact" className="py-28 bg-sage-green text-cream overflow-hidden">
+        <div className="max-w-4xl mx-auto px-6 sm:px-10 text-center flex flex-col items-center">
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif font-normal leading-tight text-white" style={{ fontFamily: 'var(--font-serif)', marginBottom: '24px' }}>
             Join the ritual
           </h2>
-          <p className="text-lg mb-10 opacity-90">
-            Start planning your perfect wedding with Planora today
+          <p className="text-base md:text-lg max-w-3xl mx-auto text-white/90 leading-relaxed" style={{ marginBottom: '48px' }}>
+            Subscribe for exclusive wedding planning resources, inspiration, and early access to new tools.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-6">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 w-full max-w-lg" style={{ marginBottom: '24px' }}>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="flex-1 px-5 py-3 rounded-sm bg-cream/20 border border-cream/40 text-cream placeholder-cream/60 focus:outline-none focus:border-cream/80 transition-editorial font-sans"
+              className="flex-1 px-6 h-14 rounded-full bg-black/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-white/40 focus:bg-black/15 transition-editorial font-sans"
               required
             />
             <button
               type="submit"
-              className="px-6 py-3 rounded-sm bg-cream text-sage-green font-semibold hover:bg-cream/90 transition-editorial whitespace-nowrap"
+              className="px-8 h-14 rounded-full bg-cream text-sage-green font-semibold hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              Get Started
+              Subscribe
+              <span className="text-lg">→</span>
             </button>
           </form>
 
+          <p className="text-xs text-white/60 tracking-wide">
+            Unsubscribe anytime. We respect your inbox.
+          </p>
+
           {submitted && (
-            <p className="text-sm opacity-90">✓ Check your email to begin your journey</p>
+            <p className="text-sm text-white font-medium mt-4 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+              ✓ Check your email to begin your journey
+            </p>
           )}
         </div>
       </section>
