@@ -1,10 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Abhaya+Libre:wght@700&display=swap');
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Abhaya+Libre:wght@700&display=swap');
-
 @theme {
-  --color-primary: #5a7a6d;
-  --color-primary-active: #4a6b5d;
+  --color-primary: #4f5b3a;
+  --color-primary-active: #3e472d;
   --color-ink: #1a1a1a;
   --color-body-text: #4a4a4a;
   --color-muted-text: #8a8a8a;
@@ -15,23 +14,23 @@
   --color-surface-strong: #e5e0d8;
   --color-surface-dark: #2a2a2a;
   --color-surface-dark-elevated: #3a3a3a;
-  
-  --color-sage-green: #5a7a6d;
-  --color-sage-active: #4a6b5d;
+
+  --color-sage-green: #4f5b3a;
+  --color-sage-active: #3e472d;
   --color-cream: #f8f7f5;
   --color-warm-white: #faf8f5;
   --color-beige: #e5e0d8;
   --color-dark-grey: #2a2a2a;
   --color-light-grey: #9a9a9a;
-  
-  --color-link: #5a7a6d;
-  --color-link-active: #4a6b5d;
-  
+
+  --color-link: #4f5b3a;
+  --color-link-active: #3e472d;
+
   --font-sans: "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: "Syne", "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: "EB Garamond", serif;
   --font-hero: "Abhaya Libre", serif;
-  
+
   --radius-xs: 2px;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -92,4 +91,39 @@ a:hover {
 /* Custom transitions and helper classes */
 .transition-editorial {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Vertical scrolling marquee animations */
+@keyframes marquee-up {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes marquee-down {
+  0% {
+    transform: translateY(-50%);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-marquee-up {
+  animation: marquee-up 50s linear infinite;
+}
+
+.animate-marquee-down {
+  animation: marquee-down 50s linear infinite;
+}
+
+/* Pause animation on hover */
+.pause-hover:hover .animate-marquee-up,
+.pause-hover:hover .animate-marquee-down {
+  animation-play-state: paused;
 }
