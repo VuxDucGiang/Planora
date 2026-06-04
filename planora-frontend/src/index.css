@@ -1,35 +1,36 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Abhaya+Libre:wght@700&display=swap');
 
 @theme {
-  --color-primary: #8b3a3a;
-  --color-primary-active: #6b2c2c;
-  --color-ink: #1a1410;
-  --color-body-text: #3d3530;
-  --color-muted-text: #6b6560;
-  --color-hairline: #e5d4c8;
-  --color-border-strong: #c4a98d;
-  --color-canvas: #faf7f4;
-  --color-surface-soft: #f0e8e0;
-  --color-surface-strong: #d9cdc0;
-  --color-surface-dark: #2a1f1a;
-  --color-surface-dark-elevated: #3a2f2a;
+  --color-primary: #5a7a6d;
+  --color-primary-active: #4a6b5d;
+  --color-ink: #1a1a1a;
+  --color-body-text: #4a4a4a;
+  --color-muted-text: #8a8a8a;
+  --color-hairline: #e0e0e0;
+  --color-border-strong: #d0d0d0;
+  --color-canvas: #f8f7f5;
+  --color-surface-soft: #f0ede8;
+  --color-surface-strong: #e5e0d8;
+  --color-surface-dark: #2a2a2a;
+  --color-surface-dark-elevated: #3a3a3a;
   
-  --color-burgundy: #8b3a3a;
-  --color-maroon: #5a2a2a;
-  --color-gold: #d4af37;
-  --color-champagne: #e8d4c4;
-  --color-cream: #f5ead8;
-  --color-deep-burgundy: #4a2020;
-  --color-warm-grey: #8b7d6f;
+  --color-sage-green: #5a7a6d;
+  --color-sage-active: #4a6b5d;
+  --color-cream: #f8f7f5;
+  --color-warm-white: #faf8f5;
+  --color-beige: #e5e0d8;
+  --color-dark-grey: #2a2a2a;
+  --color-light-grey: #9a9a9a;
   
-  --color-link: #8b3a3a;
-  --color-link-active: #6b2c2c;
+  --color-link: #5a7a6d;
+  --color-link-active: #4a6b5d;
   
-  --font-sans: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Playfair Display", "Cormorant Garamond", serif;
-  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Syne", "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "EB Garamond", serif;
+  --font-hero: "Abhaya Libre", serif;
   
   --radius-xs: 2px;
   --radius-sm: 6px;
