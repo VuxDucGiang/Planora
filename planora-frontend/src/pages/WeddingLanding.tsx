@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, ChevronRight, Star, Sparkles, Users, Palette, Compass } from 'lucide-react';
+import { Heart, ChevronRight, Sparkles, Users, Palette, Compass } from 'lucide-react';
 
 interface Service {
   icon: React.ReactNode;
