@@ -2,6 +2,7 @@ import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Login } from '../pages/Login';
 import { Home } from '../pages/Home';
+import { WeddingLanding } from '../pages/WeddingLanding';
 import { useAuth } from '../stores/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -41,6 +42,10 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 export const router = createBrowserRouter([
   {
+    path: '/landing',
+    element: <WeddingLanding />,
+  },
+  {
     path: '/login',
     element: (
       <PublicRoute>
@@ -58,6 +63,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <Navigate to="/" replace />,
+    element: <Navigate to="/landing" replace />,
   },
 ]);
