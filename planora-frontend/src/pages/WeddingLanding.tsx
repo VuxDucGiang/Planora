@@ -111,7 +111,7 @@ export function WeddingLanding() {
             <div className="flex flex-col justify-center space-y-6">
               <div className="space-y-4">
                 <p className="text-xs font-bold text-sage-green tracking-widest">CELEBRATE TOGETHER</p>
-                <h1 className="text-6xl lg:text-7xl font-display font-bold text-ink leading-tight">
+                <h1 className="text-6xl lg:text-7xl font-bold text-ink leading-tight" style={{ fontFamily: 'var(--font-hero)' }}>
                   Your perfect
                   <br />
                   day awaits
