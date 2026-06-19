@@ -1,7 +1,9 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { User } from '../types/auth';
-import { parseToken } from '../services/auth';
+import type { User } from '@/types/auth';
+import { parseToken } from '@/services/auth';
 
 interface AuthContextType {
   user: User | null;
