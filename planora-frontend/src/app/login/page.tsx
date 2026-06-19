@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../stores/AuthContext';
-import { login as loginService } from '../services/auth';
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { login as loginService } from '@/services/auth';
 import { Mail, Lock, Eye, EyeOff, Loader2, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google';
 
-export const Login: React.FC = () => {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -13,10 +15,17 @@ export const Login: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const { login, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+
+  // Redirection check (PublicRoute behavior)
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +44,7 @@ export const Login: React.FC = () => {
       setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
 
       setTimeout(() => {
-        navigate('/');
+        router.replace('/');
       }, 1200);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
@@ -45,7 +54,7 @@ export const Login: React.FC = () => {
   };
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
-    const idToken = credentialResponse.credential; // ID Token dạng JWT do Google cấp
+    const idToken = credentialResponse.credential;
 
     try {
       setErrorMessage(null);
@@ -63,7 +72,7 @@ export const Login: React.FC = () => {
       if (!response.ok) {
         throw new Error('Đăng nhập Google thất bại tại Backend!');
       }
-      const data = await response.json(); // Nhận { token: "...", tokenType: "Bearer" } hoặc tương tự
+      const data = await response.json();
 
       const jwtToken = data.accessToken || data.token;
       if (!jwtToken) {
@@ -74,7 +83,7 @@ export const Login: React.FC = () => {
       setSuccessMessage('Đăng nhập bằng Google thành công! Đang chuyển hướng...');
 
       setTimeout(() => {
-        navigate('/');
+        router.replace('/');
       }, 1200);
     } catch (error) {
       console.error('Lỗi khi đăng nhập Google:', error);
@@ -88,6 +97,17 @@ export const Login: React.FC = () => {
     console.error('Google Login Failed');
     setErrorMessage('Đăng nhập bằng Google thất bại. Vui lòng thử lại!');
   };
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <span className="text-sm text-slate-400">Đang kiểm tra bảo mật...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
@@ -341,4 +361,4 @@ export const Login: React.FC = () => {
       </div>
     </GoogleOAuthProvider>
   );
-};
+}
