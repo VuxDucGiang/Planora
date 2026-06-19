@@ -66,33 +66,47 @@ CREATE TABLE wedding_styles
 -- =========================
 CREATE TABLE wedding_plans
 (
-    id               BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id          BIGINT NOT NULL,
-    wedding_style_id BIGINT,
+    id           BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id      BIGINT NOT NULL,
 
-    title            VARCHAR(255),
-    wedding_date     DATE,
-    guest_count      INT,
-    budget           DECIMAL(15, 2),
-    location         VARCHAR(255),
+    title        VARCHAR(255),
+    wedding_date DATE,
+    guest_count  INT,
+    budget       DECIMAL(15, 2),
+    location     VARCHAR(255),
 
-    status           ENUM(
+    status       ENUM(
         'DRAFT',
         'PLANNING',
         'COMPLETED',
         'CANCELLED'
     ) DEFAULT 'DRAFT',
 
-    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_plan_user
         FOREIGN KEY (user_id)
-            REFERENCES users (id),
+            REFERENCES users (id)
+);
 
-    CONSTRAINT fk_plan_style
+-- =========================
+-- WEDDING PLAN STYLES
+-- =========================
+CREATE TABLE wedding_plan_styles
+(
+    wedding_plan_id  BIGINT NOT NULL,
+    wedding_style_id BIGINT NOT NULL,
+
+    PRIMARY KEY (wedding_plan_id, wedding_style_id),
+
+    CONSTRAINT fk_wps_plan
+        FOREIGN KEY (wedding_plan_id)
+            REFERENCES wedding_plans (id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_wps_style
         FOREIGN KEY (wedding_style_id)
-            REFERENCES wedding_styles (id)
+            REFERENCES wedding_styles (id) ON DELETE CASCADE
 );
 
 -- =========================
@@ -103,6 +117,25 @@ CREATE TABLE service_categories
     id     BIGINT PRIMARY KEY AUTO_INCREMENT,
     name   VARCHAR(100) NOT NULL UNIQUE,
     active BOOLEAN DEFAULT TRUE
+);
+
+-- =========================
+-- WEDDING PLAN PRIORITIES
+-- =========================
+CREATE TABLE wedding_plan_priorities
+(
+    wedding_plan_id BIGINT NOT NULL,
+    category_id     BIGINT NOT NULL,
+
+    PRIMARY KEY (wedding_plan_id, category_id),
+
+    CONSTRAINT fk_wpp_plan
+        FOREIGN KEY (wedding_plan_id)
+            REFERENCES wedding_plans (id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_wpp_category
+        FOREIGN KEY (category_id)
+            REFERENCES service_categories (id) ON DELETE CASCADE
 );
 
 -- =========================
@@ -132,6 +165,25 @@ CREATE TABLE vendors
     CONSTRAINT fk_vendor_user
         FOREIGN KEY (user_id)
             REFERENCES users (id)
+);
+
+-- =========================
+-- VENDOR STYLES
+-- =========================
+CREATE TABLE vendor_styles
+(
+    vendor_id        BIGINT NOT NULL,
+    wedding_style_id BIGINT NOT NULL,
+
+    PRIMARY KEY (vendor_id, wedding_style_id),
+
+    CONSTRAINT fk_vs_vendor
+        FOREIGN KEY (vendor_id)
+            REFERENCES vendors (id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_vs_style
+        FOREIGN KEY (wedding_style_id)
+            REFERENCES wedding_styles (id) ON DELETE CASCADE
 );
 
 -- =========================
