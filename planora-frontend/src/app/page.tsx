@@ -1,31 +1,36 @@
-import React from 'react';
-import { useAuth } from '../stores/AuthContext';
-import { LogOut, User as UserIcon, Calendar, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
+'use client';
 
-export const Home: React.FC = () => {
-  const { user, logout } = useAuth();
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { User as UserIcon, Calendar, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import DashboardFooter from '@/components/layout/DashboardFooter';
+
+export default function Home() {
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <span className="text-sm text-slate-400">Đang tải dữ liệu phiên làm việc...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-hidden">
-      
-      {/* Top Navigation Header: 64px height, canvas bg, ink text, hairline border */}
-      <header className="h-[64px] border-b border-hairline bg-canvas/80 backdrop-blur-md sticky top-0 z-50 px-6 sm:px-10 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="text-md font-medium tracking-widest text-ink font-display">
-            PLANORA
-          </span>
-        </div>
-        <button
-          onClick={logout}
-          className="flex items-center gap-2 h-9 px-4 rounded-lg text-xs font-medium text-ink bg-canvas border border-hairline hover:bg-surface-soft transition-editorial cursor-pointer"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Đăng xuất</span>
-        </button>
-      </header>
+      <DashboardHeader logout={logout} />
 
       {/* Main Content: Generous vertical padding, max-width container */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-10 py-16 flex flex-col justify-center">
@@ -113,10 +118,7 @@ export const Home: React.FC = () => {
 
       </main>
 
-      {/* Footer: flat, canvas, hairline border */}
-      <footer className="border-t border-hairline py-8 text-center text-xs text-muted-text bg-canvas">
-        © 2026 Planora Event Coordinator. Tất cả các quyền được bảo lưu.
-      </footer>
+      <DashboardFooter />
     </div>
   );
-};
+}
