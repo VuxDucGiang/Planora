@@ -25,8 +25,8 @@ public class UserAddress {
     private String district;
     private String ward;
 
-    @Column(name = "detail_adress")
-    private String detailAdress;
+    @Column(name = "detail_address")
+    private String detailAddress;
 
     @Column(name = "create_at", updatable = false)
     private LocalDateTime createAt;
