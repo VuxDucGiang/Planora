@@ -31,9 +31,12 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserAddress userAddress;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "provider")
