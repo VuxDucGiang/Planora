@@ -1,11 +1,13 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.request.LoginRequest;
+import com.fudn.planora.dto.request.RegisterRequest;
 import com.fudn.planora.dto.response.LoginResponse;
 import com.fudn.planora.entity.User;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.security.JwtService;
 import com.fudn.planora.service.AuthService;
+import jdk.jfr.Registered;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import com.fudn.planora.enums.ERole;
 import com.fudn.planora.enums.EUserProvider;
 import com.fudn.planora.enums.EUserStatus;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
@@ -95,4 +98,47 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    @Transactional
+    public LoginResponse register(RegisterRequest request) {
+        // 1. Kiểm tra xem Email đã tồn tại chưa
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email đã tồn tại trong hệ thống!");
+        }
+
+        // 2. Tìm Role tương ứng từ Request (USER hoặc VENDOR)
+        ERole roleEnum;
+        try {
+            roleEnum = ERole.valueOf(request.getRole().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Vai trò không hợp lệ. Chỉ chấp nhận USER hoặc VENDOR.");
+        }
+
+        Role role = roleRepository.findByRoleName(roleEnum)
+                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role " + roleEnum));
+
+        // 3. Tạo mới thực thể User
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword())) // Mã hóa
+                .fullname(request.getFullname())
+                .phone(request.getPhone())
+                .role(role)
+                .eUserProvider(EUserProvider.LOCAL)
+                .eUserStatus(EUserStatus.ACTIVE)
+                .build();
+
+        userRepository.save(user);
+
+        // Nếu role đăng ký là VENDOR, ta có thể tự động tạo một bản ghi Vendor rỗng tương ứng
+        if (roleEnum == ERole.VENDOR) {
+            // import com.fudn.planora.repository.VendorRepository; (Inject thêm vendorRepository vào service)
+            // Vendor vendor = Vendor.builder().user(user).businessName(user.getFullname()).build();
+            // vendorRepository.save(vendor);
+        }
+
+        // 4. Sinh và trả về Token để Frontend tự động Login
+        String token = jwtService.generateToken(user.getEmail());
+        return new LoginResponse(token, "Bearer");
+    }
 }
