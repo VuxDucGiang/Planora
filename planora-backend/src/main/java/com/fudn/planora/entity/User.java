@@ -31,7 +31,7 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
 

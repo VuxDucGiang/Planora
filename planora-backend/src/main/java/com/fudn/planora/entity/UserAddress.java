@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_adresses")
+@Table(name = "user_addresses")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -28,7 +28,7 @@ public class UserAddress {
     @Column(name = "detail_address")
     private String detailAddress;
 
-    @Column(name = "create_at", updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createAt;
 
     @PrePersist
