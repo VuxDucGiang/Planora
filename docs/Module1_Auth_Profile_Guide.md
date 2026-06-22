@@ -387,7 +387,7 @@ Chúng ta tạo mới tầng Service để thao tác lấy thông tin và cập 
         }
     }
     ```
-
+//im here
 ---
 
 ## BƯỚC 6: Viết Rest Controllers
@@ -459,13 +459,147 @@ public class UserController {
 
 ---
 
-## 5. Tổng kết & Cách Test API
+## 5. Hướng dẫn Test API chi tiết bằng Postman
 
-Sau khi viết xong các lớp trên, bạn hãy chạy dự án Spring Boot (hoặc sử dụng lệnh `./mvnw spring-boot:run`).
+Sau khi chạy dự án Spring Boot (sử dụng lệnh `./mvnw spring-boot:run` hoặc chạy từ IDE), bạn có thể kiểm tra hoạt động của các API thông qua Postman theo hướng dẫn dưới đây.
 
-1.  **Test API Register (`POST /api/auth/register`):**
-    *   Sử dụng Postman gửi request không kèm Token.
-    *   Nhận về JWT Token.
-2.  **Test API Profile (`GET /api/users/profile` & `PUT /api/users/profile`):**
-    *   Đính kèm Token vào Header: `Authorization: Bearer <token_nhan_duoc>`.
-    *   Kiểm tra lấy thông tin cá nhân và cập nhật thêm thông tin địa chỉ (sẽ tự động tạo bản ghi trong bảng `user_addresses`).
+*   **Base URL:** `http://localhost:8080`
+*   **Header chung cho các API POST/PUT:** `Content-Type: application/json`
+
+---
+
+### 5.1. API Đăng ký tài khoản (Register)
+
+API này cho phép tạo tài khoản mới. Sau khi đăng ký thành công, hệ thống sẽ trả về JWT Token dùng cho việc tự động đăng nhập.
+
+*   **HTTP Method:** `POST`
+*   **Endpoint:** `/api/auth/register`
+*   **Headers:**
+    *   `Content-Type: application/json`
+*   **Body (raw - JSON):**
+    ```json
+    {
+      "email": "testuser@gmail.com",
+      "password": "password123",
+      "fullname": "Nguyễn Văn A",
+      "phone": "0987654321",
+      "role": "USER" 
+    }
+    ```
+    *(Lưu ý: `role` chỉ nhận giá trị `"USER"` hoặc `"VENDOR"`)*
+
+*   **Phản hồi thành công (200 OK):**
+    ```json
+    {
+      "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlckBnbWFpbC5jb20iLCJpYXQiOjE3MTkwNj...",
+      "tokenType": "Bearer"
+    }
+    ```
+
+---
+
+### 5.2. API Đăng nhập (Login)
+
+Sử dụng tài khoản đã đăng ký để đăng nhập và lấy Token.
+
+*   **HTTP Method:** `POST`
+*   **Endpoint:** `/api/auth/login`
+*   **Headers:**
+    *   `Content-Type: application/json`
+*   **Body (raw - JSON):**
+    ```json
+    {
+      "email": "testuser@gmail.com",
+      "password": "password123"
+    }
+    ```
+
+*   **Phản hồi thành công (200 OK):**
+    ```json
+    {
+      "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0dXNlckBnbWFpbC5jb20iLCJpYXQiOjE3MTkwNj...",
+      "tokenType": "Bearer"
+    }
+    ```
+
+---
+
+### 5.3. Hướng dẫn thiết lập Authorization Token trên Postman
+
+Với các API yêu cầu xác thực bên dưới, bạn cần cấu hình JWT Token đã nhận từ API Đăng ký hoặc Đăng nhập:
+1. Trong Postman, chọn tab **Authorization**.
+2. Chọn Type: **Bearer Token**.
+3. Dán chuỗi `accessToken` nhận được vào ô **Token**.
+
+---
+
+### 5.4. API Xem hồ sơ cá nhân (Get User Profile)
+
+Lấy thông tin cá nhân của người dùng hiện tại đang đăng nhập.
+
+*   **HTTP Method:** `GET`
+*   **Endpoint:** `/api/users/profile`
+*   **Headers:**
+    *   `Authorization: Bearer <accessToken>`
+*   **Body:** Không có (None)
+
+*   **Phản hồi thành công (200 OK):**
+    ```json
+    {
+      "id": 1,
+      "email": "testuser@gmail.com",
+      "fullname": "Nguyễn Văn A",
+      "phone": "0987654321",
+      "avatarUrl": null,
+      "role": "USER",
+      "provider": "LOCAL",
+      "status": "ACTIVE",
+      "address": null
+    }
+    ```
+
+---
+
+### 5.5. API Cập nhật hồ sơ cá nhân (Update Profile & Address)
+
+Cập nhật thông tin cá nhân và địa chỉ chi tiết. Địa chỉ sẽ tự động được lưu trữ/cập nhật vào bảng `user_addresses`.
+
+*   **HTTP Method:** `PUT`
+*   **Endpoint:** `/api/users/profile`
+*   **Headers:**
+    *   `Content-Type: application/json`
+    *   `Authorization: Bearer <accessToken>`
+*   **Body (raw - JSON):**
+    ```json
+    {
+      "fullname": "Nguyễn Văn A Cập Nhật",
+      "phone": "0912345678",
+      "avatarUrl": "https://i.pravatar.cc/300",
+      "address": {
+        "city": "Thành phố Hồ Chí Minh",
+        "district": "Quận 1",
+        "ward": "Phường Bến Nghé",
+        "detailAddress": "123 Lê Lợi"
+      }
+    }
+    ```
+
+*   **Phản hồi thành công (200 OK):**
+    ```json
+    {
+      "id": 1,
+      "email": "testuser@gmail.com",
+      "fullname": "Nguyễn Văn A Cập Nhật",
+      "phone": "0912345678",
+      "avatarUrl": "https://i.pravatar.cc/300",
+      "role": "USER",
+      "provider": "LOCAL",
+      "status": "ACTIVE",
+      "address": {
+        "city": "Thành phố Hồ Chí Minh",
+        "district": "Quận 1",
+        "ward": "Phường Bến Nghé",
+        "detailAddress": "123 Lê Lợi"
+      }
+    }
+    ```
