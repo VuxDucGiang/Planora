@@ -1,6 +1,5 @@
 package com.fudn.planora.security;
 
-import com.fudn.planora.entity.User;
 import com.fudn.planora.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,8 +25,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -44,8 +43,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             user.getEmail(),
                             null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().name()))
-                    );
+                            Collections.singletonList(
+                                    new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName().name())));
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 });

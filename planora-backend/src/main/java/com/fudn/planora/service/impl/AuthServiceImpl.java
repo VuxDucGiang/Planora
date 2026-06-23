@@ -7,7 +7,6 @@ import com.fudn.planora.entity.User;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.security.JwtService;
 import com.fudn.planora.service.AuthService;
-import jdk.jfr.Registered;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findUserByEmail(request.getEmail()).orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+        User user = userRepository.findUserByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Password is incorrect!");
         }
@@ -53,8 +53,7 @@ public class AuthServiceImpl implements AuthService {
             // Khởi tạo bộ xác thực Token của Google
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(),
-                    new GsonFactory()
-            )
+                    new GsonFactory())
                     .setAudience(Collections.singletonList(googleClientId))
                     .build();
             // Verify Token nhận được từ Frontend
@@ -130,10 +129,13 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        // Nếu role đăng ký là VENDOR, ta có thể tự động tạo một bản ghi Vendor rỗng tương ứng
+        // Nếu role đăng ký là VENDOR, ta có thể tự động tạo một bản ghi Vendor rỗng
+        // tương ứng
         if (roleEnum == ERole.VENDOR) {
-            // import com.fudn.planora.repository.VendorRepository; (Inject thêm vendorRepository vào service)
-            // Vendor vendor = Vendor.builder().user(user).businessName(user.getFullname()).build();
+            // import com.fudn.planora.repository.VendorRepository; (Inject thêm
+            // vendorRepository vào service)
+            // Vendor vendor =
+            // Vendor.builder().user(user).businessName(user.getFullname()).build();
             // vendorRepository.save(vendor);
         }
 
