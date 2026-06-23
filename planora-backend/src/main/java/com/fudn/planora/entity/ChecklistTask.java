@@ -1,11 +1,9 @@
 package com.fudn.planora.entity;
 
-
 import com.fudn.planora.enums.EChecklistTaskPriority;
+import com.fudn.planora.enums.EChecklistTaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Fetch;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -35,7 +33,11 @@ public class ChecklistTask {
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private EChecklistTaskPriority priority = EChecklist_TaskPriority.MEDIUM;
+    private EChecklistTaskStatus status = EChecklistTaskStatus.TODO;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private EChecklistTaskPriority priority = EChecklistTaskPriority.MEDIUM;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -44,6 +46,4 @@ public class ChecklistTask {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
-
-
 }

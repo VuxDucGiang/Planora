@@ -17,10 +17,13 @@ public class OnboardingRequest {
     @NotBlank(message = "Tiêu đề kế hoạch không được để trống")
     private String title;
 
-    @NotBlank(message = "Ngày cưới không được để trống")
+    @NotNull(message = "Ngày cưới không được để trống")
     private LocalDate weddingDate;
 
-    @NotBlank(message = "Số lượng khách không được để trống")
+    @NotBlank(message = "Địa điểm không được để trống")
+    private String location;
+
+    @NotNull(message = "Số lượng khách không được để trống")
     @Min(value = 1, message = "Số lượng khách phải lớn hơn 0")
     private Integer guestCount;
 
@@ -30,6 +33,4 @@ public class OnboardingRequest {
 
     private Set<Long> styleIds;
     private Set<Long> priorityCategoryIds;
-
-
 }

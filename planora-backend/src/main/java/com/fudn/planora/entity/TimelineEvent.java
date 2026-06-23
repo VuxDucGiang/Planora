@@ -25,6 +25,11 @@ public class TimelineEvent {
     @Column(nullable = false)
     private String title;
 
+    private String description;
+
+    @Column(name = "event_date")
+    private LocalDateTime eventDate;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
