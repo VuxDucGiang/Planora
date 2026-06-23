@@ -38,7 +38,7 @@ public class ConceptSuggestion {
     @Builder.Default
     private EConceptSuggestionGeneratedBy generatedBy = EConceptSuggestionGeneratedBy.RULE_BASED;
 
-    @Column(name = "create_at", updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
