@@ -24,7 +24,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
                     corsConfiguration.setAllowedOrigins(java.util.List.of(
-                            "https://planora-frontend.vercel.app", // Thay thế bằng domain Vercel của bạn
+                            "https://planora-frontend.vercel.app",
+                            "https://planora-virid-tau.vercel.app", // Thay thế bằng domain Vercel của bạn
                             "http://localhost:3000" // Môi trường chạy thử Local
                     ));
                     corsConfiguration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
