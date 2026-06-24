@@ -1,10 +1,10 @@
-# Hướng dẫn triển khai dự án Planora (Aiven + Koyeb + Vercel + Cloudinary)
+# Hướng dẫn triển khai dự án Planora (Aiven + Railway + Vercel + Cloudinary)
 
-Tài liệu này hướng dẫn chi tiết các bước thiết lập và deploy toàn bộ hệ thống Planora lên các nền tảng đám mây miễn phí tốt nhất hiện nay bao gồm:
-*   **Database (MySQL)**: Aiven.io
-*   **Storage (Image/Video)**: Cloudinary
-*   **Backend (Spring Boot)**: Koyeb
-*   **Frontend (Next.js)**: Vercel
+Tài liệu này hướng dẫn chi tiết các bước thiết lập và deploy toàn bộ hệ thống Planora lên các nền tảng đám mây bao gồm:
+*   **Database (MySQL)**: Aiven.io (Gói Free)
+*   **Storage (Image/Video)**: Cloudinary (Gói Free)
+*   **Backend (Spring Boot)**: Railway (Hỗ trợ Trial/Hobby)
+*   **Frontend (Next.js)**: Vercel (Gói Free)
 
 ---
 
@@ -36,16 +36,18 @@ Tài liệu này hướng dẫn chi tiết các bước thiết lập và deploy
 
 ---
 
-## 3. Triển khai Backend Spring Boot lên Koyeb
+## 3. Triển khai Backend Spring Boot lên Railway
 
-Koyeb hỗ trợ deploy trực tiếp từ mã nguồn GitHub của bạn và tự động lắng nghe thay đổi để tự động build lại (Auto Deploy).
+Railway hỗ trợ deploy trực tiếp từ mã nguồn GitHub của bạn và tự động lắng nghe thay đổi để tự động build lại (Auto Deploy). 
 
-### 3.1 Cấu hình Environment Variables trên Koyeb
-Đăng nhập vào [Koyeb.com](https://www.koyeb.com) bằng tài khoản GitHub, nhấn **Create Service** -> Chọn **GitHub** -> Chọn Repo **Planora** và thiết lập:
+*(Lưu ý: Gói dùng thử của Railway cung cấp $5 hoặc giới hạn thời gian chạy thử miễn phí, sau đó sẽ yêu cầu nâng cấp lên gói Hobby tối thiểu $5/tháng để tiếp tục duy trì dịch vụ online).*
 
-*   **App Directory**: Điền `planora-backend` (Koyeb sẽ trỏ trực tiếp vào thư mục con chứa Backend).
-*   **Build & Run Settings**: Giữ nguyên chế độ mặc định (**Buildpack**). Koyeb tự động nhận diện Java 21 từ `pom.xml`.
-*   **Environment Variables**: Thêm đầy đủ các biến môi trường sau:
+### 3.1 Cấu hình dự án trên Railway
+1. Đăng nhập vào [Railway.app](https://railway.app) bằng tài khoản GitHub.
+2. Nhấn **New Project** -> Chọn **Deploy from GitHub repository** -> Chọn Repo **Planora**.
+3. Sau khi dự án được khởi tạo, nhấn chọn vào dịch vụ (Service) vừa tạo và cấu hình:
+   * **Settings**: Tìm mục **Root Directory** và điền `/planora-backend` (Railway sẽ trỏ trực tiếp vào thư mục con này để build ứng dụng Spring Boot bằng Nixpacks).
+   * **Variables**: Thêm đầy đủ các biến môi trường sau:
 
 | Tên biến môi trường | Giá trị mẫu/Mô tả |
 | :--- | :--- |
@@ -60,9 +62,9 @@ Koyeb hỗ trợ deploy trực tiếp từ mã nguồn GitHub của bạn và t�
 | `CLOUDINARY_CLOUD_NAME` | `<CLOUD_NAME_CỦA_BẠN>` |
 | `CLOUDINARY_API_KEY` | `<API_KEY_CỦA_BẠN>` |
 | `CLOUDINARY_API_SECRET` | `<API_SECRET_CỦA_BẠN>` |
-| `JAVA_TOOL_OPTIONS` | `-XX:MaxRAMPercentage=75.0 -XX:+UseSerialGC` *(Cực kỳ quan trọng để giới hạn RAM của Java dưới 512MB RAM của gói Koyeb Free)* |
+| `JAVA_TOOL_OPTIONS` | `-XX:MaxRAMPercentage=75.0 -XX:+UseSerialGC` *(Giới hạn JVM RAM ở mức tối ưu phù hợp với tài nguyên được cấp phát)* |
 
-Nhấn **Deploy** và đợi Koyeb hoàn tất quá trình build. Sau khi thành công, sao chép URL backend được cấp (Ví dụ: `https://planora-backend-youruser.koyeb.app`).
+4. Nhấn chọn sang tab **Settings** -> Tìm mục **Networking** -> Nhấn **Generate Domain** để tạo một đường link URL API public của Backend (Ví dụ: `https://planora-backend-production.up.railway.app`).
 
 ---
 
@@ -74,7 +76,7 @@ Nhấn **Deploy** và đợi Koyeb hoàn tất quá trình build. Sau khi thành
    * **Root Directory**: Chọn thư mục con `planora-frontend`. Vercel sẽ tự động phát hiện Next.js.
    * **Framework Preset**: Chọn `Next.js`.
    * **Environment Variables**: Thêm biến môi trường:
-     * `NEXT_PUBLIC_API_URL` = `https://planora-backend-youruser.koyeb.app` *(Địa chỉ URL Backend Koyeb bạn vừa copy ở bước trên)*.
+     * `NEXT_PUBLIC_API_URL` = `https://planora-backend-production.up.railway.app` *(Địa chỉ URL Backend Railway bạn vừa copy ở bước trên)*.
 4. Nhấn **Deploy** và sao chép URL Frontend Vercel nhận được (Ví dụ: `https://planora-frontend.vercel.app`).
 
 ---
@@ -116,4 +118,4 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 }
 ```
 
-3. Commit và push thay đổi lên GitHub. Koyeb sẽ tự động deploy lại Backend với cấu hình CORS mới. Hệ thống lúc này đã sẵn sàng hoạt động!
+3. Commit và push thay đổi lên GitHub. Railway sẽ tự động deploy lại Backend với cấu hình CORS mới. Hệ thống lúc này đã sẵn sàng hoạt động!
