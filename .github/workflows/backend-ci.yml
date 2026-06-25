@@ -1,0 +1,55 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, feature/* ]
+    paths:
+      - 'planora-backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'planora-backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: defaultdb
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Grant execute permission for mvnw
+        run: chmod +x planora-backend/mvnw
+
+      - name: Build and run tests
+        working-directory: planora-backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/defaultdb?ssl-mode=PREFERRED
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
+          SPRING_JPA_HIBERNATE_DDL_AUTO: none
+          SPRING_FLYWAY_ENABLED: true
+          SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+          GOOGLE_CLIENT_ID: mock-google-client-id
+          APP_JWT_SECRET: mock-jwt-secret-very-long-secret-key-at-least-256-bits-long
+          APP_JWT_EXPIRATION: 86400000
+        run: ./mvnw clean test
