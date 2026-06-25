@@ -27,12 +27,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (storedToken) {
       const parsedUser = parseToken(storedToken);
       if (parsedUser) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToken(storedToken);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser(parsedUser);
       } else {
         localStorage.removeItem('planora_token');
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false);
   }, []);
 
