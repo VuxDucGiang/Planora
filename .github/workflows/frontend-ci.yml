@@ -1,0 +1,42 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, feature/* ]
+    paths:
+      - 'planora-frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'planora-frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: planora-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: planora-frontend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: planora-frontend
+        run: npm run lint
+
+      - name: Build Next.js app
+        working-directory: planora-frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+        run: npm run build

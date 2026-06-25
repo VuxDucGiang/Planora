@@ -306,7 +306,7 @@ export default function WeddingLanding() {
                       className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
                     >
                       <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
-                        "{item.quote}"
+                        &ldquo;{item.quote}&rdquo;
                       </p>
                       <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
                         <div>
@@ -331,7 +331,7 @@ export default function WeddingLanding() {
                       className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
                     >
                       <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
-                        "{item.quote}"
+                        &ldquo;{item.quote}&rdquo;
                       </p>
                       <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
                         <div>
@@ -356,7 +356,7 @@ export default function WeddingLanding() {
                       className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
                     >
                       <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
-                        "{item.quote}"
+                        &ldquo;{item.quote}&rdquo;
                       </p>
                       <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
                         <div>
