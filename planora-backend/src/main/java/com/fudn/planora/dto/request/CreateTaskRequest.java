@@ -13,7 +13,7 @@ public class CreateTaskRequest {
     @NotBlank(message = "Tiêu đề không được để trống")
     private String title;
 
-    private String desription;
+    private String description;
 
     private LocalDate dueDate;
 
