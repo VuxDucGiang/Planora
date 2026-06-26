@@ -1,0 +1,925 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{vietnam}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{indentfirst}
+\usepackage{amsmath}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Đặc tả chi tiết màn hình Figma Planora},
+    pdfpagemode=FullScreen,
+}
+
+\title{\textbf{Bản Đặc tả Chi tiết Màn hình Figma Planora}}
+\author{\textbf{Đội ngũ Phát triển Planora}}
+\date{Ngày 26 tháng 6 năm 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Tài liệu này cung cấp mô tả đặc tả chi tiết cho 60 màn hình (được nhóm thành 54 mục chính) của nền tảng lập kế hoạch đám cưới Planora. Mỗi màn hình được phân tích kỹ lưuỡng về mặt tác nhân sử dụng, mục đích, các phần/thành phần giao diện người dùng, các trường dữ liệu, lời kêu gọi hành động chính và phụ, các trạng thái giao diện, lưu ý thiết kế đáp ứng (responsive), khả năng tiếp cận (accessibility) và các đề xuất thành phần Figma tương ứng.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Tóm tắt Dự án / Tóm tắt Điều hành (Executive Summary)}
+Planora là một nền tảng lập kế hoạch đám cưới có giao diện người dùng (UI) bao gồm các trang tiếp thị công khai (marketing), các công cụ lập kế hoạch cho khách hàng đã xác thực, cổng thông tin dành cho nhà cung cấp (vendor portal), quy trình thanh toán và các bảng điều khiển dành cho quản trị viên (admin dashboard). Báo cáo này danh mục hóa \textbf{60 màn hình} trên tất cả các mô-đun, chi tiết hóa từng tác nhân (actors), mục đích (purpose), các thành phần giao diện (UI components), các trường dữ liệu (data fields), lời kêu gọi hành động (CTAs), các trạng thái (trống/lỗi/đang tải/thành công), lưu ý thiết kế đáp ứng (responsive), cân nhắc khả năng tiếp cận (accessibility) và các thành phần/biến thể Figma được đề xuất (components/variants). Chúng tôi dựa trên các phác thảo trang do người dùng cung cấp và các thực hành tốt nhất (best practices) từ các ứng dụng đám cưới, trải nghiệm biểu mẫu (form UX) và hệ thống thiết kế Figma.
+
+Các yếu tố cốt lõi bao gồm biểu mẫu Onboarding nhiều bước (được chia thành các nhóm trường nhỏ để giảm tải nhận thức), một thị trường nhà cung cấp (vendor marketplace) phong phú với các bộ lọc (hiển thị tổng kết quả và nút ``Tải thêm'' thay vì cuộn vô tận), và các bảng điều khiển ngân sách/dòng thời gian tương tác. Chúng tôi cũng khuyến nghị cấu trúc tệp Figma mạnh mẽ (trang Design System với các token, các trang cho wireframe và thiết kế màn hình cuối cùng) và danh sách kiểm tra bàn giao (các tài nguyên sẵn sàng xuất, token kiểu dáng, chú thích). Dưới đây, các màn hình được nhóm theo mô-đun để dễ theo dõi.
+
+\section{Mô-đun Công khai (Public - Marketing \& Xác thực)}
+
+\subsection{1. Landing Page (Trang chủ công khai)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Bất kỳ khách truy cập nào (vô danh).
+    \item \textbf{Mục đích:} Giới thiệu Planora và thu hút người dùng đăng ký. Làm nổi bật tuyên bố giá trị, tính năng và hình ảnh cốt lõi.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Phần Hero:} Banner ảnh tràn lề (ví dụ: cặp đôi hạnh phúc hoặc địa điểm tổ chức) kèm tiêu đề chính và tiêu đề phụ. Nút hành động chính (CTA) (``Bắt đầu lập kế hoạch'' hoặc tương đương) và các liên kết phụ ``Đăng nhập/Đăng ký''.
+        \item \textbf{Lợi ích/Tính năng:} Danh sách các biểu tượng kèm tiêu đề (``Quản lý ngân sách'', ``Tìm kiếm nhà cung cấp'', v.v.).
+        \item \textbf{Cách thức hoạt động:} Quy trình từng bước hoặc infographic tóm tắt (ví dụ: 3–4 bước kèm hình minh họa).
+        \item \textbf{Nhà cung cấp nổi bật:} Lưới hoặc carousel các nhà cung cấp mẫu (ảnh thu nhỏ, tên, danh mục). Nhấp vào sẽ dẫn đến Chợ nhà cung cấp hoặc trang chi tiết nhà cung cấp.
+        \item \textbf{Chân trang (Footer):} Các liên kết (Giới thiệu, Liên hệ, Điều khoản), liên kết mạng xã hội.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Không có (nội dung tĩnh). Có thể thêm trường tìm kiếm địa điểm/nhà cung cấp (nếu có).
+    \item \textbf{CTA chính:} Bắt đầu lập kế hoạch (Nút nổi bật).
+    \item \textbf{Hành động phụ:} Liên kết ``Đăng nhập'' và ``Đăng ký''; hoặc ``Tìm hiểu thêm''.
+    \item \textbf{Các trạng thái:} Không có phần tử tải động; hiển thị placeholder cho ảnh hero trong khi tải; nếu có tìm kiếm, hiển thị trạng thái ``không tìm thấy kết quả''.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Trên máy tính để bàn (desktop), hiển thị đầy đủ ảnh hero và bố cục nhiều cột cho danh sách tính năng. Trên thiết bị di động (mobile), thu gọn thành một cột duy nhất, sử dụng menu hamburger cho điều hướng, xếp chồng các phần, cỡ chữ nhỏ hơn. Đảm bảo nút CTA chính vẫn nổi bật phía trên màn hình đầu tiên (above the fold).
+    \item \textbf{Khả năng tiếp cận (Accessibility):}
+    \begin{itemize}
+        \item Văn bản thay thế (alt text) cho ảnh hero (``Cặp đôi cô dâu chú rể hạnh phúc tại đám cưới'').
+        \item Độ tương phản cao cho chữ trên nền ảnh (hoặc sử dụng lớp phủ bán trong suốt).
+        \item Sử dụng tiêu đề ngữ nghĩa (semantic headings) cho các tiêu đề phần; văn bản liên kết phải có tính mô tả rõ ràng.
+        \item Điều hướng bằng bàn phím (skip links).
+    \end{itemize}
+    \item \textbf{Thành phần/Biến thể Figma:}
+    \begin{itemize}
+        \item \textbf{Hero Banner:} Thành phần với các biến thể cho hình ảnh/văn bản khác nhau.
+        \item \textbf{Button (Primary/Large):} Nút chính cỡ lớn.
+        \item \textbf{Icon+Text Card:} Thẻ biểu tượng + văn bản cho các mục tính năng.
+        \item \textbf{Vendor Card:} Tái sử dụng thẻ nhà cung cấp từ Marketplace (ảnh, tên, giá).
+        \item \textbf{Responsive Header/Nav:} Biến thể cho di động (hamburger) so với máy tính để bàn (desktop).
+    \end{itemize}
+    \item \textbf{Gợi ý trực quan:} Một bức ảnh đám cưới sống động làm ảnh hero; các biểu tượng trực quan cho lợi ích (như biểu tượng lịch cho dòng thời gian); ảnh thu nhỏ chất lượng cao của nhà cung cấp.
+\end{itemize}
+
+\subsection{2. Login Page (Trang Đăng nhập)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng chưa được xác thực.
+    \item \textbf{Mục đích:} Xác thực người dùng để họ truy cập vào tài khoản Planora của mình.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Thẻ biểu mẫu (Form Card):} Các trường cho \textbf{Email} và \textbf{Mật khẩu}, liên kết ``Quên mật khẩu?''. Có thể có các nút ``Đăng nhập bằng Google/Facebook''.
+        \item \textbf{Tiêu đề/Chữ:} ``Đăng nhập vào tài khoản Planora của bạn.''
+        \item \textbf{Nút hành động:} Nút chính ``Đăng nhập''; liên kết phụ ``Đăng ký'' hoặc ``Tạo tài khoản''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Email (văn bản, được kiểm tra định dạng), Mật khẩu (ẩn).
+    \item \textbf{CTA chính:} Đăng nhập.
+    \item \textbf{Hành động phụ:} Quên mật khẩu, Liên kết đăng ký, Đăng nhập qua mạng xã hội.
+    \item \textbf{Các trạng thái:}
+    \begin{itemize}
+        \item \textbf{Mặc định:} Các trường trống.
+        \item \textbf{Đang tải (Loading):} Biểu tượng quay (spinner) hoặc nút mờ đi sau khi gửi.
+        \item \textbf{Thành công (Success):} Chuyển hướng đến Bảng điều khiển (Dashboard).
+        \item \textbf{Lỗi (Error):} Thông báo lỗi nội dòng (inline error) khi thông tin đăng nhập không hợp lệ hoặc thiếu trường bắt buộc. Đánh dấu lỗi màu đỏ và tiêu điểm (focus) vào trường lỗi đầu tiên.
+    \end{itemize}
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Biểu mẫu đơn giản được căn giữa. Trên di động, đảm bảo biểu mẫu vừa vặn với chiều rộng màn hình và có khoảng đệm (padding) hợp lý.
+    \item \textbf{Khả năng tiếp cận (Accessibility):}
+    \begin{itemize}
+        \item Nhãn rõ ràng cho từng ô nhập liệu (``Địa chỉ Email'', ``Mật khẩu'') hoặc sử dụng aria-label.
+        \item Đảm bảo có kiểu dáng viền (focus styles) khi ô nhập liệu được chọn.
+        \item Ô mật khẩu cho phép hiển thị/ẩn (sử dụng biểu tượng mắt làm biến thể).
+    \end{itemize}
+    \item \textbf{Thành phần/Biến thể Figma:}
+    \begin{itemize}
+        \item \textbf{Input Field (Trường nhập liệu):} Với các biến thể cho mặc định, focus, lỗi.
+        \item \textbf{Button (Primary/Disabled/Loading variants).}
+        \item \textbf{Link/Button (Ghost style) cho hành động phụ.}
+        \item \textbf{Social Login Buttons (Nút mạng xã hội):} Các phiên bản của thành phần nút mạng xã hội.
+    \end{itemize}
+    \item \textbf{Gợi ý trực quan:} Thiết kế sạch sẽ, gọn gàng. Nếu sử dụng hình minh họa, nên dùng biểu tượng nhỏ về đám cưới trên biểu mẫu (tránh dùng làm hình nền để duy trì khả năng tiếp cận và độ tương phản của văn bản).
+\end{itemize}
+
+\subsection{3. Register Page (Trang Đăng ký)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng chưa được xác thực.
+    \item \textbf{Mục đích:} Thu thập dữ liệu người dùng mới để tạo tài khoản.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Biểu mẫu:} Các trường nhập liệu gồm \textbf{Tên}, \textbf{Email}, \textbf{Mật khẩu}, \textbf{Xác nhận mật khẩu}. Có thể có hộp kiểm đồng ý (Điều khoản dịch vụ).
+        \item \textbf{Nút:} ``Đăng ký'' (chính), ``Đã có tài khoản? Đăng nhập'' (liên kết phụ).
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Tên (văn bản), Email (văn bản, được xác thực), Mật khẩu và Xác nhận mật khẩu (ẩn, có quy tắc độ mạnh).
+    \item \textbf{CTA chính:} Đăng ký.
+    \item \textbf{Hành động phụ:} Liên kết chuyển đến trang Đăng nhập.
+    \item \textbf{Các trạng thái:} Tương tự như Đăng nhập: hiển thị chỉ báo đang tải, chuyển hướng thành công, thông báo lỗi (mật khẩu không khớp, email không hợp lệ).
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Tương tự như trang Đăng nhập. Xác thực các trường theo thời gian thực nếu có thể để hỗ trợ người dùng.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Giống như Đăng nhập, đồng thời: đảm bảo các quy tắc mật khẩu (ví dụ: độ dài tối thiểu) được đọc rõ ràng; liên kết hộp kiểm điều khoản phù hợp.
+    \item \textbf{Thành phần Figma:} Tái sử dụng các thành phần biểu mẫu từ trang Đăng nhập. Sử dụng các biến thể riêng cho nút chuyển đổi hiển thị mật khẩu, trạng thái lỗi.
+\end{itemize}
+
+\subsection{4. Forgot Password Page (Trang Quên mật khẩu)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng chưa xác thực đã quên thông tin đăng nhập.
+    \item \textbf{Mục đích:} Cho phép người dùng yêu cầu đặt lại mật khẩu.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Biểu mẫu:} Trường \textbf{Email} duy nhất kèm nút ``Gửi liên kết đặt lại''.
+        \item \textbf{Văn bản hướng dẫn:} Hướng dẫn ngắn gọn (``Nhập email của bạn để nhận liên kết đặt lại mật khẩu.'').
+        \item \textbf{Hành động phụ:} Liên kết ``Quay lại Đăng nhập''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Email.
+    \item \textbf{CTA chính:} Gửi liên kết đặt lại.
+    \item \textbf{Các trạng thái:}
+    \begin{itemize}
+        \item \textbf{Thành công:} Thông báo xác nhận (``Đã gửi email thành công, vui lòng kiểm tra hộp thư.'') có thể kèm biểu tượng tích chọn.
+        \item \textbf{Lỗi:} Email không hợp lệ.
+    \end{itemize}
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Biểu mẫu đơn giản, kiểu dáng tương tự trang Đăng nhập.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Gán nhãn trường email rõ ràng; đảm bảo trình đọc màn hình thông báo rõ thông điệp thành công.
+    \item \textbf{Thành phần Figma:} Tái sử dụng các biến thể ô nhập liệu và nút bấm.
+\end{itemize}
+
+\subsection{5. Help / FAQ Page (Trang Trợ giúp / FAQ)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Bất kỳ người dùng nào.
+    \item \textbf{Mục đích:} Cung cấp câu trả lời cho các câu hỏi thường gặp về việc sử dụng Planora.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Thanh tìm kiếm:} Ở trên cùng để lọc các câu hỏi thường gặp.
+        \item \textbf{Accordion FAQ:} Danh sách các câu hỏi với câu trả lời có thể mở rộng/thu gọn.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Không có (nội dung chỉ đọc).
+    \item \textbf{CTA chính:} Không có (chỉ mang tính thông tin). Có thể có nút ``Liên hệ Hỗ trợ'' nếu câu hỏi không được giải quyết.
+    \item \textbf{Các trạng thái:} Hiển thị trạng thái ``Không tìm thấy kết quả'' nếu tìm kiếm FAQ không có kết quả phù hợp.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Các mục accordion mở rộng toàn chiều rộng trên màn hình di động; duy trì khả năng đọc dễ dàng.
+    \item \textbf{Khả năng tiếp cận (Accessibility):}
+    \begin{itemize}
+        \item Định dạng các tiêu đề accordion dưới dạng thẻ \texttt{<button>} với thuộc tính \texttt{aria-expanded}.
+        \item Đảm bảo có thể điều hướng bằng bàn phím.
+    \end{itemize}
+    \item \textbf{Thành phần Figma:} Thành phần Accordion/Sụp mở, ô tìm kiếm.
+\end{itemize}
+
+\section{Mô-đun Khách hàng (Đã xác thực)}
+
+\subsection{Onboarding (Biểu mẫu nhiều bước)}
+\textit{Lưu ý tiến trình: Chia biểu mẫu này thành nhiều bước với chỉ báo tiến trình để giảm thiểu tải nhận thức của người dùng.}
+
+\subsubsection{6. Onboarding Bước 1 – Thông tin đám cưới}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng mới vừa đăng ký.
+    \item \textbf{Mục đích:} Thu thập các chi tiết cơ bản về đám cưới để cá nhân hóa kế hoạch.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item Các trường biểu mẫu: \textbf{Ngày cưới} (date picker/lịch chọn ngày), \textbf{Địa điểm} (văn bản hoặc danh sách thả xuống), \textbf{Số lượng khách} (ô nhập số).
+        \item \textbf{Chỉ báo tiến trình:} Ví dụ: ``Bước 1 trên 4'' hoặc thanh tiến trình.
+        \item \textbf{Điều hướng:} Nút ``Tiếp tục''; không có nút ``Quay lại'' ở bước đầu tiên.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Ngày cưới (phải là tương lai), Địa điểm (văn bản hoặc danh sách thả xuống các thành phố), Số lượng khách (số nguyên).
+    \item \textbf{CTA chính:} Tiếp tục.
+    \item \textbf{Hành động phụ:} Liên kết ``Lưu và tiếp tục sau'' hoặc bỏ qua (nếu được áp dụng).
+    \item \textbf{Các trạng thái:}
+    \begin{itemize}
+        \item \textbf{Lỗi:} Hiển thị lỗi nội dòng nếu ngày ở quá khứ hoặc các trường bắt buộc bị trống; giữ người dùng ở lại bước này cho đến khi thông tin hợp lệ.
+        \item \textbf{Đang tải:} Vô hiệu hóa nút khi đang gửi dữ liệu.
+    \end{itemize}
+    \item \textbf{Lưu ý đáp ứng (Responsive):} On mobile, bộ chọn ngày nên dùng giao diện gốc (native) toàn màn hình. Các trường xếp chồng theo chiều dọc.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Đảm bảo bộ chọn ngày thân thiện với bàn phím và có nhãn rõ ràng. Nhãn nhóm trường (fieldset legends) rõ ràng (ví dụ: ``Ngày cưới'').
+    \item \textbf{Thành phần Figma:} Ô nhập với biến thể chọn ngày; nút bấm; thanh tiến trình.
+    \item \textbf{Thực hành tốt nhất (Best Practice):} Giới hạn số lượng trường trên mỗi bước (ở đây là 3 trường) để tránh gây quá tải. Nhóm các trường liên quan dưới một tiêu đề phụ để tạo ngữ cảnh rõ ràng.
+\end{itemize}
+
+\subsubsection{7. Onboarding Bước 2 – Ngân sách}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Tương tự Bước 1.
+    \item \textbf{Mục đích:} Lấy thông tin tổng ngân sách đám cưới để đề xuất các dịch vụ phù hợp.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Trường nhập liệu}: Tổng ngân sách (ô nhập tiền tệ).
+        \item Có thể có \textbf{Trường phụ}: Nếu muốn, hỏi về loại tiền tệ hoặc cho phép dùng thanh trượt (slider).
+        \item \textbf{Điều hướng}: Nút ``Tiếp tục'' và ``Quay lại''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Ngân sách (dạng số, có định dạng tiền tệ).
+    \item \textbf{CTA chính:} Tiếp tục.
+    \item \textbf{Hành động phụ:} Quay lại.
+    \item \textbf{Các trạng thái:} Báo lỗi nội dòng đối với ngân sách không phải số hoặc quá thấp.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Gán nhãn ``Tổng ngân sách'' rõ ràng.
+    \item \textbf{Thành phần Figma:} Nhập liệu dạng số, nút bấm quay lại và tiếp tục (sử dụng các biến thể thành phần).
+\end{itemize}
+
+\subsubsection{8. Onboarding Bước 3 – Phong cách đám cưới}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Tương tự.
+    \item \textbf{Mục đích:} Thu thập sở thích thẩm mỹ/phong cách để điều chỉnh kế hoạch.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Các tùy chọn}: Chọn một trong nhiều phong cách đám cưới (ví dụ: Truyền thống, Hiện đại, Sang trọng, Tối giản, Ngoài trời). Biểu diễn dưới dạng các thẻ (cards) có hình ảnh hoặc biểu tượng.
+        \item \textbf{Điều hướng}: Tiếp tục và Quay lại.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Phong cách đám cưới (nút chọn một - radio hoặc thẻ có thể chọn).
+    \item \textbf{CTA chính:} Tiếp tục.
+    \item \textbf{Các trạng thái:} Làm nổi bật phong cách được chọn; vô hiệu hóa nút Tiếp tục cho đến khi chọn ít nhất một mục.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Mỗi phong cách đều có hình ảnh với văn bản thay thế (alt-text) hoặc thuộc tính aria-label. Có thể điều hướng và chọn bằng bàn phím.
+    \item \textbf{Thành phần Figma:} Thẻ hình ảnh kèm nhãn với các biến thể (trạng thái được chọn / chưa chọn).
+\end{itemize}
+
+\subsubsection{9. Onboarding Bước 4 – Dịch vụ ưu tiên}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Tương tự.
+    \item \textbf{Mục đích:} Xác định danh mục dịch vụ nhà cung cấp cần ưu tiên.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Danh sách hộp kiểm (Checkbox List)}: Các danh mục dịch vụ đi kèm biểu tượng (như Makeup, Studio, Decor, Planner, Dress). Người dùng có thể chọn nhiều mục. Có thể có nút ``Chọn tất cả''.
+        \item \textbf{Điều hướng}: Hoàn tất (chính) và Quay lại.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Danh sách các giá trị boolean tương ứng với từng dịch vụ.
+    \item \textbf{CTA chính:} Hoàn tất/Gửi.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Hộp kiểm có nhãn rõ ràng; vùng chạm lớn (touch targets).
+    \item \textbf{Thành phần Figma:} Danh sách hộp kiểm (mỗi mục kèm biểu tượng).
+\end{itemize}
+
+\subsection{Tạo Kế hoạch \& Hiển thị Kết quả}
+
+\subsubsection{10. Plan Generation (Màn hình đang tải)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng mới vừa hoàn thành onboarding.
+    \item \textbf{Mục đích:} Phản hồi trực quan trong khi hệ thống tạo kế hoạch đám cưới tùy chỉnh bằng AI hoặc thuật toán.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Hoạt họa/Tiến trình}: Biểu tượng quay (spinner) hoạt họa hoặc thanh tiến trình kèm thông điệp thân thiện (``Đang tạo kế hoạch đám cưới của bạn...'').
+        \item \textbf{Mẹo nhỏ}: Tùy chọn hiển thị các mẹo lập kế hoạch hoặc câu nói hay xoay vòng về đám cưới.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Không có; chỉ là UI phản hồi trạng thái.
+    \item \textbf{Các trạng thái:} Chỉ trạng thái đang tải; nếu tạo thất bại, hiển thị thông báo lỗi kèm nút thử lại.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Biểu tượng tải được căn giữa; văn bản hiển thị phía dưới, hoạt động tốt trên mọi kích thước màn hình.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Thông báo tiến trình cho trình đọc màn hình (aria-live).
+    \item \textbf{Thành phần Figma:} Biểu tượng Spinner; bố cục modal hoặc toàn màn hình.
+\end{itemize}
+
+\subsubsection{11. Wedding Plan Result (Kết quả kế hoạch đám cưới)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực sau khi onboarding.
+    \item \textbf{Mục đích:} Trình bày kế hoạch đám cưới được tạo ra (điểm đặc biệt - USP của Planora). Tóm tắt các đề xuất chính.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Tóm tắt kế hoạch}: Hiển thị \textbf{Ý tưởng/Chủ đề đám cưới} (ví dụ: ``Khu vườn lãng mạn''), tùy chọn ảnh minh họa.
+        \item \textbf{Tóm tắt ngân sách}: Thanh biểu đồ hiển thị ngân sách ước tính so với tổng ngân sách, với phân tích chi tiết (biểu đồ tròn hoặc danh sách các danh mục kèm số tiền).
+        \item \textbf{Tóm tắt dòng thời gian}: Các mốc thời gian chính (ví dụ: ``Trước 6 tháng: Đặt địa điểm''), có thể dưới dạng một dòng thời gian nhỏ hoặc danh sách.
+        \item \textbf{Nhà cung cấp đề xuất}: Danh sách cuộn hoặc các thẻ nhà cung cấp đề xuất (dựa trên phong cách/ngân sách của người dùng).
+        \item \textbf{Hành động}: Nút bấm như ``Xem toàn bộ kế hoạch'', ``Điều chỉnh sở thích'', ``Khám phá nhà cung cấp''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Các giá trị được tính toán (phân bổ ngân sách theo danh mục, ngày tháng).
+    \item \textbf{CTA chính:} ``Xem toàn bộ kế hoạch'' hoặc ``Bắt đầu''.
+    \item \textbf{Hành động phụ:} ``Tải xuống kế hoạch'' (dạng PDF), ``Gửi email cho tôi kế hoạch này'', ``Chia sẻ''.
+    \item \textbf{Các trạng thái:} Nếu tạo kế hoạch thất bại, hiển thị lỗi kèm nút thử lại. Nếu một phần không có dữ liệu, hiển thị thông điệp trống.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Trên di động, sử dụng accordion hoặc các tab để phân chia nội dung; biểu đồ phải có thiết kế đáp ứng (ví dụ: biểu đồ tròn tự co giãn hoặc chuyển thành dạng danh sách văn bản).
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Cung cấp văn bản thay thế mô tả dữ liệu cho biểu đồ. Độ tương phản cao trên văn bản và biểu đồ.
+    \item \textbf{Thành phần Figma:} Thẻ nhà cung cấp; thanh tiến trình/biểu đồ tròn; sơ đồ dòng thời gian.
+    \item \textbf{Tham chiếu:} Các ứng dụng lập kế hoạch đám cưới như WeddingHappy hay Zola thường cung cấp sơ đồ phân bổ ngân sách.
+\end{itemize}
+
+\subsection{Quản lý \& Lập kế hoạch chính}
+
+\subsubsection{12. Customer Dashboard (Bảng điều khiển khách hàng)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Màn hình chính của người dùng hiển thị tổng quan về trạng thái lập kế hoạch đám cưới.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Tổng quan đám cưới}: Thông tin chính (đồng hồ đếm ngược ngày cưới, tên chủ đề đám cưới). Một widget lịch đếm ngược nhỏ.
+        \item \textbf{Tổng quan ngân sách}: Biểu đồ hoặc danh sách hiển thị tổng ngân sách so với số tiền đã chi tiêu và còn lại. Biểu đồ tròn/biểu đồ cột thu nhỏ.
+        \item \textbf{Tiến trình Checklist}: Thanh tiến trình hoặc tỷ lệ phần trăm các công việc đã hoàn thành (ví dụ: ``Đã hoàn thành 75\%'').
+        \item \textbf{Tiến trình dòng thời gian}: Chỉ báo mức độ hoàn thành dòng thời gian.
+        \item \textbf{Lối tắt (Shortcuts)}: Các nút hoặc thẻ liên kết nhanh đến các phần chính (Ngân sách, Checklist, Nhà cung cấp).
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Lấy từ kế hoạch của người dùng (ví dụ: số lượng khách, các nhiệm vụ đang chờ xử lý).
+    \item \textbf{CTA chính:} ``Quản lý ngân sách'', ``Xem danh sách công việc'', v.v.
+    \item \textbf{Hành động phụ:} Liên kết nhanh (ví dụ: ``Chỉnh sửa hồ sơ'', ``Cài đặt'').
+    \item \textbf{Các trạng thái:} Trạng thái trống cho các phần chưa được thiết lập (ví dụ: chưa xác định ngân sách sẽ hiển thị thông điệp gợi ý ``Thiết lập ngân sách của bạn'').
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Lưới (grid) tự động điều chỉnh thành một cột trên di động, các phần tử xếp chồng lên nhau.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Sử dụng các thẻ ngữ nghĩa (header, main). Bao gồm các nhãn bằng số.
+    \item \textbf{Thành phần Figma:} Tái sử dụng thành phần thẻ và nút bấm. Sử dụng biến thể thanh tiến trình.
+\end{itemize}
+
+\subsubsection{13. Wedding Plan Detail (Chi tiết kế hoạch đám cưới)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Hiển thị chi tiết toàn bộ kế hoạch đám cưới được tạo tự động ngoài phần tóm tắt.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Dòng thời gian đầy đủ}: Bảng dòng thời gian chi tiết hoặc danh sách cột mốc (ví dụ: ``-12 tháng: Đặt địa điểm... -6 tháng: Hoàn thiện váy cưới'').
+        \item \textbf{Phân tích ngân sách chi tiết}: Chế độ xem có thể mở rộng của phân bổ ngân sách cho từng danh mục và chi phí thực tế.
+        \item \textbf{Đề xuất nhà cung cấp}: Danh sách đầy đủ các gợi ý nhà cung cấp (bố cục dạng thẻ) kèm bộ lọc.
+        \item \textbf{Ghi chú}: Phần dành cho ghi chú cá nhân của người dùng.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Các trường có thể chỉnh sửa nếu kế hoạch có thể điều chỉnh.
+    \item \textbf{CTA chính:} ``Chỉnh sửa kế hoạch'', ``Lưu thay đổi''.
+    \item \textbf{Hành động phụ:} ``Xuất file PDF''.
+    \item \textbf{Các trạng thái:} Hiển thị spinner trong khi tải dữ liệu; hiển thị thông điệp ``Không có dữ liệu'' nếu các phần bị trống.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Giao diện dạng tab cho Dòng thời gian/Ngân sách/Nhà cung cấp trên di động.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Danh sách dòng thời gian thân thiện với trình đọc màn hình.
+    \item \textbf{Thành phần Figma:} Danh sách cột mốc dòng thời gian, bảng có thể chỉnh sửa, khu vực nhập ghi chú.
+\end{itemize}
+
+\subsubsection{14. Budget Management Dashboard (Quản lý ngân sách)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Tổng quan và chỉnh sửa ngân sách đám cưới.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Tổng ngân sách}: Hiển thị nổi bật số tiền tổng ngân sách.
+        \item \textbf{Đã chi tiêu so với Còn lại}: Số liệu hoặc biểu đồ cột hiển thị số tiền đã chi tiêu và còn lại (ví dụ: ``Đã dùng \$30k / Còn lại \$70k'').
+        \item \textbf{Phân bổ danh mục}: Danh sách hoặc biểu đồ (tròn/cột) phân bổ ngân sách theo danh mục kèm số tiền và tỷ lệ phần trăm.
+        \item \textbf{Quản lý danh mục}: Nút bấm hoặc biểu tượng để \textbf{Thêm} chi phí mới hoặc \textbf{Sửa} danh mục hiện có.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Tên danh mục, số tiền phân bổ, số tiền thực tế đã chi.
+    \item \textbf{CTA chính:} ``Thêm chi tiêu'' (mở modal/biểu mẫu).
+    \item \textbf{Hành động phụ:} ``Sửa danh mục'', ``Xóa danh mục''.
+    \item \textbf{Các trạng thái:} Trạng thái trống nếu chưa có danh mục ngân sách nào. Cảnh báo nếu chi tiêu vượt quá mức phân bổ (hiển thị cảnh báo màu đỏ, gợi ý điều chỉnh).
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Biểu đồ nên xếp chồng hoặc có thể cuộn ngang trên di động; các bảng dữ liệu nên có thanh cuộn hoặc chuyển thành dạng thẻ xếp chồng.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Nhãn dữ liệu đầy đủ trên biểu đồ; đảm bảo bảng màu thân thiện với người mù màu.
+    \item \textbf{Thành phần Figma:} Thành phần biểu đồ tròn và biểu đồ cột, bảng dữ liệu, biểu mẫu modal.
+\end{itemize}
+
+\subsubsection{15. Budget Category Detail (Chi tiết danh mục ngân sách)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Xem chi tiết và chỉnh sửa một danh mục ngân sách cụ thể (ví dụ: Ẩm thực).
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Tiêu đề}: Tên danh mục và biểu tượng đại diện.
+        \item \textbf{Phân bổ ngân sách}: Trường nhập có thể chỉnh sửa cho số tiền dự kiến.
+        \item \textbf{Danh sách chi tiêu}: Bảng kê các chi phí chi tiết (ngày, mô tả, chi phí).
+        \item \textbf{Biểu đồ}: Biểu đồ cột nhỏ hiển thị ngân sách dự kiến so với thực tế chi tiêu.
+        \item \textbf{Hành động}: ``Thêm chi tiêu'', ``Sửa danh mục''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Các mục chi tiêu (văn bản, số tiền, ngày).
+    \item \textbf{CTA chính:} Thêm chi tiêu.
+    \item \textbf{Hành động phụ:} Sửa, Xóa các khoản chi tiêu.
+    \item \textbf{Các trạng thái:} Hiển thị thông điệp ``Chưa có chi tiêu nào'' nếu danh sách trống.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Bảng chuyển thành dạng thẻ danh sách trên màn hình hẹp.
+    \item \textbf{Thành phần Figma:} Hàng bảng dữ liệu, modal nhập chi phí.
+\end{itemize}
+
+\subsubsection{16. Add/Edit Budget Expense (Thêm/Sửa khoản chi tiêu)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Nhập chi phí mới hoặc sửa đổi chi phí hiện có dưới một danh mục ngân sách.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Các trường biểu mẫu}: \textbf{Tên khoản chi}, \textbf{Ngày}, \textbf{Số tiền}, \textbf{Ghi chú (tùy chọn)}.
+        \item \textbf{Nút bấm}: Lưu (chính), Hủy.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Văn bản, ngày tháng, tiền tệ.
+    \item \textbf{Các trạng thái:} Xác thực nội dòng cho các trường bắt buộc.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Biểu mẫu dọc vừa vặn trên màn hình di động.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Gán nhãn và quản lý tiêu điểm khi mở modal.
+    \item \textbf{Thành phần Figma:} Ô nhập văn bản, chọn ngày, nhập số tiền, nút bấm.
+\end{itemize}
+
+\subsubsection{17. Checklist Management Dashboard (Quản lý Checklist)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Quản lý các công việc cần chuẩn bị cho đám cưới.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Danh sách công việc}: Mỗi hàng hiển thị hộp kiểm, tên công việc, hạn chót (nếu có), và trạng thái (xong/chờ). Hộp kiểm cho phép bật/tắt trạng thái hoàn thành.
+        \item \textbf{Tóm tắt tiến trình}: ``X trên Y công việc đã hoàn thành'' kèm thanh tiến trình.
+        \item \textbf{Thêm công việc}: Nút thêm công việc mới (mở modal hoặc biểu mẫu nội dòng).
+        \item \textbf{Các phần}: Nhóm công việc theo khoảng thời gian (ví dụ: ``Trước cưới 6 tháng'', ``Trước cưới 1 tháng'').
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Tiêu đề công việc, mô tả tùy chọn/hạn chót.
+    \item \textbf{CTA chính:} Thêm công việc.
+    \item \textbf{Hành động phụ:} Biểu tượng Sửa, Xóa trên mỗi công việc.
+    \item \textbf{Các trạng thái:}
+    \begin{itemize}
+        \item Trống: Hiển thị hình minh họa hoặc thông điệp gợi ý (``Chưa có công việc nào - Hãy bắt đầu thêm công việc như Đặt địa điểm!'').
+        \item Đã hoàn thành: Gạch ngang hoặc làm mờ công việc đã hoàn thành.
+    \end{itemize}
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Dạng thẻ hoặc một cột. Thao tác vuốt để xóa trên thiết bị di động.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Hộp kiểm kích thước lớn và có thể điều hướng bằng bàn phím.
+    \item \textbf{Thành phần Figma:} Hộp kiểm kèm nhãn với các biến thể; thành phần danh sách; hộp thoại ``Thêm công việc''.
+\end{itemize}
+
+\subsubsection{18. Checklist Task Add/Edit (Thêm/Sửa công việc)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Tạo mới hoặc chỉnh sửa công việc trong danh sách.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Biểu mẫu}: \textbf{Tên công việc}, \textbf{Hạn chót} (tùy chọn), \textbf{Danh mục/Phần phân loại}.
+        \item \textbf{Nút bấm}: Lưu, Hủy.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Tiêu đề công việc (văn bản), ngày tháng.
+    \item \textbf{Các trạng thái:} Xác thực tên công việc không được trống.
+    \item \textbf{Thành phần Figma:} Tái sử dụng các ô nhập liệu và nút bấm.
+\end{itemize}
+
+\subsubsection{19. Timeline Dashboard (Quản lý dòng thời gian)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Trực quan hóa các cột mốc quan trọng theo định dạng dòng thời gian.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Sơ đồ Dòng thời gian}: Đồ họa (ngang hoặc dọc) hiển thị các mốc thời gian quan trọng (ví dụ: ``8 tháng: Gửi thiệp mời, 1 tháng: Thử váy cưới lần cuối'').
+        \item \textbf{Danh sách cột mốc}: Dữ liệu dòng thời gian lặp lại dưới dạng bảng/danh sách với ngày tháng và sự kiện tương ứng.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Ngày diễn ra cột mốc và mô tả (người dùng có thể chỉnh sửa).
+    \item \textbf{CTA chính:} Thêm cột mốc/Nhiệm vụ.
+    \item \textbf{Hành động phụ:} Sửa, Xóa trên từng cột mốc.
+    \item \textbf{Các trạng thái:} Thông điệp trống nếu không có cột mốc nào.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} On mobile, sử dụng dòng thời gian dọc hoặc danh sách xếp chồng.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Cung cấp danh sách văn bản thay thế cho biểu đồ đồ họa cho trình đọc màn hình.
+    \item \textbf{Thành phần Figma:} Danh sách dòng thời gian, sơ đồ dòng thời gian tuyến tính.
+\end{itemize}
+
+\subsubsection{20. Timeline Milestone Add/Edit (Thêm/Sửa cột mốc)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng đã xác thực.
+    \item \textbf{Mục đích:} Cho phép người dùng thêm hoặc thay đổi một cột mốc thời gian.
+    \item \textbf{Các phần/Thành phần UI:} Biểu mẫu với \textbf{Ngày} và \textbf{Tên/Mô tả cột mốc}. Nút Lưu/Hủy.
+    \item \textbf{Trường dữ liệu:} Ngày tháng, văn bản.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Gán nhãn các trường; tiêu điểm khi mở.
+\end{itemize}
+
+\subsection{Chợ Nhà cung cấp (Vendor Marketplace)}
+
+\subsubsection{21. Vendor Marketplace – List View (Danh sách nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng đã xác thực đang tìm kiếm nhà cung cấp.
+    \item \textbf{Mục đích:} Tìm kiếm và duyệt qua danh sách các nhà cung cấp theo danh mục, phong cách, v.v.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Thanh tìm kiếm}: Tìm theo tên nhà cung cấp hoặc từ khóa.
+        \item \textbf{Bộ lọc bên cạnh (Filter Sidebar/Panel)}: Danh mục, thanh trượt khoảng giá, địa điểm, thẻ phong cách.
+        \item \textbf{Lưới/Danh sách Thẻ nhà cung cấp}: Mỗi thẻ hiển thị ảnh đại diện, tên, danh mục, khoảng giá, số sao đánh giá. Biểu tượng trái tim ``Lưu vào danh sách rút gọn''.
+        \item \textbf{Phân trang/Tải thêm}: Nút ``Tải thêm'' ở dưới cùng (tránh cuộn vô hạn). Hiển thị số lượng ``Tìm thấy X nhà cung cấp''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Các lựa chọn của bộ lọc.
+    \item \textbf{CTA chính:} Nhấp vào thẻ nhà cung cấp để xem chi tiết.
+    \item \textbf{Hành động phụ:} Nút ``Tải thêm'', các tùy chọn lọc.
+    \item \textbf{Các trạng thái:}
+    \begin{itemize}
+        \item Trống: Hiển thị thông báo ``Không tìm thấy nhà cung cấp nào phù hợp'' kèm nút đặt lại bộ lọc.
+        \item Đang tải: Hiển thị bộ khung tải mẫu (skeleton loaders) cho các thẻ.
+    \end{itemize}
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Trên di động, bộ lọc thu gọn vào một bảng trượt. Thẻ nhà cung cấp kéo dài toàn bộ chiều rộng.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Đảm bảo các tùy chọn bộ lọc là các hộp kiểm có nhãn rõ ràng. Thông báo số lượng kết quả tìm thấy.
+    \item \textbf{Thành phần Figma:} Thẻ nhà cung cấp (với trạng thái đã lưu/chưa lưu); bảng bộ lọc.
+    \item \textbf{Tham chiếu:} Thực hành tốt nhất của thương mại điện tử khuyên hiển thị tổng số sản phẩm và sử dụng nút ``Tải thêm'' thay vì cuộn vô tận để tránh ảnh hưởng đến hiệu năng và trải nghiệm người dùng.
+\end{itemize}
+
+\subsubsection{22. Vendor Search \& Filter Panel (Bảng tìm kiếm \& Bộ lọc)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Thu hẹp danh sách nhà cung cấp theo các tiêu chí đã chọn.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Bộ lọc}: Danh mục (hộp kiểm), Giá (thanh trượt), Địa điểm (danh sách thả xuống), Phong cách (hộp kiểm).
+        \item \textbf{Xóa tất cả}: Nút để đặt lại tất cả bộ lọc về mặc định.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Các lựa chọn lọc.
+    \item \textbf{CTA chính:} Bộ lọc tự động áp dụng (hoặc có nút ``Áp dụng'' nếu không tự động).
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Gán nhãn cho từng nhóm bộ lọc. Sử dụng các hộp kiểm dễ tiếp cận.
+\end{itemize}
+
+\subsubsection{23. Vendor Detail Page (Trang chi tiết nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Hiển thị đầy đủ thông tin về một nhà cung cấp cụ thể.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Đầu trang (Header)}: Tên nhà cung cấp, đánh giá, thẻ danh mục, khoảng giá.
+        \item \textbf{Thư viện ảnh}: Carousel ảnh thực tế từ nhà cung cấp.
+        \item \textbf{Mô tả}: Giới thiệu về dịch vụ, tiểu sử của nhà cung cấp.
+        \item \textbf{Thông tin liên hệ}: Địa chỉ, số điện thoại, email (nếu được công khai).
+        \item \textbf{Portfolio/Dự án mẫu}: Ảnh thu nhỏ của các dự án đã thực hiện.
+        \item \textbf{Đánh giá}: Danh sách nhận xét từ khách hàng cũ (kèm số sao, nội dung).
+        \item \textbf{Hành động}: ``Lưu danh sách rút gọn'', ``Gửi yêu cầu tư vấn'', ``So sánh nhà cung cấp'', ``Chia sẻ''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Không có (chỉ hiển thị).
+    \item \textbf{CTA chính:} Gửi yêu cầu tư vấn (mở biểu mẫu yêu cầu).
+    \item \textbf{Hành động phụ:} Thêm/Xóa danh sách rút gọn, So sánh, Chia sẻ lên mạng xã hội.
+    \item \textbf{Các trạng thái:} Tải ảnh trong carousel; nếu không có đánh giá nào, hiển thị ``Hãy là người đầu tiên đánh giá''.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Carousel xếp chồng dọc; các chi tiết hiển thị phía dưới trên màn hình nhỏ. Sử dụng cấu trúc tab nếu không gian hạn chế.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Văn bản thay thế cho tất cả hình ảnh. Carousel có nút điều hướng trái/phải với nhãn aria rõ ràng.
+    \item \textbf{Thành phần Figma:} Carousel ảnh; thẻ đánh giá; thanh hành động.
+\end{itemize}
+
+\subsubsection{24. Shortlist Page (Danh sách rút gọn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Hiển thị các nhà cung cấp người dùng đã lưu/yêu thích.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Bảng/Danh sách}: Các cột: Tên nhà cung cấp, Giá, Phong cách, Đánh giá.
+        \item \textbf{Hành động}: Nút *So sánh* các nhà cung cấp đã chọn, *Gửi yêu cầu*, hoặc *Xóa*.
+        \item \textbf{Trạng thái trống}: Hình minh họa và thông điệp ``Chưa lưu nhà cung cấp nào''.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Không có.
+    \item \textbf{CTA chính:} So sánh (kích hoạt khi chọn nhiều hơn 1 nhà cung cấp).
+    \item \textbf{Hành động phụ:} Liên hệ, Xóa khỏi danh sách rút gọn.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Chuyển bảng thành dạng thẻ trên di động; bao gồm các hộp kiểm để chọn nhiều nhà cung cấp để so sánh.
+\end{itemize}
+
+\subsubsection{25. Compare Vendors (So sánh nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Cho phép người dùng so sánh song song các nhà cung cấp được chọn dựa trên các thuộc tính chính.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Bảng so sánh}: Cột dành cho từng nhà cung cấp; các hàng dành cho thuộc tính (Giá, Phong cách, Đánh giá, Các dịch vụ đi kèm).
+        \item \textbf{Thêm/Xóa cột}: Tùy chọn xóa một nhà cung cấp khỏi bảng so sánh.
+    \end{itemize}
+    \item \textbf{Trường dữ liệu:} Hiển thị tĩnh.
+    \item \textbf{Các trạng thái:} Hiển thị văn bản giữ chỗ nếu chỉ chọn một nhà cung cấp (gợi ý thêm nhà cung cấp khác để so sánh).
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Trên màn hình nhỏ, chuyển sang chế độ vuốt ngang hoặc xếp chồng các thẻ để so sánh.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Bảng có tiêu đề hàng và cột rõ ràng, nhãn dễ đọc.
+\end{itemize}
+
+\subsubsection{26. Inquiry Form (Biểu mẫu gửi yêu cầu tư vấn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng gửi tin nhắn/yêu cầu tới nhà cung cấp.
+    \item \textbf{Mục đích:} Thu thập thông tin chi tiết để gửi yêu cầu đặt chỗ hoặc báo giá.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Các trường biểu mẫu}: \textbf{Ngày cưới} (chọn ngày), \textbf{Ngân sách dự chi} (tự động điền từ hồ sơ hoặc nhập thủ công), \textbf{Lời nhắn} (khu vực nhập văn bản).
+        \item \textbf{Nút bấm}: Gửi yêu cầu.
+    \end{itemize}
+    \item \textbf{CTA chính:} Gửi yêu cầu.
+    \item \textbf{Hành động phụ:} Hủy/Quay lại.
+    \item \textbf{Các trạng thái:} Thành công (hiển thị thông báo ``Yêu cầu đã được gửi''); Lỗi (nếu thiếu ngày).
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Gán nhãn cho ô ``Lời nhắn gửi nhà cung cấp'', đọc số lượng ký tự nếu có giới hạn.
+\end{itemize}
+
+\subsubsection{27. Inquiry History (Lịch sử yêu cầu tư vấn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Theo dõi các yêu cầu tư vấn đã gửi trước đó và trạng thái phản hồi của chúng.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Danh sách/Bảng}: Các cột: Tên nhà cung cấp, Ngày gửi, Trạng thái (Chờ phản hồi / Đã trả lời / Đã đóng).
+        \item \textbf{Hành động}: Nhấp để xem chi tiết cuộc trò chuyện.
+    \end{itemize}
+    \item \textbf{CTA chính:} Tên nhà cung cấp liên kết tới chi tiết cuộc hội thoại.
+    \item \textbf{Trạng thái}: Thông báo ``Chưa gửi yêu cầu nào'' nếu danh sách trống.
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Trạng thái phải được đọc rõ ràng (ví dụ: ``Trạng thái: Chờ phản hồi'').
+\end{itemize}
+
+\subsubsection{28. Inquiry Detail (Chi tiết yêu cầu tư vấn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Hiển thị luồng hội thoại giữa khách hàng và nhà cung cấp (tin nhắn gửi đi và phản hồi nhận lại).
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Đầu trang (Header)}: Tên nhà cung cấp, nút quay lại.
+        \item \textbf{Lịch sử chat}: Bong bóng tin nhắn (khách hàng màu xanh/nhà cung cấp màu xám).
+        \item \textbf{Hộp trả lời}: Cho phép tiếp tục trò chuyện.
+    \end{itemize}
+    \item \textbf{CTA chính:} Gửi phản hồi.
+    \item \textbf{Các trạng thái:} Chỉ báo ``Nhà cung cấp đã trả lời'' (ví dụ: dấu chấm xanh lá).
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Đảm bảo mỗi tin nhắn được gán nhãn rõ người gửi (``Bạn: ...'' so với ``Nhà cung cấp: ...'').
+\end{itemize}
+
+\subsection{Thông báo, Hồ sơ \& Cài đặt}
+
+\subsubsection{29. Notification Center (Trung tâm thông báo)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng đã xác thực.
+    \item \textbf{Mục đích:} Hiển thị thông báo hệ thống (ví dụ: ``Nhà cung cấp đã phản hồi'', ``Ngân sách vượt quá hạn mức'').
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Danh sách thông báo}: Mỗi mục có biểu tượng loại thông báo, tiêu đề, nội dung tóm tắt và ngày tháng.
+        \item \textbf{Bật/Tắt Trạng thái Đọc}: Nút bấm hoặc thao tác vuốt để đánh dấu đã đọc.
+    \end{itemize}
+    \item \textbf{CTA chính:} Nhấp để xem chi tiết thông báo hoặc liên kết tới trang tương ứng.
+    \item \textbf{Hành động phụ:} ``Đánh dấu tất cả đã đọc''.
+    \item \textbf{Các trạng thái:} Trạng thái trống (``Không có thông báo mới'').
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Biểu tượng trang trí nên được ẩn đối với trình đọc màn hình (aria-hidden).
+\end{itemize}
+
+\subsubsection{30. Notification Detail (Chi tiết thông báo)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Hiển thị thông tin đầy đủ về một thông báo cụ thể.
+    \item \textbf{Các phần/Thành phần UI:} Nội dung thông báo đầy đủ, ngày giờ nhận, nút quay lại danh sách.
+\end{itemize}
+
+\subsubsection{31. Profile Page (Trang hồ sơ cá nhân)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Hiển thị và chỉnh sửa thông tin tài khoản cá nhân.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Thông tin cá nhân}: Họ tên, Email, Số điện thoại.
+        \item \textbf{Thông tin đám cưới}: Tóm tắt ngày cưới, địa điểm, số lượng khách (có liên kết chỉnh sửa).
+        \item \textbf{Mật khẩu}: Liên kết hoặc biểu mẫu thay đổi mật khẩu.
+        \item \textbf{Khác}: Tùy chọn đăng ký nhận email thông báo (hộp kiểm).
+    \end{itemize}
+    \item \textbf{CTA chính:} Lưu thay đổi.
+    \item \textbf{Hành động phụ:} Nút Đăng xuất.
+    \item \textbf{Các trạng thái:} Chế độ chỉ đọc so với chế độ chỉnh sửa. Xác thực định dạng email/số điện thoại.
+\end{itemize}
+
+\subsubsection{32. Settings Page (Trang cài đặt)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Quản lý các cấu hình mức ứng dụng (ngôn ngữ, cài đặt thông báo, liên kết trợ giúp).
+    \item \textbf{Các phần/Thành phần UI:} Cài đặt thông báo (Email, SMS), Trợ giúp \& Hỗ trợ, Các tài liệu pháp lý (Điều khoản dịch vụ, Chính sách bảo mật).
+\end{itemize}
+
+\section{Cổng thông tin Nhà cung cấp (Vendor Portal)}
+
+\subsection{33. Vendor Dashboard (Bảng điều khiển nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp đã được xác thực.
+    \item \textbf{Mục đích:} Màn hình chính tổng hợp hoạt động kinh doanh của nhà cung cấp.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Số lượng yêu cầu tư vấn}: Số lượng yêu cầu mới/đang chờ.
+        \item \textbf{Lượt truy cập Portfolio}: Biểu đồ hoặc số lượt xem hồ sơ.
+        \item \textbf{Tỷ lệ/Thời gian phản hồi}: Số liệu thống kê mức độ tương tác của nhà cung cấp.
+        \item \textbf{Liên kết nhanh}: Chỉnh sửa hồ sơ, Quản lý portfolio, Quản lý yêu cầu tư vấn.
+    \end{itemize}
+    \item \textbf{Các trạng thái:} Hiển thị thông điệp chào mừng, hoặc cảnh báo nếu không có hoạt động mới.
+    \item \textbf{Thành phần Figma:} Thẻ tóm tắt, biểu đồ nhỏ (bar/line chart).
+\end{itemize}
+
+\subsection{34. Vendor Profile - Vendor Side (Hồ sơ nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Người dùng nhà cung cấp.
+    \item \textbf{Mục đích:} Hiển thị hồ sơ của nhà cung cấp dưới góc nhìn của khách hàng, đi kèm các tùy chọn chỉnh sửa.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Đầu trang}: Tên công ty, logo, trạng thái tài khoản (Đã duyệt / Chờ duyệt).
+        \item \textbf{Mô tả}: Khối văn bản mô tả các dịch vụ cung cấp (có thể chỉnh sửa).
+        \item \textbf{Khu vực phục vụ}: Tỉnh thành/Khu vực.
+        \item \textbf{Thông tin liên hệ}: Số điện thoại, email, địa chỉ trang web.
+        \item \textbf{Bật/Tắt hiển thị}: Toggles để ẩn/hiện hồ sơ trên Marketplace.
+    \end{itemize}
+    \item \textbf{CTA chính:} Lưu thay đổi.
+    \item \textbf{Các trạng thái:} Nếu hồ sơ chưa được ban quản trị duyệt, hiển thị thông báo trạng thái ``Đang chờ duyệt''.
+\end{itemize}
+
+\subsection{35. Vendor Profile Edit (Sửa hồ sơ nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp.
+    \item \textbf{Mục đích:} Cung cấp giao diện chỉnh sửa toàn bộ các trường thông tin hồ sơ của nhà cung cấp.
+\end{itemize}
+
+\subsection{36. Portfolio Management (Quản lý Portfolio)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp.
+    \item \textbf{Mục đích:} Quản lý thư viện hình ảnh thực tế để thu hút khách hàng.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Thư viện}: Lưới các ảnh đã tải lên (dạng thu nhỏ).
+        \item \textbf{Nút tải lên}: ``Thêm ảnh'' (mở hộp thoại chọn tệp hoặc kéo thả).
+        \item \textbf{Hành động trên ảnh}: Mỗi ảnh thu nhỏ có nút xóa (thùng rác) và tay cầm kéo thả để sắp xếp lại thứ tự hiển thị.
+    \end{itemize}
+    \item \textbf{Các trạng thái:} Trống (``Chưa có ảnh nào''); Đang tải lên (hiển thị spinner đè lên ảnh).
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Cho phép nhập văn bản thay thế (alt text) mô tả bức ảnh để phục vụ SEO và khả năng tiếp cận.
+\end{itemize}
+
+\subsection{37. Services Management (Quản lý dịch vụ/gói dịch vụ)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp.
+    \item \textbf{Mục đích:} Thiết lập và hiển thị các gói dịch vụ hoặc dịch vụ đơn lẻ đi kèm mức giá tham khảo.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Danh sách dịch vụ}: Mỗi gói dịch vụ hiển thị tên dịch vụ, mô tả chi tiết, giá cơ bản.
+        \item \textbf{Nút thêm dịch vụ}: Mở modal tạo dịch vụ mới.
+        \item \textbf{Sửa/Xóa}: Các biểu tượng thao tác trên từng mục.
+    \end{itemize}
+    \item \textbf{Thành phần Figma:} Mẫu hàng danh sách dịch vụ; biểu mẫu modal.
+\end{itemize}
+
+\subsection{38. Inquiry Management - Vendor Side (Quản lý yêu cầu tư vấn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp.
+    \item \textbf{Mục đích:} Xem và quản lý các yêu cầu đặt chỗ từ khách hàng.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Danh sách yêu cầu}: Các cột: Ngày gửi, Tên khách hàng, Nội dung tóm tắt, Trạng thái (Mới / Đã đọc / Đã phản hồi).
+        \item \textbf{Bộ lọc/Sắp xếp}: Lọc theo trạng thái, sắp xếp theo ngày tháng.
+    \end{itemize}
+    \item \textbf{Thành phần Figma:} Bảng dữ liệu; huy hiệu (badges) thể hiện trạng thái bằng màu sắc.
+\end{itemize}
+
+\subsection{39. Inquiry Detail - Vendor Side (Chi tiết yêu cầu tư vấn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp.
+    \item \textbf{Mục đích:} Đọc toàn bộ nội dung yêu cầu tư vấn của khách hàng và soạn tin nhắn phản hồi.
+    \item \textbf{Các phần/Thành phần UI:} Luồng tin nhắn hội thoại; khung nhập phản hồi và nút bấm gửi đi.
+    \item \textbf{Các trạng thái:} Đang chờ (chưa phản hồi); Đã trả lời; Đóng cuộc hội thoại.
+\end{itemize}
+
+\subsection{40. Vendor Analytics (Phân tích hiệu quả)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp.
+    \item \textbf{Mục đích:} Biểu đồ thống kê kết quả hoạt động kinh doanh (tùy chọn cho phiên bản MVP).
+    \item \textbf{Các phần/Thành phần UI:} Biểu đồ đường về số lượng yêu cầu tư vấn theo tháng; biểu đồ cột số lượt xem portfolio; các chỉ số tổng hợp.
+    \item \textbf{Lưu ý đáp ứng (Responsive):} Biểu đồ tự co giãn hoặc chuyển thành dạng bảng số liệu trên di động.
+\end{itemize}
+
+\subsection{41. Vendor Settings (Cài đặt nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp.
+    \item \textbf{Mục đích:} Cài đặt tài khoản nâng cao như thay đổi mật khẩu, cấu hình thông báo.
+\end{itemize}
+
+\section{Phân hệ Thanh toán (Payment Module)}
+
+\subsection{42. Payment Checkout (Thanh toán hóa đơn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng (sau khi chọn gói dịch vụ trả phí hoặc nâng cấp premium).
+    \item \textbf{Mục đích:} Xử lý giao dịch thanh toán an toàn.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Tóm tắt đơn hàng}: Hiển thị tên nhà cung cấp, gói dịch vụ, giá tiền.
+        \item \textbf{Trường nhập liệu thanh toán}: Số thẻ, ngày hết hạn, mã bảo mật CVV, thông tin địa chỉ hóa đơn.
+        \item \textbf{Nút bấm}: ``Thanh toán ngay''.
+    \end{itemize}
+    \item \textbf{Các trạng thái:} Đang xử lý giao dịch (loading spinner); Thanh toán thành công (hiển thị màn hình xác nhận/hóa đơn); Giao dịch thất bại (thông báo thẻ bị từ chối kèm lý do cụ thể).
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Sử dụng các thẻ bảo mật và nhãn aria rõ ràng cho các trường thông tin thẻ thanh toán nhạy cảm.
+\end{itemize}
+
+\subsection{43. Payment History (Lịch sử thanh toán)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Xem lại danh sách các giao dịch thanh toán đã thực hiện trong quá khứ.
+    \item \textbf{Các phần/Thành phần UI:} Bảng danh sách gồm: Ngày giao dịch, Tên nhà cung cấp/Dịch vụ, Số tiền thanh toán, Trạng thái giao dịch. Có liên kết đến trang ``Xem hóa đơn''.
+\end{itemize}
+
+\subsection{44. Payment Detail / Receipt (Chi tiết hóa đơn)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Khách hàng.
+    \item \textbf{Mục đích:} Hiển thị biên lai chi tiết của một giao dịch thanh toán cụ thể.
+    \item \textbf{Các phần/Thành phần UI:} Mã giao dịch, ngày thanh toán, chi tiết dịch vụ, phân tích thuế/phí, thông tin người thanh toán, nút tải xuống hóa đơn dưới dạng PDF.
+\end{itemize}
+
+\section{Mô-đun Quản trị hệ thống (Admin)}
+
+\subsection{45. Admin Dashboard (Bảng điều khiển admin)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Quản trị viên hệ thống.
+    \item \textbf{Mục đích:} Thống kê mức độ hoạt động và sức khỏe của hệ sinh thái Planora.
+    \item \textbf{Các phần/Thành phần UI:}
+    \begin{itemize}
+        \item \textbf{Chỉ số chính (KPIs)}: Thẻ thống kê tổng số người dùng, số nhà cung cấp, tổng số yêu cầu tư vấn, doanh thu.
+        \item \textbf{Biểu đồ}: Xu hướng phát triển người dùng mới qua biểu đồ đường.
+        \item \textbf{Cảnh báo cần xử lý}: Danh sách các tài khoản nhà cung cấp mới đang chờ duyệt cấp phép hoạt động.
+    \end{itemize}
+    \item \textbf{Khả năng tiếp cận (Accessibility):} Tiêu đề ngữ nghĩa rõ ràng; có phiên bản dạng bảng dữ liệu thay thế cho biểu đồ đồ họa.
+\end{itemize}
+
+\subsection{46. Admin – User Management (Quản lý người dùng)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Quản lý tài khoản khách hàng sử dụng hệ thống.
+    \item \textbf{Các phần/Thành phần UI:} Bảng danh sách: Tên, Email, Ngày tham gia, Trạng thái hoạt động, Các hành động kích hoạt/Khóa tài khoản/Gửi email trực tiếp. Có thanh tìm kiếm theo tên hoặc email.
+\end{itemize}
+
+\subsection{47. Admin – Vendor Management (Quản lý nhà cung cấp)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Phê duyệt cấp phép hoạt động hoặc quản lý thông tin các nhà cung cấp.
+    \item \textbf{Các phần/Thành phần UI:} Bảng danh sách: Tên nhà cung cấp, danh mục dịch vụ, trạng thái tài khoản (Đã duyệt / Chờ duyệt / Bị khóa), ngày đăng ký, nút bấm Phê duyệt/Khóa tài khoản. Các hàng của nhà cung cấp đang chờ duyệt được tô màu nổi bật để nhắc nhở hành động.
+\end{itemize}
+
+\subsection{48. Admin – Category Management (Quản lý danh mục)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Quản lý danh mục các dịch vụ đám cưới trên toàn hệ thống.
+    \item \textbf{Các phần/Thành phần UI:} Bảng danh sách danh mục hiện có; nút ``Thêm danh mục mới'' mở biểu mẫu nhập tên và mô tả danh mục.
+\end{itemize}
+
+\subsection{49. Admin – Style Management (Quản lý phong cách)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Quản lý các phong cách đám cưới gợi ý cho người dùng lựa chọn (Truyền thống, Hiện đại...).
+    \item \textbf{Các phần/Thành phần UI:} Bảng phong cách; tính năng thêm/sửa tên phong cách kèm nút tải lên hình ảnh đại diện tiêu biểu.
+\end{itemize}
+
+\subsection{50. Admin – Review Management (Kiểm duyệt đánh giá)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Kiểm duyệt các bình luận, đánh giá của khách hàng dành cho các nhà cung cấp nhằm đảm bảo tính lành mạnh của hệ thống.
+    \item \textbf{Các phần/Thành phần UI:} Bảng danh sách đánh giá: Nhà cung cấp được đánh giá, Người đánh giá, Số sao, Nội dung đánh giá, Trạng thái (Đã hiển thị / Bị báo cáo), Nút duyệt hiển thị/Xóa bình luận. Các đánh giá bị người dùng báo cáo vi phạm sẽ được hiển thị trên cùng kèm cảnh báo đỏ.
+\end{itemize}
+
+\subsection{51. Admin – Reports (Báo cáo thống kê)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Xem phân tích dữ liệu chuyên sâu và kết xuất báo cáo định kỳ.
+    \item \textbf{Các phần/Thành phần UI:} Bộ chọn khoảng thời gian báo cáo; biểu đồ phân bổ khách hàng theo khu vực; biểu đồ doanh thu; tính năng xuất báo cáo sang tệp Excel/CSV.
+\end{itemize}
+
+\subsection{52. Admin – Notifications (Thông báo hệ thống)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Xem nhật ký lỗi hệ thống hoặc các cảnh báo kỹ thuật quan trọng.
+\end{itemize}
+
+\subsection{53. Admin – Settings (Cài đặt hệ thống)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Admin.
+    \item \textbf{Mục đích:} Cấu hình các thông số toàn hệ thống (mẫu email tự động gửi, thông tin liên hệ của Planora, đơn vị tiền tệ mặc định, logo website).
+\end{itemize}
+
+\subsection{54. Khác – Trợ giúp dành cho Nhà cung cấp/Quản trị viên)}
+\begin{itemize}
+    \item \textbf{Tác nhân:} Nhà cung cấp/Admin.
+    \item \textbf{Mục đích:} Cung cấp tài liệu hướng dẫn vận hành hệ thống và giải đáp thắc mắc riêng biệt.
+\end{itemize}
+
+\section{Độ ưu tiên và Mức độ nỗ lực của các màn hình}
+Dưới đây là bảng phân loại độ ưu tiên thiết kế và mức độ nỗ lực (độ phức tạp thiết kế) của các màn hình nhằm định hướng phát triển sản phẩm khả thi tối thiểu (MVP).
+
+\begin{longtable}{p{7.5cm}cc}
+\toprule
+\textbf{Màn hình} & \textbf{Độ ưu tiên} & \textbf{Nỗ lực Thiết kế} \\
+\midrule
+Trang chủ / Landing Page & MVP & Trung bình \\
+Đăng nhập / Đăng ký / Quên mật khẩu & MVP & Thấp \\
+Các bước Onboarding (1–4) & MVP & Cao (4 màn hình) \\
+Tải tạo kế hoạch (Plan Generation) & MVP & Thấp \\
+Kết quả \& Chi tiết kế hoạch đám cưới & MVP & Cao (Biểu đồ \& Bố cục) \\
+Bảng điều khiển khách hàng (Customer Dashboard) & MVP & Trung bình \\
+Quản lý ngân sách (bao gồm biểu mẫu) & MVP & Cao (Biểu đồ \& Biểu mẫu) \\
+Quản lý Checklist & MVP & Trung bình \\
+Quản lý Timeline & MVP & Trung bình - Cao \\
+Chợ nhà cung cấp (danh sách, tìm kiếm, chi tiết) & MVP & Cao (Giao diện phức tạp) \\
+Danh sách rút gọn \& So sánh nhà cung cấp & Nice-to-have & Trung bình \\
+Yêu cầu tư vấn (biểu mẫu, danh sách, chi tiết) & MVP & Trung bình \\
+Thông báo (danh sách, chi tiết) & Nice-to-have & Thấp \\
+Hồ sơ người dùng \& Cài đặt & MVP (Hồ sơ), Nice-to-have (Cài đặt) & Trung bình \\
+Bảng điều khiển \& Hồ sơ nhà cung cấp & Nice-to-have & Trung bình \\
+Quản lý Portfolio/Dịch vụ/Yêu cầu (phía nhà cung cấp) & Nice-to-have & Cao (nhiều màn hình) \\
+Phân tích hiệu quả kinh doanh nhà cung cấp & Tùy chọn & Cao (thiết kế biểu đồ) \\
+Thanh toán (Checkout, lịch sử) & Nice-to-have & Cao \\
+Bảng điều khiển \& Quản lý Admin & Nice-to-have & Cao (bảng biểu, biểu đồ) \\
+Trang Trợ giúp / FAQ & Tùy chọn & Thấp \\
+\bottomrule
+\end{longtable}
+
+\textit{Ghi chú:} \textbf{MVP} = Cần thiết cho các tính năng cốt lõi; \textbf{Nice-to-have} = Nâng cao trải nghiệm; \textbf{Tùy chọn} = Tiện ích bổ sung. Nỗ lực giả định độ phức tạp thông thường (ví dụ: \textbf{Cao} đối với trực quan hóa dữ liệu hoặc quy trình nhiều bước, \textbf{Thấp} cho các biểu mẫu đơn giản).
+
+\section{Khuyến nghị Cấu trúc Tệp và Kiểu dáng Figma}
+
+\begin{itemize}
+    \item \textbf{Tổ chức các Trang (Pages Organization):}
+    \begin{itemize}
+        \item \textbf{Cover/Intro (Trang bìa/Giới thiệu):} Tiêu đề dự án, phiên bản, tác giả.
+        \item \textbf{Design System (UI Kit):} Định nghĩa \textbf{màu sắc}, \textbf{kiểu chữ}, \textbf{thang khoảng cách (spacing scales)}, \textbf{thư viện biểu tượng}, và \textbf{các thành phần toàn cục (global components)} (nút, ô nhập liệu, thẻ). Nhóm các giá trị cơ bản (primitives như Blue-100, space-8) và các token ngữ nghĩa (semantic tokens như color/action/primary) trong Figma variables.
+        \item \textbf{Wireframes (Bản phác thảo):} Phác thảo bố cục thô trước khi thiết kế chi tiết (nếu làm độ trung thực thấp - low-fi).
+        \item \textbf{Screens (Các màn hình):} Các trang giao diện người dùng hoàn chỉnh cuối cùng, được tổ chức theo các phần (sử dụng Figma Sections cho ``Onboarding'', ``Planning'', ``Vendor Portal'' v.v.). Mỗi khung hình màn hình (frame) được đặt tên rõ ràng (ví dụ: ``Budget = Default'', ``Budget = Empty State'').
+        \item \textbf{Handoff/Developer (Bàn giao/Lập trình viên):} Các màn hình được chú thích kèm thông số kỹ thuật (khoảng đệm, kích thước phông chữ), các tài nguyên sẵn sàng xuất (assets), và tài liệu hướng dẫn phong cách (style guide) nếu cần.
+    \end{itemize}
+    
+    \item \textbf{Thư viện Thành phần (Components Library):}
+    \begin{itemize}
+        \item \textbf{Foundation (Cơ sở):} Nút (Nút chính/Nút phụ), Ô nhập liệu biểu mẫu (văn bản, ngày tháng, lựa chọn), Hộp kiểm (Checkboxes), Nút chọn một (Radios), Các tab, Hộp thoại/Modal, Thẻ (Nhà cung cấp, Công việc, v.v.), Bộ biểu tượng. Mỗi thành phần đều sử dụng Auto Layout để đảm bảo khoảng cách nhất quán. Sử dụng hệ thống lưới 8pt (8pt grid system) cho khoảng cách.
+        \item \textbf{Overlays \& States (Lớp phủ \& Trạng thái):} Lớp phủ modal/đang tải, hình minh họa trạng thái trống (empty-state).
+        \item \textbf{Charts (Biểu đồ):} Các thành phần giữ chỗ (placeholders) cho biểu đồ hình tròn/biểu đồ cột (hoặc sử dụng các plugin để tạo biểu đồ mô phỏng dựa trên dữ liệu thật).
+    \end{itemize}
+    
+    \item \textbf{Styles/Tokens (Kiểu dáng/Token):}
+    \begin{itemize}
+        \item Định nghĩa \textbf{Bảng màu (Color Palette)} (màu chủ đạo, màu phụ, màu trung tính) và \textbf{Kiểu chữ (Text Styles)} (H1–H4, văn bản thường - Body, chú thích - Captions) trong Figma Styles/Variables.
+        \item \textbf{Thang đo khoảng cách (Spacing Scale):} Các bước tăng dần 4px hoặc 8px.
+        \item \textbf{Biểu tượng (Icons):} Sử dụng một bộ nhất quán (ví dụ: Material Icons hoặc FontAwesome) cho các hành động (tìm kiếm, chỉnh sửa, xóa).
+    \end{itemize}
+\end{itemize}
+
+\section{Danh sách Kiểm tra Bàn giao Thiết kế (Handoff Checklist)}
+
+\begin{itemize}
+    \item \textbf{Màn hình có chú thích (Annotated Screens):} Đảm bảo mỗi bản thiết kế màn hình đều có ghi chú rõ ràng về lề/khoảng đệm (margins/paddings). Gán nhãn các thành phần bằng tên biến thể tương ứng (ví dụ: ``Primary Button/Default'').
+    \item \textbf{Tài nguyên có thể xuất (Exportable Assets):} Đánh dấu tất cả hình ảnh, biểu tượng (icons), biểu trưng (logos) ở chế độ sẵn sàng xuất (định dạng SVG/PNG). Cung cấp logo độ phân giải cao và các biểu tượng tùy chỉnh khác.
+    \item \textbf{Token Thiết kế (Design Tokens):} Chia sẻ các token màu sắc và typographic (dưới dạng biến số Figma hoặc tài liệu styleguide JSON riêng).
+    \item \textbf{Cách sử dụng Thành phần (Component Usage):} Lập trình viên nên sử dụng các phiên bản sao (instances) của thành phần chính. Hướng dẫn về thành phần nào cần tái sử dụng (ví dụ: ``Sử dụng nút Button / Primary với biến thể mặc định'').
+    \item \textbf{Các tương tác (Interactions - Tùy chọn):} Tài liệu hóa các tương tác chính (ví dụ: hiệu ứng chuyển tiếp nút Tiếp theo trong onboarding, các trạng thái hover) trong một tài liệu riêng hoặc dưới dạng ghi chú.
+    \item \textbf{Lưu ý về Khả năng tiếp cận (Accessibility Notes):} Liệt kê các kiểm tra độ tương phản màu sắc (tuân thủ tiêu chuẩn AA/AAA đối với văn bản), văn bản thay thế (alt-text) cho hình ảnh, thứ tự nhận tiêu điểm (focus order).
+    \item \textbf{Quản lý phiên bản (Versioning):} Đính kèm thông tin phiên bản trên trang Bìa và khóa (hoặc ghi chép tài liệu) các style thiết kế để tránh bị lệch thiết kế trong quá trình phát triển (drift).
+\end{itemize}
+
+\vspace{1cm}
+\textbf{Nguồn tham chiếu:} Tài liệu đặc tả này tuân thủ phác thảo màn hình gốc của Planora và mở rộng bằng cách sử dụng các thực hành tốt nhất của ngành công nghiệp (tính năng ứng dụng đám cưới, thiết kế biểu mẫu, giao diện thương mại điện tử và hướng dẫn hệ thống thiết kế Figma). Mỗi mô tả màn hình đều được xây dựng dựa trên các hiểu biết thực tế và các mẫu UX phổ biến cho giao diện lập kế hoạch và dashboard quản trị.
+
+\end{document}
