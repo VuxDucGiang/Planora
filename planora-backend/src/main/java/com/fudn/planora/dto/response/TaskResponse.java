@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class TaskResponse {
     private Long id;
     private Long weddingPlanId;
+    private String title;
     private String description;
     private LocalDate dueDate;
     private EChecklistTaskStatus status;
