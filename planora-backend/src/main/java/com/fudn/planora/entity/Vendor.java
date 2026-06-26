@@ -2,6 +2,10 @@ package com.fudn.planora.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
+import java.util.Set;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -48,6 +52,19 @@ public class Vendor {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    @ManyToMany
+    @JoinTable(
+            name = "vendor_styles",
+            joinColumns = @JoinColumn(name = "vendor_id"),
+            inverseJoinColumns = @JoinColumn(name = "wedding_style_id")
+    )
+    private Set<WeddingStyle> weddingStyles;
+
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<VendorService> services;
+
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<VendorPortfolio> portfolios;
 
     @PrePersist
     protected void onCreate() {
@@ -63,4 +80,6 @@ public class Vendor {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+
 }

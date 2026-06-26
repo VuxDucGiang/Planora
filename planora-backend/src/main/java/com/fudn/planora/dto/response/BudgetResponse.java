@@ -1,7 +1,6 @@
 package com.fudn.planora.dto.response;
 
 import lombok.*;
-import org.checkerframework.checker.units.qual.A;
 
 import java.math.BigDecimal;
 import java.util.List;
