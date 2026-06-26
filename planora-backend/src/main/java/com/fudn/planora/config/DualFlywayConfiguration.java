@@ -12,6 +12,9 @@ public class DualFlywayConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(DualFlywayConfiguration.class);
 
+    @Value("${SPRING_FLYWAY_AIVEN_ENABLED:false}")
+    private boolean aivenMigrationEnabled;
+
     @Value("${AIVEN_DATASOURCE_URL:}")
     private String aivenUrl;
 
@@ -23,6 +26,11 @@ public class DualFlywayConfiguration {
 
     @PostConstruct
     public void migrateAivenDatabase() {
+        if (!aivenMigrationEnabled) {
+            log.info("Aiven database migration is disabled. Skipping secondary migration.");
+            return;
+        }
+
         if (aivenUrl == null || aivenUrl.trim().isEmpty()) {
             log.info("Aiven database URL is not configured (AIVEN_DATASOURCE_URL is empty). Skipping Aiven migration.");
             return;
