@@ -121,8 +121,8 @@ import com.fudn.planora.dto.response.BudgetResponse;
 import com.fudn.planora.dto.response.BudgetItemResponse;
 
 public interface BudgetService {
-    BudgetResponse getBudget(Long planId, Long currentUserId);
-    BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, Long currentUserId);
+    BudgetResponse getBudget(Long planId, String email);
+    BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, String email);
 }
 ```
 
@@ -136,8 +136,10 @@ import com.fudn.planora.dto.request.UpdateBudgetItemRequest;
 import com.fudn.planora.dto.response.BudgetItemResponse;
 import com.fudn.planora.dto.response.BudgetResponse;
 import com.fudn.planora.entity.BudgetItem;
+import com.fudn.planora.entity.User;
 import com.fudn.planora.entity.WeddingPlan;
 import com.fudn.planora.repository.BudgetItemRepository;
+import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.repository.WeddingPlanRepository;
 import com.fudn.planora.service.BudgetService;
 import lombok.RequiredArgsConstructor;
@@ -154,10 +156,11 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetItemRepository budgetItemRepository;
     private final WeddingPlanRepository weddingPlanRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public BudgetResponse getBudget(Long planId, Long currentUserId) {
-        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+    public BudgetResponse getBudget(Long planId, String email) {
+        WeddingPlan plan = validateWeddingPlanOwner(planId, email);
         
         List<BudgetItem> items = budgetItemRepository.findByWeddingPlanId(planId);
 
@@ -197,12 +200,12 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional
-    public BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, Long currentUserId) {
+    public BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, String email) {
         BudgetItem item = budgetItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng mục ngân sách có ID: " + itemId));
 
         // Xác thực người sở hữu kế hoạch đám cưới
-        validateWeddingPlanOwner(item.getWeddingPlan().getId(), currentUserId);
+        validateWeddingPlanOwner(item.getWeddingPlan().getId(), email);
 
         if (request.getEstimatedCost() != null) {
             item.setEstimatedCost(request.getEstimatedCost());
@@ -226,10 +229,12 @@ public class BudgetServiceImpl implements BudgetService {
                 .build();
     }
 
-    private WeddingPlan validateWeddingPlanOwner(Long planId, Long userId) {
+    private WeddingPlan validateWeddingPlanOwner(Long planId, String email) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         WeddingPlan plan = weddingPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Kế hoạch đám cưới"));
-        if (!plan.getUser().getId().equals(userId)) {
+        if (!plan.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Bạn không có quyền truy cập vào kế hoạch đám cưới này");
         }
         return plan;
@@ -250,7 +255,6 @@ package com.fudn.planora.controller;
 import com.fudn.planora.dto.request.UpdateBudgetItemRequest;
 import com.fudn.planora.dto.response.BudgetItemResponse;
 import com.fudn.planora.dto.response.BudgetResponse;
-import com.fudn.planora.security.CustomUserDetails;
 import com.fudn.planora.service.BudgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -267,9 +271,9 @@ public class BudgetController {
     @GetMapping("/wedding-plans/{planId}/budget")
     public ResponseEntity<BudgetResponse> getBudget(
             @PathVariable Long planId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal String email
     ) {
-        BudgetResponse response = budgetService.getBudget(planId, userDetails.getId());
+        BudgetResponse response = budgetService.getBudget(planId, email);
         return ResponseEntity.ok(response);
     }
 
@@ -277,9 +281,9 @@ public class BudgetController {
     public ResponseEntity<BudgetItemResponse> updateBudgetItem(
             @PathVariable Long itemId,
             @RequestBody UpdateBudgetItemRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal String email
     ) {
-        BudgetItemResponse response = budgetService.updateBudgetItem(itemId, request, userDetails.getId());
+        BudgetItemResponse response = budgetService.updateBudgetItem(itemId, request, email);
         return ResponseEntity.ok(response);
     }
 }

@@ -4,8 +4,10 @@ import com.fudn.planora.dto.request.UpdateBudgetItemRequest;
 import com.fudn.planora.dto.response.BudgetItemResponse;
 import com.fudn.planora.dto.response.BudgetResponse;
 import com.fudn.planora.entity.BudgetItem;
+import com.fudn.planora.entity.User;
 import com.fudn.planora.entity.WeddingPlan;
 import com.fudn.planora.repository.BudgetItemRepository;
+import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.repository.WeddingPlanRepository;
 import com.fudn.planora.service.BudgetService;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +24,11 @@ public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetItemRepository budgetItemRepository;
     private final WeddingPlanRepository weddingPlanRepository;
+    private final UserRepository userRepository;
 
     @Override
-    public BudgetResponse getBudget(Long planId, Long currentUserId) {
-        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+    public BudgetResponse getBudget(Long planId, String email) {
+        WeddingPlan plan = validateWeddingPlanOwner(planId, email);
 
         List<BudgetItem> items = budgetItemRepository.findByWeddingPlanId(planId);
 
@@ -65,12 +68,12 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional
-    public BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, Long currentUserId) {
+    public BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, String email) {
         BudgetItem item = budgetItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng mục ngân sách có ID: " + itemId));
 
         // Xác thực người sở hữu kế hoạch đám cưới
-        validateWeddingPlanOwner(item.getWeddingPlan().getId(), currentUserId);
+        validateWeddingPlanOwner(item.getWeddingPlan().getId(), email);
 
         if (request.getEstimatedCost() != null) {
             item.setEstimatedCost(request.getEstimatedCost());
@@ -94,10 +97,12 @@ public class BudgetServiceImpl implements BudgetService {
                 .build();
     }
 
-    private WeddingPlan validateWeddingPlanOwner(Long planId, Long userId) {
+    private WeddingPlan validateWeddingPlanOwner(Long planId, String email) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         WeddingPlan plan = weddingPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Kế hoạch đám cưới"));
-        if (!plan.getUser().getId().equals(userId)) {
+        if (!plan.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Bạn không có quyền truy cập vào kế hoạch đám cưới này");
         }
         return plan;
