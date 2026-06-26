@@ -47,6 +47,7 @@ jobs:
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: root
           SPRING_JPA_HIBERNATE_DDL_AUTO: none
+          SPRING_JPA_SHOW_SQL: "false"
           SPRING_FLYWAY_ENABLED: true
           SPRING_FLYWAY_LOCATIONS: classpath:db/migration
           GOOGLE_CLIENT_ID: mock-google-client-id
