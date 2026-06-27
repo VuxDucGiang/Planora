@@ -47,6 +47,14 @@ export default function Timeline() {
   const [eventDesc, setEventDesc] = useState('');
   const [eventDateTime, setEventDateTime] = useState(''); // YYYY-MM-DDTHH:mm
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [now, setNow] = useState<number>(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNow(Date.now());
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -257,7 +265,7 @@ export default function Timeline() {
             {sortedEvents.length > 0 ? (
               sortedEvents.map((ev, idx) => {
                 const dateObj = new Date(ev.eventDate);
-                const isPassed = dateObj.getTime() < Date.now();
+                const isPassed = now > 0 && dateObj.getTime() < now;
 
                 return (
                   <div key={ev.id} className="relative animate-fade-in">
@@ -320,7 +328,7 @@ export default function Timeline() {
             ) : (
               <div className="py-16 text-center bg-white border border-hairline rounded-lg shadow-sm text-muted-text flex flex-col items-center gap-2 pl-0 -ml-6 sm:-ml-8 w-full">
                 <Calendar className="w-10 h-10 text-hairline" />
-                <span className="text-xs font-semibold">Dòng thời gian đang trống. Nhấp "Thêm mốc sự kiện" để bắt đầu!</span>
+                <span className="text-xs font-semibold">Dòng thời gian đang trống. Nhấp &quot;Thêm mốc sự kiện&quot; để bắt đầu!</span>
               </div>
             )}
           </div>
