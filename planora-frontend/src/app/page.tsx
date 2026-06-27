@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getActivePlan } from '@/services/weddingPlan';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
+import { formatDate } from '@/utils/date';
 import { 
   User as UserIcon, 
   Calendar, 
@@ -242,7 +243,7 @@ export default function Home() {
                     Đếm ngược ngày cưới
                   </span>
                   <span className="text-xs font-semibold text-muted-text">
-                    {plan.weddingDate}
+                    {formatDate(plan.weddingDate)}
                   </span>
                 </div>
 
@@ -291,9 +292,12 @@ export default function Home() {
                 </div>
 
                 <div className="border-t border-hairline pt-3 text-right">
-                  <span className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center justify-end gap-0.5">
+                  <Link 
+                    href="/checklist"
+                    className="text-[11px] font-bold text-primary hover:underline flex items-center justify-end gap-0.5"
+                  >
                     Quản lý công việc <ChevronRight className="w-3 h-3" />
-                  </span>
+                  </Link>
                 </div>
               </div>
 
@@ -325,9 +329,12 @@ export default function Home() {
                 </div>
 
                 <div className="border-t border-hairline pt-3 text-right">
-                  <span className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center justify-end gap-0.5">
+                  <Link 
+                    href="/budget"
+                    className="text-[11px] font-bold text-primary hover:underline flex items-center justify-end gap-0.5"
+                  >
                     Quản lý ngân sách <ChevronRight className="w-3 h-3" />
-                  </span>
+                  </Link>
                 </div>
               </div>
 
@@ -416,7 +423,10 @@ export default function Home() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 
-                <div className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group">
+                <Link 
+                  href="/checklist" 
+                  className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group"
+                >
                   <div className="p-2 rounded-sm bg-primary/10 text-primary w-fit mb-3">
                     <ListTodo className="w-4 h-4" />
                   </div>
@@ -427,9 +437,12 @@ export default function Home() {
                   <span className="absolute top-4 right-4 text-muted-text group-hover:text-primary transition-colors">
                     <ChevronRight className="w-4 h-4" />
                   </span>
-                </div>
+                </Link>
 
-                <div className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group">
+                <Link 
+                  href="/timeline" 
+                  className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group"
+                >
                   <div className="p-2 rounded-sm bg-primary/10 text-primary w-fit mb-3">
                     <Calendar className="w-4 h-4" />
                   </div>
@@ -440,9 +453,12 @@ export default function Home() {
                   <span className="absolute top-4 right-4 text-muted-text group-hover:text-primary transition-colors">
                     <ChevronRight className="w-4 h-4" />
                   </span>
-                </div>
+                </Link>
 
-                <div className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group">
+                <Link 
+                  href="/budget" 
+                  className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group"
+                >
                   <div className="p-2 rounded-sm bg-primary/10 text-primary w-fit mb-3">
                     <DollarSign className="w-4 h-4" />
                   </div>
@@ -453,9 +469,12 @@ export default function Home() {
                   <span className="absolute top-4 right-4 text-muted-text group-hover:text-primary transition-colors">
                     <ChevronRight className="w-4 h-4" />
                   </span>
-                </div>
+                </Link>
 
-                <div className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group">
+                <Link 
+                  href="/marketplace" 
+                  className="p-4 bg-white border border-hairline rounded-sm flex flex-col justify-between hover:bg-canvas transition-colors shadow-sm relative group"
+                >
                   <div className="p-2 rounded-sm bg-primary/10 text-primary w-fit mb-3">
                     <Building className="w-4 h-4" />
                   </div>
@@ -466,7 +485,7 @@ export default function Home() {
                   <span className="absolute top-4 right-4 text-muted-text group-hover:text-primary transition-colors">
                     <ChevronRight className="w-4 h-4" />
                   </span>
-                </div>
+                </Link>
 
               </div>
             </div>
