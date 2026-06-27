@@ -360,7 +360,7 @@ export default function Checklist() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text border-r border-hairline pr-2 mr-1">Sắp xếp</span>
                 <select
                   value={sortBy}
-                  onChange={e => setSortBy(e.target.value as any)}
+                  onChange={e => setSortBy(e.target.value as 'DUE_DATE_ASC' | 'DUE_DATE_DESC' | 'PRIORITY_DESC')}
                   className="text-xs font-semibold text-ink bg-transparent focus:outline-none cursor-pointer"
                 >
                   <option value="DUE_DATE_ASC">Hạn chót tăng dần</option>

@@ -408,7 +408,7 @@ export default function Home() {
                   ) : (
                     <div className="p-4 bg-canvas border border-hairline rounded-sm flex items-center gap-3 text-xs text-muted-text leading-relaxed h-full">
                       <AlertCircle className="w-4.5 h-4.5 text-muted-text flex-shrink-0" />
-                      <span>Không có đề xuất concept nào phù hợp với phong cách được chọn. Bạn có thể thay đổi phong cách cưới bằng cách nhấn nút "Tạo kế hoạch mới".</span>
+                      <span>Không có đề xuất concept nào phù hợp với phong cách được chọn. Bạn có thể thay đổi phong cách cưới bằng cách nhấn nút &quot;Tạo kế hoạch mới&quot;.</span>
                     </div>
                   )}
                 </div>
