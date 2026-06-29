@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Abhaya+Libre:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Abhaya+Libre:wght@700&family=Istok+Web:wght@400;700&family=IM+Fell+French+Canon&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -9,15 +9,15 @@
   --color-muted-text: #8a8a8a;
   --color-hairline: #e0e0e0;
   --color-border-strong: #d0d0d0;
-  --color-canvas: #f8f7f5;
-  --color-surface-soft: #f0ede8;
+  --color-canvas: #FFFBF5;
+  --color-surface-soft: #FFFBF5;
   --color-surface-strong: #e5e0d8;
   --color-surface-dark: #2a2a2a;
   --color-surface-dark-elevated: #3a3a3a;
 
   --color-sage-green: #5D0F12;
   --color-sage-active: #4A0C0E;
-  --color-cream: #f8f7f5;
+  --color-cream: #FFFBF5;
   --color-warm-white: #faf8f5;
   --color-beige: #e5e0d8;
   --color-dark-grey: #2a2a2a;
@@ -124,8 +124,22 @@ a:hover {
 
 /* Pause animation on hover */
 .pause-hover:hover .animate-marquee-up,
-.pause-hover:hover .animate-marquee-down {
+.pause-hover:hover .animate-marquee-down,
+.pause-hover:hover .animate-marquee-left {
   animation-play-state: paused;
+}
+
+@keyframes marquee-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-left {
+  animation: marquee-left 35s linear infinite;
 }
 
 @font-face {
