@@ -180,6 +180,7 @@ export default function Marketplace() {
     selectedCity, 
     selectedStyle, 
     priceFrom, 
+    priceTo,
     searchQuery,
     isAuthenticated
   ]);
