@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, ChevronRight, Sparkles, Users, Palette, Compass } from 'lucide-react';
+import { Heart, ChevronRight, Sparkles, Users, Palette, Compass, Plus, Minus, Check } from 'lucide-react';
 import LandingHeader from '@/components/layout/LandingHeader';
 import LandingFooter from '@/components/layout/LandingFooter';
 
-interface Service {
-  icon: React.ReactNode;
+interface Benefit {
   title: string;
   description: string;
 }
@@ -14,99 +13,134 @@ interface Service {
 interface Testimonial {
   quote: string;
   name: string;
-  location: string;
-  tag: string;
+  role: string;
 }
 
-const services: Service[] = [
+interface PricingPlan {
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+  popular?: boolean;
+}
+
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+const benefits: Benefit[] = [
   {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Venue Curation',
-    description: 'Discover the perfect venue that matches your vision and budget',
+    title: 'Curated Timelines & Checklists',
+    description: 'Stay on track with our comprehensive planning guides designed specifically for your wedding',
   },
   {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Guest Management',
-    description: 'Seamless RSVP tracking and invitation management tools',
+    title: 'Smart Vendor Management',
+    description: 'Connect with vetted vendors and manage contracts, timelines, and communications effortlessly',
   },
   {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Design & Decoration',
-    description: 'Professional design consultation for your special day',
+    title: 'Guest Management & RSVPs',
+    description: 'Beautiful invitations and seamless RSVP tracking with interactive seating charts',
   },
   {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Day Coordination',
-    description: 'Expert coordination to ensure your day flows perfectly',
+    title: 'Design & Budget Tools',
+    description: 'Visualize your aesthetic and track every expense with ease',
   },
 ];
 
-const col1Testimonials: Testimonial[] = [
+const testimonials: Testimonial[] = [
   {
-    quote: 'Planora transformed the way we planned our wedding. Everything was organized and stress-free.',
+    quote: 'Planora made planning our wedding feel like a joy instead of a stressful burden. Every detail was handled beautifully.',
     name: 'Sarah & Michael',
-    location: 'New York',
-    tag: 'Full Planning',
+    role: 'Married June 2025',
   },
   {
-    quote: 'The visual coordination tool is a game changer. We visualized our venue layout perfectly.',
+    quote: 'The organizational tools are simply unmatched. We managed 150+ guests and everything was perfect.',
     name: 'Emily & David',
-    location: 'Los Angeles',
-    tag: 'Design & Decor',
+    role: 'Married May 2025',
   },
   {
-    quote: 'We managed over 200 guests RSVPs without a single issue. The seating chart tool is magic.',
-    name: 'Sophia & James',
-    location: 'Chicago',
-    tag: 'RSVP Tool',
-  },
-];
-
-const col2Testimonials: Testimonial[] = [
-  {
-    quote: 'The team was supportive throughout our entire planning journey. Truly exceptional service.',
+    quote: 'From first search to walking down the aisle, Planora was our trusted partner every step of the way.',
     name: 'Jessica & Tom',
-    location: 'Seattle',
-    tag: 'Coordination',
-  },
-  {
-    quote: 'We saved hours of work using the auto-reminders for guest RSVPs. Highly recommended!',
-    name: 'Emma & John',
-    location: 'Boston',
-    tag: 'Guest RSVP',
-  },
-  {
-    quote: 'Finding trusted vendors in our area was so easy. The curated directory is outstanding.',
-    name: 'Olivia & Ryan',
-    location: 'Miami',
-    tag: 'Vendor Directory',
+    role: 'Married April 2025',
   },
 ];
 
-const col3Testimonials: Testimonial[] = [
+const pricingPlans: PricingPlan[] = [
   {
-    quote: 'From venue selection to final details, Planora was our perfect planning partner.',
-    name: 'Lisa & David',
-    location: 'Austin',
-    tag: 'Full Planning',
+    name: 'Starter',
+    price: '$49',
+    description: 'Perfect for intimate gatherings',
+    features: [
+      'Up to 50 guests',
+      'Basic timeline & checklist',
+      'Email invitations',
+      'Budget tracker',
+      'Community support',
+    ],
   },
   {
-    quote: 'Our wedding day flowed flawlessly thanks to the timeline planning feature.',
-    name: 'Chloe & Matthew',
-    location: 'San Francisco',
-    tag: 'Timeline Control',
+    name: 'Premium',
+    price: '$149',
+    description: 'Most popular choice',
+    features: [
+      'Up to 200 guests',
+      'Advanced planning tools',
+      'Custom invitations',
+      'Vendor management',
+      'Seating chart creator',
+      'Priority support',
+      'Timeline automation',
+    ],
+    popular: true,
   },
   {
-    quote: 'Their customer support team went above and beyond to help us customize our invitation cards.',
-    name: 'Grace & Andrew',
-    location: 'Denver',
-    tag: 'Guest RSVP',
+    name: 'Elite',
+    price: '$299',
+    description: 'For grand celebrations',
+    features: [
+      'Unlimited guests',
+      'Concierge planning assistant',
+      'White-label invitations',
+      'Vendor coordination',
+      'Custom design tools',
+      'Day-of coordination app',
+      'VIP 24/7 support',
+    ],
+  },
+];
+
+const faqs: FAQ[] = [
+  {
+    question: 'How far in advance should we start planning?',
+    answer: 'Ideally 12-18 months before your wedding date. However, our tools are flexible and work great for shorter timelines too. Many couples have planned beautiful weddings in 6-9 months with Planora\'s help.',
+  },
+  {
+    question: 'Can I import my existing guest list?',
+    answer: 'Yes! You can easily import guest lists from CSV files or spreadsheets. Our system will automatically help you organize and categorize them for easy management.',
+  },
+  {
+    question: 'Is there a contract or commitment required?',
+    answer: 'No contracts! You can upgrade, downgrade, or cancel your subscription anytime. We want to earn your continued trust through exceptional service.',
+  },
+  {
+    question: 'What support is included with my plan?',
+    answer: 'All plans include email support. Premium includes priority support with 24-hour response times. Elite includes dedicated concierge support available 7 days a week.',
+  },
+  {
+    question: 'Can multiple people access our wedding planning account?',
+    answer: 'Absolutely! You can invite family members, your partner, and your wedding party to collaborate in real-time on all planning details.',
+  },
+  {
+    question: 'Do you offer a money-back guarantee?',
+    answer: 'Yes, we offer a 30-day money-back guarantee if you\'re not completely satisfied. Your satisfaction is our priority.',
   },
 ];
 
 export default function WeddingLanding() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,302 +151,272 @@ export default function WeddingLanding() {
 
   return (
     <div className="min-h-screen bg-cream overflow-hidden">
-      {/* Top Section with Full-Bleed Background Image */}
-      <div className="relative min-h-screen lg:min-h-[90vh] flex flex-col">
-        {/* Background Image Layer */}
+      <LandingHeader />
+
+      {/* Hero Section */}
+      <section className="relative pt-24 pb-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img
-            src="/wedding-landing.jpg"
-            alt="Wedding Background"
-            className="w-full h-full object-cover"
-          />
-          {/* Gradients to guarantee text contrast and smooth page transition */}
-          <div className="absolute inset-0 bg-gradient-to-r from-cream/45 via-cream/15 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cream" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-burgundy-light/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-burgundy/10 rounded-full blur-3xl" />
         </div>
-
-        <LandingHeader />
-
-        {/* Hero Section */}
-        <section className="relative z-10 flex-1 flex items-center pt-12 pb-24">
-          <div className="max-w-7xl mx-auto px-6 sm:px-10 w-full">
-            {/* Left Content Overlay */}
-            <div className="max-w-xl flex flex-col justify-center space-y-6">
-              <div className="space-y-4">
-                <p className="text-xs font-bold text-sage-green tracking-widest">CELEBRATE TOGETHER</p>
-                <h1 className="text-6xl lg:text-7xl font-bold text-ink leading-tight" style={{ fontFamily: 'var(--font-hero)' }}>
-                  Your perfect
-                  <br />
-                  day awaits
-                </h1>
-                <p className="text-lg text-body-text leading-relaxed max-w-md">
-                  Streamline every moment of your wedding planning. From venue selection to final coordination, we&apos;ve got you covered.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button className="px-7 py-3 rounded-sm text-cream bg-sage-green hover:bg-sage-active transition-editorial font-semibold text-sm flex items-center justify-center gap-2 cursor-pointer">
-                  Start Planning
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <button className="px-7 py-3 rounded-sm text-sage-green border-2 border-sage-green bg-transparent hover:bg-sage-green/5 transition-editorial font-semibold text-sm cursor-pointer">
-                  View Stories
-                </button>
-              </div>
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <p className="text-sm font-semibold text-burgundy tracking-widest uppercase mb-6">Welcome to Planora</p>
+            <h1 className="text-6xl md:text-7xl font-serif text-ink leading-tight mb-8" style={{ fontFamily: 'var(--font-serif)' }}>
+              Craft Your<br />Unforgettable Day
+            </h1>
+            <p className="text-xl text-body-text leading-relaxed mb-12 max-w-2xl mx-auto">
+              Wedding planning made effortless. From venue to vows, our comprehensive platform handles every detail so you can focus on the love.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="px-8 py-4 bg-burgundy text-cream font-semibold rounded hover:bg-burgundy-dark transition-editorial flex items-center justify-center gap-2">
+                Start Planning Now
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              <button className="px-8 py-4 border-2 border-burgundy text-burgundy bg-transparent font-semibold rounded hover:bg-burgundy/5 transition-editorial">
+                See Success Stories
+              </button>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-white/30">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { label: 'Guest Management', value: '100%' },
-              { label: 'Timeline Control', value: 'Full' },
-              { label: 'Vendor Coordination', value: 'Seamless' },
-              { label: 'Budget Tracking', value: 'Real-time' },
-            ].map((feature, idx) => (
-              <div key={idx} className="text-center">
-                <p className="text-3xl font-bold font-display text-sage-green mb-1">{feature.value}</p>
-                <p className="text-xs uppercase tracking-wider text-muted-text font-semibold">{feature.label}</p>
+      {/* Benefits Section */}
+      <section className="py-32 bg-blush lace-top lace-bottom">
+        <div className="max-w-6xl mx-auto px-6 sm:px-10">
+          <div className="text-center mb-20">
+            <p className="text-sm font-semibold text-burgundy tracking-widest uppercase mb-4">Why Choose Planora</p>
+            <h2 className="text-5xl md:text-6xl font-serif text-ink" style={{ fontFamily: 'var(--font-serif)' }}>
+              Complete Planning Suite
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-12">
+            {benefits.map((benefit, idx) => (
+              <div key={idx} className="flex gap-6">
+                <Heart className="w-8 h-8 text-burgundy flex-shrink-0 mt-2" />
+                <div>
+                  <h3 className="text-xl font-semibold text-ink mb-3">{benefit.title}</h3>
+                  <p className="text-body-text leading-relaxed">{benefit.description}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-24">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-20">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-display font-bold text-ink leading-tight mb-6">
-                Complete wedding planning
-              </h2>
-              <p className="text-lg text-body-text leading-relaxed">
-                We provide everything you need to plan and execute your dream wedding with confidence and ease.
-              </p>
-            </div>
-            <div className="space-y-8">
-              {services.map((service, idx) => (
-                <div key={idx} className="flex gap-4">
-                  <div className="text-sage-green flex-shrink-0">
-                    {service.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-ink mb-1">{service.title}</h3>
-                    <p className="text-sm text-muted-text">{service.description}</p>
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-32">
+        <div className="max-w-6xl mx-auto px-6 sm:px-10">
+          <div className="text-center mb-20">
+            <p className="text-sm font-semibold text-burgundy tracking-widest uppercase mb-4">Our Process</p>
+            <h2 className="text-5xl md:text-6xl font-serif text-ink" style={{ fontFamily: 'var(--font-serif)' }}>
+              How It Works
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-12">
+            {[
+              {
+                number: '1',
+                title: 'Enter Your Details',
+                description: 'Tell us about your vision, budget, and date. Our smart system creates a personalized planning timeline just for you.',
+              },
+              {
+                number: '2',
+                title: 'Receive All Managed Costs & Vendors',
+                description: 'Get access to our curated network of vetted vendors and real-time budget management to track every expense.',
+              },
+              {
+                number: '3',
+                title: 'Manage & Update Your Progress',
+                description: 'Stay organized with interactive checklists, vendor coordination, and real-time collaboration with your whole team.',
+              },
+            ].map((step, idx) => (
+              <div key={idx} className="relative">
+                <div className="mb-6">
+                  <div className="w-16 h-16 rounded-full bg-burgundy text-cream flex items-center justify-center text-2xl font-serif font-bold" style={{ fontFamily: 'var(--font-serif)' }}>
+                    {step.number}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery Section */}
-      <section id="gallery" className="py-24 bg-surface-soft">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16 items-stretch">
-            {/* Left Column: Collection Showcase Image */}
-            <div className="order-last md:order-first relative w-full min-h-[350px] md:min-h-full rounded-3xl overflow-hidden shadow-lg group">
-              <img
-                src="/wedding-our-collection.jpg"
-                alt="Wedding Collection Showcase"
-                className="w-full h-full object-cover group-hover:scale-105 transition-editorial duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-            </div>
-
-            {/* Right Column: Collection details & 2x2 grid */}
-            <div className="order-first md:order-second flex flex-col justify-center">
-              <p className="text-xs font-bold text-sage-green tracking-widest uppercase mb-4">OUR COLLECTION</p>
-              <h2 className="text-5xl lg:text-6xl font-serif text-ink leading-tight" style={{ fontFamily: 'var(--font-serif)', marginBottom: '40px' }}>
-                Moments that
-                <br />
-                linger.
-              </h2>
-              <p className="text-body-text leading-relaxed max-w-lg" style={{ marginBottom: '56px' }}>
-                We believe every wedding should be a gentle ritual, a celebration of love tailored specifically to you. Every detail is crafted with intention, ensuring your special day feels effortless and deeply personal.
-              </p>
-
-              {/* 2x2 Card Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  {
-                    icon: <Sparkles className="w-5 h-5" />,
-                    title: 'Tailored Planning',
-                    desc: 'Personalized templates and custom checklist.',
-                  },
-                  {
-                    icon: <Users className="w-5 h-5" />,
-                    title: 'Seamless RSVP',
-                    desc: 'Real-time guest lists and interactive seating chart.',
-                  },
-                  {
-                    icon: <Palette className="w-5 h-5" />,
-                    title: 'Visual Curation',
-                    desc: 'Curate color palettes and layout designs for your venue.',
-                  },
-                  {
-                    icon: <Compass className="w-5 h-5" />,
-                    title: 'Vendor Directory',
-                    desc: 'Connect with handpicked florists and caterers.',
-                  },
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-6 rounded-2xl bg-white border border-hairline/60 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-sage-green/10 flex items-center justify-center text-sage-green flex-shrink-0">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-ink text-sm mb-1">{item.title}</h4>
-                      <p className="text-xs text-muted-text leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+                <h3 className="text-2xl font-serif text-ink mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
+                  {step.title}
+                </h3>
+                <p className="text-body-text leading-relaxed">{step.description}</p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-cream overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10">
+      <section id="testimonials" className="py-32 bg-blush">
+        <div className="max-w-6xl mx-auto px-6 sm:px-10">
           <div className="text-center mb-20">
-            <p className="text-xs font-bold text-sage-green tracking-widest uppercase mb-4">KIND WORDS</p>
-            <h2 className="text-5xl lg:text-6xl font-serif text-ink" style={{ fontFamily: 'var(--font-serif)' }}>
-              Loved by thousands
+            <p className="text-sm font-semibold text-burgundy tracking-widest uppercase mb-4">Success Stories</p>
+            <h2 className="text-5xl md:text-6xl font-serif text-ink" style={{ fontFamily: 'var(--font-serif)' }}>
+              Loved by Happy Couples
             </h2>
           </div>
-
-          {/* Marquee Columns Container */}
-          <div className="relative h-[650px] overflow-hidden pause-hover">
-            {/* Gradient Mask Overlays */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream via-cream/80 to-transparent z-20" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream via-cream/80 to-transparent z-20" />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
-              {/* Column 1: Moves Up */}
-              <div className="flex flex-col gap-6 overflow-hidden relative h-full">
-                <div className="flex flex-col gap-6 animate-marquee-up py-4">
-                  {[...col1Testimonials, ...col1Testimonials].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
-                    >
-                      <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
-                        &ldquo;{item.quote}&rdquo;
-                      </p>
-                      <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
-                        <div>
-                          <p className="font-semibold text-ink text-sm">{item.name}</p>
-                          <p className="text-xs text-muted-text mt-0.5">{item.location}</p>
-                        </div>
-                        <span className="px-3 py-1 rounded-full bg-cream text-sage-green text-xs font-semibold border border-hairline/85">
-                          {item.tag}
-                        </span>
-                      </div>
-                    </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, idx) => (
+              <div key={idx} className="bg-warm-white rounded-lg p-8 border border-hairline shadow-sm hover:shadow-md transition-editorial">
+                <div className="flex gap-1 mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <Heart key={i} className="w-4 h-4 fill-burgundy text-burgundy" />
                   ))}
                 </div>
-              </div>
-
-              {/* Column 2: Moves Down */}
-              <div className="hidden md:flex flex-col gap-6 overflow-hidden relative h-full">
-                <div className="flex flex-col gap-6 animate-marquee-down py-4">
-                  {[...col2Testimonials, ...col2Testimonials].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
-                    >
-                      <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
-                        &ldquo;{item.quote}&rdquo;
-                      </p>
-                      <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
-                        <div>
-                          <p className="font-semibold text-ink text-sm">{item.name}</p>
-                          <p className="text-xs text-muted-text mt-0.5">{item.location}</p>
-                        </div>
-                        <span className="px-3 py-1 rounded-full bg-cream text-sage-green text-xs font-semibold border border-hairline/85">
-                          {item.tag}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                <p className="text-body-text leading-relaxed mb-6 italic">
+                  "{testimonial.quote}"
+                </p>
+                <div className="border-t border-hairline pt-4">
+                  <p className="font-semibold text-ink">{testimonial.name}</p>
+                  <p className="text-sm text-burgundy">{testimonial.role}</p>
                 </div>
               </div>
-
-              {/* Column 3: Moves Up */}
-              <div className="hidden md:flex flex-col gap-6 overflow-hidden relative h-full">
-                <div className="flex flex-col gap-6 animate-marquee-up py-4">
-                  {[...col3Testimonials, ...col3Testimonials].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="p-8 rounded-3xl bg-white border border-hairline/60 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-md transition-editorial flex flex-col justify-between min-h-[220px]"
-                    >
-                      <p className="text-body-text leading-relaxed mb-6 font-serif italic text-base md:text-lg">
-                        &ldquo;{item.quote}&rdquo;
-                      </p>
-                      <div className="flex items-center justify-between border-t border-hairline pt-4 mt-auto">
-                        <div>
-                          <p className="font-semibold text-ink text-sm">{item.name}</p>
-                          <p className="text-xs text-muted-text mt-0.5">{item.location}</p>
-                        </div>
-                        <span className="px-3 py-1 rounded-full bg-cream text-sage-green text-xs font-semibold border border-hairline/85">
-                          {item.tag}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="contact" className="py-28 bg-sage-green text-cream overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 sm:px-10 text-center flex flex-col items-center">
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif font-normal leading-tight text-white" style={{ fontFamily: 'var(--font-serif)', marginBottom: '24px' }}>
-            Join the ritual
-          </h2>
-          <p className="text-base md:text-lg max-w-3xl mx-auto text-white/90 leading-relaxed" style={{ marginBottom: '48px' }}>
-            Subscribe for exclusive wedding planning resources, inspiration, and early access to new tools.
-          </p>
+      {/* Pricing Section */}
+      <section id="pricing" className="py-32">
+        <div className="max-w-6xl mx-auto px-6 sm:px-10">
+          <div className="text-center mb-20">
+            <p className="text-sm font-semibold text-burgundy tracking-widest uppercase mb-4">Transparent Pricing</p>
+            <h2 className="text-5xl md:text-6xl font-serif text-ink mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
+              Plans for Every Celebration
+            </h2>
+            <p className="text-xl text-body-text max-w-2xl mx-auto">
+              Choose the perfect plan for your wedding, with flexible options to grow with your needs.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {pricingPlans.map((plan, idx) => (
+              <div
+                key={idx}
+                className={`rounded-lg p-8 transition-editorial ${
+                  plan.popular
+                    ? 'bg-burgundy text-warm-white border-2 border-burgundy relative transform scale-105'
+                    : 'bg-warm-white border border-hairline hover:border-burgundy'
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-burgundy px-4 py-1 rounded-full">
+                    <p className="text-xs font-semibold text-warm-white">MOST POPULAR</p>
+                  </div>
+                )}
+                <h3 className={`text-2xl font-semibold mb-2 ${plan.popular ? 'text-warm-white' : 'text-ink'}`}>
+                  {plan.name}
+                </h3>
+                <p className={`text-sm mb-6 ${plan.popular ? 'text-warm-white/80' : 'text-body-text'}`}>
+                  {plan.description}
+                </p>
+                <div className="mb-8">
+                  <span className={`text-4xl font-bold ${plan.popular ? 'text-warm-white' : 'text-burgundy'}`}>
+                    {plan.price}
+                  </span>
+                  <span className={`ml-2 ${plan.popular ? 'text-warm-white/80' : 'text-muted-text'}`}>
+                    /month
+                  </span>
+                </div>
+                <button
+                  className={`w-full py-3 px-4 rounded font-semibold mb-8 transition-editorial ${
+                    plan.popular
+                      ? 'bg-warm-white text-burgundy hover:bg-cream'
+                      : 'bg-burgundy text-cream hover:bg-burgundy-dark'
+                  }`}
+                >
+                  Get Started
+                </button>
+                <div className="space-y-4">
+                  {plan.features.map((feature, featureIdx) => (
+                    <div key={featureIdx} className="flex gap-3">
+                      <Check className={`w-5 h-5 flex-shrink-0 ${plan.popular ? 'text-warm-white' : 'text-burgundy'}`} />
+                      <span className={`text-sm ${plan.popular ? 'text-warm-white' : 'text-body-text'}`}>
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 w-full max-w-lg" style={{ marginBottom: '24px' }}>
+      {/* FAQ Section */}
+      <section id="faq" className="py-32 bg-blush">
+        <div className="max-w-3xl mx-auto px-6 sm:px-10">
+          <div className="text-center mb-20">
+            <p className="text-sm font-semibold text-burgundy tracking-widest uppercase mb-4">Questions?</p>
+            <h2 className="text-5xl md:text-6xl font-serif text-ink" style={{ fontFamily: 'var(--font-serif)' }}>
+              Frequently Asked
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => (
+              <div
+                key={idx}
+                className="bg-warm-white rounded-lg border border-hairline overflow-hidden hover:border-burgundy transition-editorial"
+              >
+                <button
+                  onClick={() => setExpandedFAQ(expandedFAQ === idx ? null : idx)}
+                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-cream/30 transition-editorial"
+                >
+                  <h3 className="font-semibold text-ink">{faq.question}</h3>
+                  {expandedFAQ === idx ? (
+                    <Minus className="w-5 h-5 text-burgundy flex-shrink-0" />
+                  ) : (
+                    <Plus className="w-5 h-5 text-burgundy flex-shrink-0" />
+                  )}
+                </button>
+                {expandedFAQ === idx && (
+                  <div className="px-6 py-5 border-t border-hairline bg-cream/20">
+                    <p className="text-body-text leading-relaxed">{faq.answer}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-32 bg-burgundy text-cream relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl" />
+        </div>
+        <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-10 text-center">
+          <h2 className="text-5xl md:text-6xl font-serif mb-6 leading-tight" style={{ fontFamily: 'var(--font-serif)' }}>
+            Ready to Plan Your Perfect Day?
+          </h2>
+          <p className="text-lg leading-relaxed mb-12 max-w-2xl mx-auto text-cream/90">
+            Join thousands of couples who have planned their dream wedding with Planora. Start your journey today.
+          </p>
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-6">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="flex-1 px-6 h-14 rounded-full bg-black/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-white/40 focus:bg-black/15 transition-editorial font-sans"
+              className="flex-1 px-6 py-4 rounded text-ink placeholder-muted-text focus:outline-none focus:ring-2 focus:ring-cream"
               required
             />
             <button
               type="submit"
-              className="px-8 h-14 rounded-full bg-cream text-sage-green font-semibold hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+              className="px-8 py-4 bg-cream text-burgundy font-semibold rounded hover:bg-warm-white transition-editorial whitespace-nowrap"
             >
-              Subscribe
-              <span className="text-lg">→</span>
+              Create Account
             </button>
           </form>
-
-          <p className="text-xs text-white/60 tracking-wide">
-            Unsubscribe anytime. We respect your inbox.
-          </p>
-
           {submitted && (
-            <p className="text-sm text-white font-medium mt-4 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-              ✓ Check your email to begin your journey
+            <p className="text-sm text-cream/90">
+              ✓ Welcome! Check your email to get started
             </p>
           )}
+          <p className="text-xs text-cream/70 mt-6">
+            No credit card required. Start planning for free.
+          </p>
         </div>
       </section>
 
