@@ -139,7 +139,6 @@ export default function WeddingLanding() {
             {/* Left Content Overlay */}
             <div className="max-w-xl flex flex-col justify-center space-y-6">
               <div className="space-y-4">
-                <p className="text-xs font-bold text-sage-green tracking-widest">CELEBRATE TOGETHER</p>
                 <h1 className="flex flex-col space-y-1">
                   <span
                     className="text-8xl lg:text-9xl font-normal leading-none"
