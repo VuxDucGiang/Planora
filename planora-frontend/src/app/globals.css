@@ -2,29 +2,32 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #4f5b3a;
-  --color-primary-active: #3e472d;
-  --color-ink: #1a1a1a;
-  --color-body-text: #4a4a4a;
-  --color-muted-text: #8a8a8a;
-  --color-hairline: #e0e0e0;
-  --color-border-strong: #d0d0d0;
-  --color-canvas: #f8f7f5;
-  --color-surface-soft: #f0ede8;
-  --color-surface-strong: #e5e0d8;
-  --color-surface-dark: #2a2a2a;
-  --color-surface-dark-elevated: #3a3a3a;
+  --color-primary: #8b4755;
+  --color-primary-active: #6b3745;
+  --color-ink: #2d1b21;
+  --color-body-text: #5a3a42;
+  --color-muted-text: #8a6a72;
+  --color-hairline: #e8d9dd;
+  --color-border-strong: #dcc0ca;
+  --color-canvas: #faf5f7;
+  --color-surface-soft: #f5eff2;
+  --color-surface-strong: #ede3e7;
+  --color-surface-dark: #3d2430;
+  --color-surface-dark-elevated: #4d3440;
 
-  --color-sage-green: #4f5b3a;
-  --color-sage-active: #3e472d;
-  --color-cream: #f8f7f5;
-  --color-warm-white: #faf8f5;
-  --color-beige: #e5e0d8;
-  --color-dark-grey: #2a2a2a;
-  --color-light-grey: #9a9a9a;
+  --color-burgundy: #8b4755;
+  --color-burgundy-dark: #6b3745;
+  --color-burgundy-light: #a85a6a;
+  --color-cream: #faf5f7;
+  --color-warm-white: #fcf9fa;
+  --color-beige: #f0e5e9;
+  --color-dark-grey: #2d1b21;
+  --color-light-grey: #b58a94;
+  --color-gold: #d4a574;
+  --color-blush: #f4e9eb;
 
-  --color-link: #4f5b3a;
-  --color-link-active: #3e472d;
+  --color-link: #8b4755;
+  --color-link-active: #6b3745;
 
   --font-sans: "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: "Syne", "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -126,4 +129,35 @@ a:hover {
 .pause-hover:hover .animate-marquee-up,
 .pause-hover:hover .animate-marquee-down {
   animation-play-state: paused;
+}
+
+/* Decorative lace border patterns */
+.lace-top {
+  position: relative;
+}
+
+.lace-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background-image: repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(139, 71, 85, 0.1) 20px, rgba(139, 71, 85, 0.1) 40px);
+  pointer-events: none;
+}
+
+.lace-bottom {
+  position: relative;
+}
+
+.lace-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background-image: repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(139, 71, 85, 0.1) 20px, rgba(139, 71, 85, 0.1) 40px);
+  pointer-events: none;
 }
