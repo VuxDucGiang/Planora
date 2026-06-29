@@ -122,7 +122,7 @@ export default function WeddingLanding() {
         {/* Background Image Layer */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/wedding-landing.jpg"
+            src="/landing/landing-1.png"
             alt="Wedding Background"
             className="w-full h-full object-cover"
           />
@@ -140,10 +140,19 @@ export default function WeddingLanding() {
             <div className="max-w-xl flex flex-col justify-center space-y-6">
               <div className="space-y-4">
                 <p className="text-xs font-bold text-sage-green tracking-widest">CELEBRATE TOGETHER</p>
-                <h1 className="text-6xl lg:text-7xl font-bold text-ink leading-tight" style={{ fontFamily: 'var(--font-hero)' }}>
-                  Your perfect
-                  <br />
-                  day awaits
+                <h1 className="flex flex-col space-y-1">
+                  <span
+                    className="text-8xl lg:text-9xl font-normal leading-none"
+                    style={{ fontFamily: '"Burgues Script W00 Regular", cursive', color: '#FFEEB5' }}
+                  >
+                    Planora
+                  </span>
+                  <span
+                    className="text-xl lg:text-2xl font-normal italic tracking-wide pl-12"
+                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#FFEEB5' }}
+                  >
+                    Crafting unforgettable wedding.
+                  </span>
                 </h1>
                 <p className="text-lg text-body-text leading-relaxed max-w-md">
                   Streamline every moment of your wedding planning. From venue selection to final coordination, we&apos;ve got you covered.
@@ -163,6 +172,17 @@ export default function WeddingLanding() {
         </section>
       </div>
 
+      {/* Section Divider */}
+      <div
+        className="w-full h-28 opacity-95 my-6"
+        style={{
+          backgroundImage: 'url(/landing/split.png)',
+          backgroundRepeat: 'repeat-x',
+          backgroundPosition: 'center',
+          backgroundSize: 'auto 100%',
+        }}
+      />
+
       {/* Features Section */}
       <section className="py-20 bg-white/30">
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
@@ -181,6 +201,17 @@ export default function WeddingLanding() {
           </div>
         </div>
       </section>
+
+      {/* Section Divider */}
+      <div
+        className="w-full h-28 opacity-95 my-6"
+        style={{
+          backgroundImage: 'url(/landing/split.png)',
+          backgroundRepeat: 'repeat-x',
+          backgroundPosition: 'center',
+          backgroundSize: 'auto 100%',
+        }}
+      />
 
       {/* Services Section */}
       <section id="services" className="py-24">
@@ -210,6 +241,17 @@ export default function WeddingLanding() {
           </div>
         </div>
       </section>
+
+      {/* Section Divider */}
+      <div
+        className="w-full h-28 opacity-95 my-6"
+        style={{
+          backgroundImage: 'url(/landing/split.png)',
+          backgroundRepeat: 'repeat-x',
+          backgroundPosition: 'center',
+          backgroundSize: 'auto 100%',
+        }}
+      />
 
       {/* Gallery Section */}
       <section id="gallery" className="py-24 bg-surface-soft">
@@ -279,6 +321,17 @@ export default function WeddingLanding() {
           </div>
         </div>
       </section>
+
+      {/* Section Divider */}
+      <div
+        className="w-full h-28 opacity-95 my-6"
+        style={{
+          backgroundImage: 'url(/landing/split.png)',
+          backgroundRepeat: 'repeat-x',
+          backgroundPosition: 'center',
+          backgroundSize: 'auto 100%',
+        }}
+      />
 
       {/* Testimonials Section */}
       <section id="testimonials" className="py-24 bg-cream overflow-hidden">
@@ -376,6 +429,17 @@ export default function WeddingLanding() {
         </div>
       </section>
 
+      {/* Section Divider */}
+      <div
+        className="w-full h-28 opacity-95 my-6"
+        style={{
+          backgroundImage: 'url(/landing/split.png)',
+          backgroundRepeat: 'repeat-x',
+          backgroundPosition: 'center',
+          backgroundSize: 'auto 100%',
+        }}
+      />
+
       {/* CTA Section */}
       <section id="contact" className="py-28 bg-sage-green text-cream overflow-hidden">
         <div className="max-w-4xl mx-auto px-6 sm:px-10 text-center flex flex-col items-center">
@@ -415,6 +479,17 @@ export default function WeddingLanding() {
           )}
         </div>
       </section>
+
+      {/* Section Divider */}
+      <div
+        className="w-full h-12 opacity-95 my-6"
+        style={{
+          backgroundImage: 'url(/landing/split.png)',
+          backgroundRepeat: 'repeat-x',
+          backgroundPosition: 'center',
+          backgroundSize: 'auto 100%',
+        }}
+      />
 
       <LandingFooter />
     </div>
