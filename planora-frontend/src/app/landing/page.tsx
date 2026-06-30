@@ -697,30 +697,29 @@ export default function WeddingLanding() {
         <div className="max-w-4xl mx-auto px-6 sm:px-10 flex flex-col items-center text-center">
           {/* PLANORA label */}
           <p
-            className="text-sm tracking-[0.86px] uppercase mb-10"
-            style={{ fontFamily: '"Istok Web", sans-serif', fontWeight: 700, color: 'var(--color-sage-green)' }}
+            className="mb-7"
+            style={{
+              fontFamily: '"Burgues Script W00 Regular", BurguesScriptW00-Regular, cursive',
+              letterSpacing: '7%',
+              color: '#000000ff',
+              fontWeight: 400,
+              fontSize: '75px',
+              lineHeight: 0.9,
+            }}
           >
-            PLANORA
+            Planora
           </p>
 
           {/* Main heading */}
           <h2
-            className="text-4xl sm:text-5xl md:text-6xl leading-[110%] uppercase mb-10"
+            className="text-4xl sm:text-5xl md:text-6xl leading-[110%] uppercase mb-16"
             style={{ fontFamily: '"IM Fell French Canon", serif', fontWeight: 400, color: 'var(--color-ink)' }}
           >
             Plan Your Perfect Day
           </h2>
 
-          {/* Sub-heading */}
-          <p
-            className="text-base leading-[140%] mb-20"
-            style={{ fontFamily: '"Istok Web", sans-serif', fontWeight: 400, color: 'var(--color-body-text)' }}
-          >
-            Crafting Unforgettable Wedding Experiences.
-          </p>
-
           {/* Email form */}
-          <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-0 shadow-sm">
+          <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-0 shadow-sm mt-5">
             <div className="flex items-center flex-1 bg-white border border-hairline border-r-0 rounded-l-full px-5 gap-3">
               <svg className="w-4 h-4 text-muted-text flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
