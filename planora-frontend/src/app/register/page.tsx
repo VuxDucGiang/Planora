@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { login as loginService } from '@/services/auth';
-import { Mail, Lock, Eye, EyeOff, Loader2, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { register as registerService } from '@/services/auth';
+import { Mail, Lock, Eye, EyeOff, Loader2, User, CheckCircle2 } from 'lucide-react';
 import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google';
 
-export default function Login() {
+export default function Register() {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +21,7 @@ export default function Login() {
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
-  // Redirection check (PublicRoute behavior)
+  // Redirection check if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       router.replace('/');
@@ -29,8 +30,8 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setErrorMessage('Vui lòng điền đầy đủ email và mật khẩu!');
+    if (!fullName || !email || !password) {
+      setErrorMessage('Please fill in all fields!');
       return;
     }
 
@@ -39,15 +40,14 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await loginService({ email, password });
-      login(response.accessToken);
-      setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
+      await registerService({ fullName, email, password });
+      setSuccessMessage('Registration successful! Redirecting to login page...');
 
       setTimeout(() => {
-        router.replace('/');
-      }, 1200);
+        router.replace('/login');
+      }, 1500);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
+      const errorMsg = err instanceof Error ? err.message : 'Registration failed. Please try again!';
       setErrorMessage(errorMsg);
       setIsSubmitting(false);
     }
@@ -61,7 +61,7 @@ export default function Login() {
       setSuccessMessage(null);
       setIsSubmitting(true);
 
-      // Gọi API lên Backend Spring Boot để xác thực
+      // Call Spring Boot backend to authenticate Google Token
       const response = await fetch('/api/auth/google', {
         method: 'POST',
         headers: {
@@ -70,32 +70,32 @@ export default function Login() {
         body: JSON.stringify({ idToken }),
       });
       if (!response.ok) {
-        throw new Error('Đăng nhập Google thất bại tại Backend!');
+        throw new Error('Google authentication failed at Backend!');
       }
       const data = await response.json();
 
       const jwtToken = data.accessToken || data.token;
       if (!jwtToken) {
-        throw new Error('Không nhận được token xác thực từ máy chủ!');
+        throw new Error('Could not receive authentication token from server!');
       }
 
       login(jwtToken);
-      setSuccessMessage('Đăng nhập bằng Google thành công! Đang chuyển hướng...');
+      setSuccessMessage('Logged in with Google successfully! Redirecting...');
 
       setTimeout(() => {
         router.replace('/');
       }, 1200);
     } catch (error) {
-      console.error('Lỗi khi đăng nhập Google:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Đăng nhập bằng Google thất bại. Vui lòng thử lại!';
+      console.error('Google Sign In Error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Google authentication failed. Please try again!';
       setErrorMessage(errorMsg);
       setIsSubmitting(false);
     }
   };
 
   const handleGoogleError = () => {
-    console.error('Google Login Failed');
-    setErrorMessage('Đăng nhập bằng Google thất bại. Vui lòng thử lại!');
+    console.error('Google Sign In Failed');
+    setErrorMessage('Google authentication failed. Please try again!');
   };
 
   if (isLoading || isAuthenticated) {
@@ -141,12 +141,12 @@ export default function Login() {
         {/* Main Login Card Container */}
         <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
           
-          {/* Floating Accent Badge: LOGIN TO */}
+          {/* Floating Accent Badge: CREATE AN ACCOUNT */}
           <div
             className="absolute -left-4 top-6 bg-[#5D0F12] text-white px-6 py-2 rounded-full shadow-lg z-20 select-none"
-            style={{ fontFamily: '"IM Fell French Canon", serif', fontSize: '1.1rem', letterSpacing: '0.05em' }}
+            style={{ fontFamily: '"IM Fell French Canon", serif', fontSize: '0.95rem', letterSpacing: '0.05em' }}
           >
-            LOGIN TO
+            CREATE AN ACCOUNT
           </div>
 
           {/* Left Column: Form */}
@@ -156,9 +156,8 @@ export default function Login() {
             <div className="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center">
               
               {/* Header text */}
-              <div className="mb-4 mt-2 font-serif text-ink leading-normal">
-                <p className="font-semibold text-md">Welcome back to PLANORA.</p>
-                <p className="text-muted-text text-xs">Your dream wedding journey continues here.</p>
+              <div className="mb-4 mt-6 md:mt-2 font-serif text-ink leading-normal">
+                <p className="font-semibold text-md text-ink">Start your planning journey.</p>
               </div>
 
               {/* Error & Success Messages */}
@@ -177,6 +176,27 @@ export default function Login() {
 
               {/* Input Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Full name input with floating-style label */}
+                <div className="relative">
+                  <label
+                    htmlFor="fullName"
+                    className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-[10px] font-bold text-ink uppercase tracking-wider"
+                    style={{ fontFamily: '"Istok Web", sans-serif' }}
+                  >
+                    Full name *
+                  </label>
+                  <input
+                    id="fullName"
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your name"
+                    disabled={isSubmitting}
+                    className="block w-full h-[40px] px-6 bg-transparent border border-gray-400/80 rounded-full text-xs text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                  />
+                </div>
                 
                 {/* Email input with floating-style label */}
                 <div className="relative">
@@ -185,7 +205,7 @@ export default function Login() {
                     className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-[10px] font-bold text-ink uppercase tracking-wider"
                     style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
-                    Email
+                    Email *
                   </label>
                   <input
                     id="email"
@@ -206,7 +226,7 @@ export default function Login() {
                     className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-[10px] font-bold text-ink uppercase tracking-wider"
                     style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
-                    Password
+                    Password *
                   </label>
                   <input
                     id="password"
@@ -228,22 +248,12 @@ export default function Login() {
                   </button>
                 </div>
 
-                {/* Forgot password */}
-                <div className="text-right">
-                  <a
-                    href="/forgot-password"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      router.push('/forgot-password');
-                    }}
-                    className="text-[11px] italic underline text-ink/70 hover:text-ink font-serif"
-                  >
-                    Forgot password?
-                  </a>
-                </div>
+                <p className="text-[10px] text-center text-ink/70 font-serif italic py-1">
+                  Create Your Account and Start Planning Your Perfect Day
+                </p>
 
-                {/* LOGIN button */}
-                <div className="flex justify-center pt-1">
+                {/* SIGN UP button */}
+                <div className="flex justify-center">
                   <button
                     type="submit"
                     disabled={isSubmitting}
@@ -252,10 +262,10 @@ export default function Login() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Logging in...</span>
+                        <span>Signing up...</span>
                       </>
                     ) : (
-                      <span>LOGIN</span>
+                      <span>SIGN UP</span>
                     )}
                   </button>
                 </div>
@@ -268,7 +278,7 @@ export default function Login() {
                 <div className="flex-grow border-t border-gray-300/80"></div>
               </div>
 
-              {/* Google login container */}
+              {/* Google signup container */}
               <div className="flex flex-col items-center justify-center gap-1.5 mb-2">
                 <div className="hover:scale-[1.01] transition-transform duration-200">
                   <GoogleLogin
@@ -276,6 +286,7 @@ export default function Login() {
                     onError={handleGoogleError}
                     theme="outline"
                     shape="pill"
+                    text="signup_with"
                     width="240"
                   />
                 </div>
@@ -284,41 +295,23 @@ export default function Login() {
 
               {/* Bottom footer links */}
               <div className="text-center text-xs text-ink/80 font-serif mt-1">
-                <span>Don&apos;t have an account? </span>
+                <span>Already have an account? </span>
                 <a
-                  href="/register"
+                  href="/login"
                   onClick={(e) => {
                     e.preventDefault();
-                    router.push('/register');
+                    router.push('/login');
                   }}
                   className="font-bold underline hover:text-[#5D0F12] transition-colors"
                 >
-                  Sign up
+                  Login
                 </a>
+                <p className="text-[8px] text-gray-400/80 mt-1">
+                  By signing up, you agree to our Terms of Service and Privacy Policy.
+                </p>
               </div>
 
             </div>
-
-            {/* Subdued Assist Card */}
-            <details className="mt-3 text-left border border-gray-200 rounded-xl p-2 bg-gray-50/50 cursor-pointer select-none">
-              <summary className="text-[9px] font-bold text-ink/60 uppercase tracking-wider">
-                Demo Accounts (Click to expand)
-              </summary>
-              <div className="grid grid-cols-2 gap-1.5 text-[9px] text-muted-text font-mono border-t border-gray-200 mt-1.5 pt-1.5">
-                <div>
-                  <span className="block text-[8px] font-sans uppercase font-semibold text-ink">User Role</span>
-                  <span>user@planora.com</span>
-                </div>
-                <div>
-                  <span className="block text-[8px] font-sans uppercase font-semibold text-ink">Password</span>
-                  <span className="text-[#5D0F12]">123456</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="block text-[8px] font-sans uppercase font-semibold text-ink">Other Roles</span>
-                  <span>vendor@planora.com | admin@planora.com</span>
-                </div>
-              </div>
-            </details>
 
           </div>
 
@@ -326,8 +319,8 @@ export default function Login() {
           <div className="md:col-span-5 p-3 hidden md:flex items-stretch">
             <div className="w-full relative rounded-[28px] overflow-hidden">
               <img
-                src="/login/couple-showcase.png"
-                alt="Wedding Couple"
+                src="/login/register-showcase.png"
+                alt="Wedding Couple from behind"
                 className="w-full h-full object-cover"
               />
               {/* Optional soft inner shadow overlay */}
