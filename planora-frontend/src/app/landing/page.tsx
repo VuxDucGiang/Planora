@@ -139,18 +139,48 @@ const vendorsList = [
   },
 ];
 
+const extendedVendorsList = [
+  ...vendorsList,
+  ...vendorsList,
+  ...vendorsList,
+];
+
 export default function WeddingLanding() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(8); // Start in the middle copy
+  const [isTransitionEnabled, setIsTransitionEnabled] = useState(true);
 
   const scrollPrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? 7 : prev - 1));
+    if (!isTransitionEnabled) return;
+    setCurrentIndex((prev) => prev - 1);
   };
 
   const scrollNext = () => {
-    setCurrentIndex((prev) => (prev === 7 ? 0 : prev + 1));
+    if (!isTransitionEnabled) return;
+    setCurrentIndex((prev) => prev + 1);
   };
+
+  const handleTransitionEnd = () => {
+    if (currentIndex >= 16) {
+      setIsTransitionEnabled(false);
+      setCurrentIndex(currentIndex - 8);
+    } else if (currentIndex < 8) {
+      setIsTransitionEnabled(false);
+      setCurrentIndex(currentIndex + 8);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!isTransitionEnabled) {
+      const raf = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsTransitionEnabled(true);
+        });
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [isTransitionEnabled]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,7 +190,16 @@ export default function WeddingLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream landing-zoom-container">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media (min-width: 1024px) {
+            .landing-zoom-container {
+              zoom: 0.85;
+            }
+          }
+        `
+      }} />
       {/* Top Section with Full-Bleed Background Image */}
       <div className="relative min-h-screen lg:min-h-[90vh] flex flex-col overflow-visible">
         {/* Background Image Layer */}
@@ -349,13 +388,13 @@ export default function WeddingLanding() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="relative pt-24 pb-32 bg-sage-green overflow-hidden text-center">
+      <section id="how-it-works" className="relative pt-20 pb-24 bg-sage-green overflow-hidden text-center">
         {/* Header content constrained to central column */}
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-20">
-          <div className="mb-20">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-16">
+          <div className="mb-16">
             {/* FIGMA SPEC: font-family: ITC Garamond Std; font-weight: 400; font-size: 40px; line-height: 100%; letter-spacing: 0%; */}
             <h2
-              className="text-5xl lg:text-6xl font-normal leading-[100%] tracking-normal mb-6"
+              className="text-[41px] lg:text-[51px] font-normal leading-[100%] tracking-normal mb-6"
               style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#FFEEB5' }}
             >
               How It Works
@@ -363,7 +402,7 @@ export default function WeddingLanding() {
 
             {/* FIGMA SPEC: font-family: IM FELL French Canon; font-weight: 400; font-size: 24px; line-height: 38px; */}
             <p
-              className="text-lg md:text-[24px] font-normal leading-[38px] tracking-normal"
+              className="text-[15px] md:text-[20px] font-normal leading-[32px] tracking-normal"
               style={{ fontFamily: '"IM Fell French Canon", serif', color: 'rgba(255, 255, 255, 0.9)' }}
             >
               Crafting Unforgettable Wedding Experiences.
@@ -372,7 +411,7 @@ export default function WeddingLanding() {
         </div>
 
         {/* Timeline Grid (Spans full page width) */}
-        <div className="relative w-full mt-16 pb-12 overflow-visible">
+        <div className="relative w-full mt-12 pb-10 overflow-visible">
           {/* Connecting Horizontal Line (desktop only) - stretches across the entire page */}
           <div className="hidden md:block absolute top-[9px] left-0 right-0 h-[2px] bg-white/30 z-0" />
 
@@ -382,7 +421,7 @@ export default function WeddingLanding() {
               {/* Dot */}
               <div className="w-[18px] h-[18px] rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.4)] mb-6 relative z-10 border-[3px] border-sage-green" />
               <h4
-                className="text-xl md:text-2xl leading-relaxed max-w-[280px]"
+                className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
                 style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
               >
                 Enter Your<br />Wedding Details
@@ -394,7 +433,7 @@ export default function WeddingLanding() {
               {/* Dot */}
               <div className="w-[18px] h-[18px] rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.4)] mb-6 relative z-10 border-[3px] border-sage-green" />
               <h4
-                className="text-xl md:text-2xl leading-relaxed max-w-[280px]"
+                className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
                 style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
               >
                 Receive AI-Curated<br />Plans & Vendors
@@ -406,7 +445,7 @@ export default function WeddingLanding() {
               {/* Dot */}
               <div className="w-[18px] h-[18px] rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.4)] mb-6 relative z-10 border-[3px] border-sage-green" />
               <h4
-                className="text-xl md:text-2xl leading-relaxed max-w-[280px]"
+                className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
                 style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
               >
                 Manage & Update<br />Your Progress
@@ -429,14 +468,17 @@ export default function WeddingLanding() {
       </section>
 
       {/* Featured Vendors Section */}
-      <section id="vendors" className="relative py-28 bg-cream overflow-visible w-full">
+      <section id="vendors" className="relative pt-14 pb-28 bg-cream overflow-visible w-full">
         {/* Constrained layout for the upper elements */}
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           {/* Badge */}
-          <div className="mb-12 flex justify-start">
-            <span className="px-6 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase bg-sage-green text-[#FFEEB5]" style={{ fontFamily: '"Istok Web", sans-serif' }}>
+          <div className="mb-12 flex justify-center text-center">
+            <h2
+              className="text-[41px] lg:text-[51px] font-normal leading-[100%] tracking-normal"
+              style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#5D0F12' }}
+            >
               FEATURED VENDORS
-            </span>
+            </h2>
           </div>
         </div>
 
@@ -461,20 +503,21 @@ export default function WeddingLanding() {
           `}} />
 
           <div
-            className="flex gap-8 transition-transform duration-500 ease-out"
+            className="flex gap-8"
+            onTransitionEnd={handleTransitionEnd}
             style={{
               transform: `translateX(calc(50vw - (var(--card-width) / 2) - ${currentIndex} * (var(--card-width) + 2rem)))`,
-              transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: isTransitionEnabled ? 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
             }}
           >
-            {vendorsList.map((item, idx) => {
+            {extendedVendorsList.map((item, idx) => {
               // The centerpiece card is idx === currentIndex
               const isActive = idx === currentIndex;
               // The 3 middle visible cards (centerpiece + 1 left neighbor + 1 right neighbor)
               const isMiddleThree =
                 idx === currentIndex ||
-                idx === (currentIndex - 1 + 8) % 8 ||
-                idx === (currentIndex + 1) % 8;
+                idx === (currentIndex - 1 + 24) % 24 ||
+                idx === (currentIndex + 1) % 24;
 
               return (
                 <div
