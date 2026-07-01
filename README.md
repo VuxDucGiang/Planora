@@ -156,9 +156,9 @@ Hệ thống Planora đã cấu hình và tích hợp quy trình CI/CD & Deploy 
 ## 👥 Thành Viên Nhóm (Team Planora)
 
 *   **Vũ Đức Giang** (DE190556) - *FullStack Developer*
-*   **Phan Thanh Nguyên** (DE180215) - *FullStack Developer*
 *   **Lê Văn Quân** (DS190663) - *Business Analyst*
 *   **Nguyễn Thị Thuỳ Trâm** (DS190540) - *Business Analyst*
 *   **Phan Thị Tuyết Ngân** (DE190738) - *UI/UX Designer*
+*   **Phan Thanh Nguyên** (DE180215) - *Vô Dụng*
 
 *Giáo viên hướng dẫn:* **ThS. Nguyễn Thị Tú Sương**
