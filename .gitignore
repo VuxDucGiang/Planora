@@ -4,3 +4,4 @@
 
 ### CodeGraph ###
 .codegraph/
+planora-backend/src/main/resources/application.yml
