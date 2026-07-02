@@ -1,4 +1,4 @@
-import type { LoginRequest, LoginResponse, User } from '@/types/auth';
+import type { LoginRequest, LoginResponse, User, RegisterRequest } from '@/types/auth';
 
 export async function login(request: LoginRequest): Promise<LoginResponse> {
   const response = await fetch('/api/auth/login', {
@@ -49,4 +49,29 @@ export function parseToken(token: string): User | null {
     console.error('Error parsing token:', e);
     return null;
   }
+}
+
+export async function register(request: RegisterRequest): Promise<any> {
+  const response = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin!';
+    try {
+      const errorData = await response.json();
+      if (errorData && typeof errorData.message === 'string') {
+        errorMessage = errorData.message;
+      } else if (errorData && typeof errorData.error === 'string') {
+        errorMessage = errorData.error;
+      }
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
 }
