@@ -5,3 +5,5 @@
 ### CodeGraph ###
 .codegraph/
 planora-backend/src/main/resources/application.yml
+planora-backend/.env
+planora-backend/src/main/resources/application-local.yml
