@@ -212,7 +212,7 @@ export default function Onboarding() {
     <div 
       className="min-h-screen text-body-text font-sans flex flex-col relative w-full overflow-hidden"
       style={{ 
-        backgroundImage: `linear-gradient(rgba(255, 251, 245, 0.88), rgba(255, 251, 245, 0.88)), url('/onboarding/background.png')`,
+        backgroundImage: `url('/onboarding/background.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
@@ -222,8 +222,6 @@ export default function Onboarding() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-6 py-12 flex flex-col justify-center relative">
-        
-        {/* Loading configuration data */}
         {isLoadingData ? (
           <div className="flex flex-col items-center py-20 gap-3 bg-white/80 backdrop-blur-sm rounded-xl border border-hairline p-8 shadow-sm">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -283,7 +281,7 @@ export default function Onboarding() {
           <div className="space-y-8">
             
             {/* Step Indicators */}
-            <div className="max-w-2xl mx-auto mb-10 mt-2 animate-fade-in bg-transparent px-4 sm:px-8">
+            <div className="max-w-2xl mx-auto mb-6 mt-2 animate-fade-in bg-transparent px-4 sm:px-8">
               <div className="relative">
                 {/* Horizontal line running behind all dots */}
                 <div className="absolute left-[12%] right-[12%] top-[5px] h-[1px] bg-white/40" />
@@ -300,7 +298,6 @@ export default function Onboarding() {
                     
                     return (
                       <div key={step.number} className="flex flex-col items-center z-10 w-[22%]">
-                        {/* Small circular dot wrapper to handle alignment and line centering */}
                         <div className="h-[10px] flex items-center justify-center">
                           <button
                             type="button"
@@ -313,9 +310,8 @@ export default function Onboarding() {
                             } ${step.number < currentStep ? 'cursor-pointer hover:scale-125' : 'cursor-not-allowed'}`}
                           />
                         </div>
-                        {/* Serif italic label */}
                         <span 
-                          className="text-xs sm:text-sm text-center whitespace-nowrap text-white italic mt-3 transition-all duration-300"
+                          className="text-[10px] sm:text-xs text-center whitespace-nowrap text-white italic mt-2.5 transition-all duration-300"
                           style={{ 
                             fontFamily: 'EB Garamond, Georgia, serif',
                             opacity: isActive ? 1 : 0.65,
@@ -333,38 +329,38 @@ export default function Onboarding() {
 
             {/* Error Message Alert */}
             {errorMessage && (
-              <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-sm flex items-start gap-3 text-sm animate-fade-in shadow-sm">
-                <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" />
+              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-sm flex items-start gap-2.5 text-xs animate-fade-in shadow-sm">
+                <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 text-red-500 mt-0.5" />
                 <span className="font-medium">{errorMessage}</span>
               </div>
             )}
 
-            {/* Form Steps Rendering */}
-            <div className="bg-white/95 backdrop-blur-md rounded-xl border border-hairline p-8 md:p-10 shadow-md transition-all duration-300 vintage-card">
+            {/* Form Steps Rendering - centered card */}
+            <div className="bg-white rounded-xl border border-hairline p-5 sm:p-6 md:p-7 shadow-lg max-w-[480px] w-full mx-auto z-10">
               
               {/* STEP 1: Basic Information */}
               {currentStep === 1 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Heart className="w-5 h-5 text-primary" />
+                <div className="space-y-4">
+                  <div className="border-b border-hairline pb-3 mb-1">
+                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
+                      <Heart className="w-4 h-4 text-primary" />
                       Thông tin ngày cưới
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
+                    <p className="text-[11px] text-muted-text mt-0.5">
                       Hãy chia sẻ những thông tin cơ bản về ngày trọng đại để chúng tôi thiết kế kế hoạch phù hợp nhất.
                     </p>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* Title */}
-                    <div className="space-y-2">
-                      <label htmlFor="title" className="text-xs font-semibold text-ink uppercase tracking-wider">
+                    <div className="space-y-1">
+                      <label htmlFor="title" className="text-[10px] font-semibold text-ink uppercase tracking-wider">
                         Tên kế hoạch đám cưới
                       </label>
                       <input
                         type="text"
                         id="title"
-                        className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
+                        className="w-full bg-canvas border border-hairline rounded-sm px-3 py-2 text-xs focus:outline-none focus:border-primary transition-colors text-ink"
                         placeholder="Ví dụ: Kế hoạch đám cưới của Giang & Mai"
                         value={title}
                         onChange={e => {
@@ -374,17 +370,17 @@ export default function Onboarding() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* Wedding Date */}
-                      <div className="space-y-2">
-                        <label htmlFor="date" className="text-xs font-semibold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-muted-text" />
+                      <div className="space-y-1">
+                        <label htmlFor="date" className="text-[10px] font-semibold text-ink uppercase tracking-wider flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-muted-text" />
                           Ngày cưới mong muốn
                         </label>
                         <input
                           type="date"
                           id="date"
-                          className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
+                          className="w-full bg-canvas border border-hairline rounded-sm px-3 py-2 text-xs focus:outline-none focus:border-primary transition-colors text-ink"
                           value={weddingDate}
                           onChange={e => {
                             setWeddingDate(e.target.value);
@@ -394,16 +390,16 @@ export default function Onboarding() {
                       </div>
 
                       {/* Guest Count */}
-                      <div className="space-y-2">
-                        <label htmlFor="guests" className="text-xs font-semibold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-muted-text" />
+                      <div className="space-y-1">
+                        <label htmlFor="guests" className="text-[10px] font-semibold text-ink uppercase tracking-wider flex items-center gap-1">
+                          <Users className="w-3 h-3 text-muted-text" />
                           Số lượng khách mời dự kiến
                         </label>
                         <input
                           type="number"
                           id="guests"
                           min="1"
-                          className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
+                          className="w-full bg-canvas border border-hairline rounded-sm px-3 py-2 text-xs focus:outline-none focus:border-primary transition-colors text-ink"
                           placeholder="Ví dụ: 150"
                           value={guestCount}
                           onChange={e => {
@@ -415,15 +411,15 @@ export default function Onboarding() {
                     </div>
 
                     {/* Location */}
-                    <div className="space-y-2">
-                      <label htmlFor="location" className="text-xs font-semibold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-muted-text" />
+                    <div className="space-y-1">
+                      <label htmlFor="location" className="text-[10px] font-semibold text-ink uppercase tracking-wider flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-muted-text" />
                         Địa điểm tổ chức
                       </label>
                       <input
                         type="text"
                         id="location"
-                        className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
+                        className="w-full bg-canvas border border-hairline rounded-sm px-3 py-2 text-xs focus:outline-none focus:border-primary transition-colors text-ink"
                         placeholder="Ví dụ: Trung tâm hội nghị tiệc cưới Hà Nội hoặc Khách sạn Lotte"
                         value={location}
                         onChange={e => {
@@ -438,31 +434,31 @@ export default function Onboarding() {
 
               {/* STEP 2: Budget */}
               {currentStep === 2 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-primary" />
+                <div className="space-y-4">
+                  <div className="border-b border-hairline pb-3 mb-1">
+                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-primary" />
                       Ngân sách dự kiến
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
+                    <p className="text-[11px] text-muted-text mt-0.5">
                       Nhập ngân sách của bạn để hệ thống tự động phân bổ chi phí hợp lý.
                     </p>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {/* Budget Input */}
-                    <div className="space-y-2">
-                      <label htmlFor="budget" className="text-xs font-semibold text-ink uppercase tracking-wider block">
+                    <div className="space-y-1">
+                      <label htmlFor="budget" className="text-[10px] font-semibold text-ink uppercase tracking-wider block">
                         Tổng ngân sách dự trù (VND)
                       </label>
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-text font-mono text-sm">₫</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text font-mono text-xs">₫</span>
                         <input
                           type="number"
                           id="budget"
                           min="1"
                           step="1000000"
-                          className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-4 py-3 text-sm font-mono focus:outline-none focus:border-primary transition-colors text-ink"
+                          className="w-full bg-canvas border border-hairline rounded-sm pl-7 pr-3 py-2 text-xs font-mono focus:outline-none focus:border-primary transition-colors text-ink"
                           placeholder="Ví dụ: 200000000"
                           value={budget}
                           onChange={e => {
@@ -471,7 +467,7 @@ export default function Onboarding() {
                           }}
                         />
                       </div>
-                      <p className="text-[11px] text-muted-text italic">
+                      <p className="text-[10px] text-muted-text italic">
                         Mức phân bổ đề xuất: {(budget || 0).toLocaleString('vi-VN')} VND
                       </p>
                     </div>
@@ -481,18 +477,18 @@ export default function Onboarding() {
 
               {/* STEP 3: Wedding Style Selection */}
               {currentStep === 3 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-primary" />
+                <div className="space-y-4">
+                  <div className="border-b border-hairline pb-3 mb-1">
+                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
                       Phong cách thiết kế
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
+                    <p className="text-[11px] text-muted-text mt-0.5">
                       Chọn phong cách đám cưới bạn mong muốn (Có thể chọn nhiều phong cách).
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1 dashboard-scroll">
                     {availableStyles.map(style => {
                       const isSelected = selectedStyles.includes(style.id);
                       return (
@@ -503,29 +499,29 @@ export default function Onboarding() {
                             toggleStyle(style.id);
                             setErrorMessage(null);
                           }}
-                          className={`p-5 border rounded-lg text-left transition-all flex flex-col justify-between h-full relative group ${
+                          className={`p-3 border rounded-lg text-left transition-all flex flex-col justify-between relative group ${
                             isSelected
                               ? 'bg-primary/5 border-primary text-primary ring-1 ring-primary/25 shadow-sm'
                               : 'bg-white border-hairline text-body-text hover:border-border-strong hover:bg-canvas/50'
                           }`}
                         >
-                          <div className="space-y-1.5">
-                            <h3 className={`text-sm font-semibold transition-colors ${
+                          <div className="space-y-1 pr-4">
+                            <h3 className={`text-xs font-semibold transition-colors ${
                               isSelected ? 'text-primary' : 'text-ink group-hover:text-primary'
                             }`}>
                               {style.name}
                             </h3>
-                            <p className="text-xs text-muted-text leading-relaxed font-normal">
+                            <p className="text-[10px] text-muted-text leading-relaxed font-normal line-clamp-2">
                               {style.description || 'Không có mô tả thêm.'}
                             </p>
                           </div>
                           
-                          <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                          <div className={`absolute top-3 right-3 w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
                             isSelected 
                               ? 'bg-primary border-primary text-white' 
                               : 'border-hairline bg-white'
                           }`}>
-                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                            {isSelected && <Check className="w-2.5 h-2.5" />}
                           </div>
                         </button>
                       );
@@ -536,19 +532,19 @@ export default function Onboarding() {
 
               {/* STEP 4: Priority Services */}
               {currentStep === 4 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-primary" />
+                <div className="space-y-4">
+                  <div className="border-b border-hairline pb-3 mb-1">
+                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
                       Dịch vụ Ưu tiên (Priority Services)
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
+                    <p className="text-[11px] text-muted-text mt-0.5">
                       Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Chúng tôi sẽ phân bổ ngân sách tối ưu cho các hạng mục này.
                     </p>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 max-h-[160px] overflow-y-auto pr-1 dashboard-scroll">
                       {availableCategories.map(category => {
                         const isSelected = selectedCategories.includes(category.id);
                         return (
@@ -559,25 +555,25 @@ export default function Onboarding() {
                               toggleCategory(category.id);
                               setErrorMessage(null);
                             }}
-                            className={`p-3 border rounded-sm text-xs font-medium text-left transition-all flex items-center justify-between ${
+                            className={`p-2 border rounded-sm text-xs font-medium text-left transition-all flex items-center justify-between ${
                               isSelected
                                 ? 'bg-primary/5 border-primary text-primary font-semibold ring-1 ring-primary/20'
                                 : 'bg-white border-hairline text-body-text hover:bg-canvas'
                             }`}
                           >
-                            <span>{category.name}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                            <span className="truncate">{category.name}</span>
+                            {isSelected && <Check className="w-3 h-3 text-primary flex-shrink-0" />}
                           </button>
                         );
                       })}
                     </div>
 
                     {/* AI Notice Card */}
-                    <div className="p-4 bg-primary/5 rounded-sm border border-primary/20 flex gap-3 text-xs text-primary leading-relaxed items-start mt-6">
-                      <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <div className="p-3 bg-primary/5 rounded-sm border border-primary/20 flex gap-2 text-[10px] text-primary leading-relaxed items-start mt-2">
+                      <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-semibold block mb-0.5">Về thuật toán phân bổ thông minh</span>
-                        Hệ thống sẽ chia nhỏ ngân sách cưới dựa theo bộ lọc ưu tiên và các mốc thời gian chuẩn bị 12 tháng. Danh sách Checklist và Timeline sẽ được tự động tạo sẵn kèm gợi ý chi tiết.
+                        Hệ thống sẽ chia nhỏ ngân sách cưới dựa theo bộ lọc ưu tiên và các mốc thời gian chuẩn bị 12 tháng. Danh sách Checklist và Dòng thời gian sẽ được tự động tạo sẵn.
                       </div>
                     </div>
                   </div>
@@ -585,14 +581,14 @@ export default function Onboarding() {
               )}
 
               {/* Form Navigation Controls */}
-              <div className="flex justify-between items-center mt-8 pt-6 border-t border-hairline">
+              <div className="flex justify-between items-center mt-5 pt-4 border-t border-hairline">
                 {currentStep > 1 ? (
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="px-4 py-2 border border-border-strong rounded-sm text-xs font-semibold text-body-text hover:bg-canvas transition-colors flex items-center gap-1.5"
+                    className="px-3 py-1.5 border border-border-strong rounded-sm text-[11px] font-semibold text-body-text hover:bg-canvas transition-colors flex items-center gap-1"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                     Quay lại
                   </button>
                 ) : (
@@ -603,18 +599,18 @@ export default function Onboarding() {
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="px-5 py-2.5 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 shadow-sm"
+                    className="px-4 py-2 bg-primary text-white rounded-sm text-[11px] font-semibold hover:bg-primary-active transition-colors flex items-center gap-1 shadow-sm"
                   >
                     Tiếp tục
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="px-6 py-3 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-all flex items-center gap-2 shadow-sm font-display tracking-wide uppercase"
+                    className="px-5 py-2.5 bg-primary text-white rounded-sm text-[11px] font-semibold hover:bg-primary-active transition-all flex items-center gap-1.5 shadow-sm font-display tracking-wide uppercase"
                   >
-                    <Sparkles className="w-4 h-4 text-cream" />
+                    <Sparkles className="w-3.5 h-3.5 text-cream" />
                     Tạo kế hoạch tự động
                   </button>
                 )}
