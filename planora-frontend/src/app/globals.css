@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Abhaya+Libre:wght@700&family=Istok+Web:wght@400;700&family=IM+Fell+French+Canon&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Abhaya+Libre:wght@700&family=Istok+Web:wght@400;700&family=IM+Fell+French+Canon&family=Great+Vibes&display=swap');
 @import "tailwindcss";
 
 @theme {
   --color-primary: #5D0F12;
   --color-primary-active: #4A0C0E;
+  --color-primary-light: #7A1A1E;
   --color-ink: #1a1a1a;
   --color-body-text: #4a4a4a;
   --color-muted-text: #8a8a8a;
@@ -26,10 +27,16 @@
   --color-link: #5D0F12;
   --color-link-active: #4A0C0E;
 
+  --color-lace: #F5E6D3;
+  --color-lace-dark: #D4B896;
+  --color-gold: #C9A96E;
+  --color-gold-light: #E8D5A8;
+
   --font-sans: "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: "Syne", "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: "EB Garamond", serif;
   --font-hero: "Abhaya Libre", serif;
+  --font-script: "Great Vibes", cursive;
 
   --radius-xs: 2px;
   --radius-sm: 6px;
@@ -91,6 +98,174 @@ a:hover {
 /* Custom transitions and helper classes */
 .transition-editorial {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================
+   DASHBOARD DECORATIVE STYLES
+   ============================================ */
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Staggered fade-in */
+.animate-fade-in-delay-1 { animation: fadeIn 0.5s ease-out 0.1s forwards; opacity: 0; }
+.animate-fade-in-delay-2 { animation: fadeIn 0.5s ease-out 0.2s forwards; opacity: 0; }
+.animate-fade-in-delay-3 { animation: fadeIn 0.5s ease-out 0.3s forwards; opacity: 0; }
+.animate-fade-in-delay-4 { animation: fadeIn 0.5s ease-out 0.4s forwards; opacity: 0; }
+
+/* Pulse glow for countdown */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(93, 15, 18, 0.15); }
+  50% { box-shadow: 0 0 20px 4px rgba(93, 15, 18, 0.08); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Lace border pattern (top/bottom decorative strip) */
+.lace-border-top {
+  position: relative;
+}
+.lace-border-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-lace-dark) 0px,
+    var(--color-lace-dark) 4px,
+    transparent 4px,
+    transparent 8px,
+    var(--color-lace) 8px,
+    var(--color-lace) 12px,
+    transparent 12px,
+    transparent 16px
+  );
+  border-radius: 0 0 2px 2px;
+}
+
+.lace-border-bottom {
+  position: relative;
+}
+.lace-border-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-lace-dark) 0px,
+    var(--color-lace-dark) 4px,
+    transparent 4px,
+    transparent 8px,
+    var(--color-lace) 8px,
+    var(--color-lace) 12px,
+    transparent 12px,
+    transparent 16px
+  );
+  border-radius: 2px 2px 0 0;
+}
+
+/* Ornamental divider */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-lace-dark);
+}
+.ornament-divider::before,
+.ornament-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-lace-dark), transparent);
+}
+
+/* Dot pattern background */
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, var(--color-lace-dark) 0.5px, transparent 0.5px);
+  background-size: 16px 16px;
+}
+
+/* Circular progress ring */
+.progress-ring-bg {
+  stroke: var(--color-hairline);
+  fill: none;
+}
+.progress-ring-fill {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-out;
+}
+
+/* Custom scrollbar for dashboard */
+.dashboard-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.dashboard-scroll::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+.dashboard-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-lace-dark);
+  border-radius: 4px;
+}
+.dashboard-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Vendor card hover lift effect */
+.vendor-card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.vendor-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(93, 15, 18, 0.12);
+}
+
+/* Vintage card with lace overlay effect */
+.vintage-card {
+  position: relative;
+  overflow: hidden;
+}
+.vintage-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid var(--color-lace);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Sidebar nav item active indicator */
+.sidebar-active {
+  position: relative;
+}
+.sidebar-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--color-cream);
+  border-radius: 0 3px 3px 0;
 }
 
 /* Vertical scrolling marquee animations */
