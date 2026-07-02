@@ -100,10 +100,10 @@ export default function Login() {
 
   if (isLoading || isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+      <div className="min-h-screen bg-[#FAF5EE] flex items-center justify-center text-[#5D0F12]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-          <span className="text-sm text-slate-400">Đang kiểm tra bảo mật...</span>
+          <Loader2 className="w-8 h-8 animate-spin text-[#5D0F12]" />
+          <span className="text-sm font-serif italic text-[#5D0F12]/80">Verifying session...</span>
         </div>
       </div>
     );
@@ -111,250 +111,228 @@ export default function Login() {
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
-      <div className="min-h-screen flex items-center justify-center bg-canvas font-sans text-body-text relative w-full overflow-hidden select-none">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4 md:py-6 bg-cover bg-center relative font-sans text-ink select-none"
+        style={{
+          backgroundImage: "url('/login/curtain-bg.png')",
+        }}
+      >
+        {/* Dark Red gradient/overlay to blend curtain background */}
+        <div className="absolute inset-0 bg-black/35 z-0" />
 
-        {/* Container holding the split design */}
-        <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 bg-canvas border border-hairline rounded-lg overflow-hidden shadow-sm m-4 min-h-[640px]">
+        {/* Text Header above Card */}
+        <div className="relative z-10 text-center text-white/95 max-w-xl mb-4 select-none font-serif italic text-lg md:text-2xl leading-normal">
+          <span>Let </span>
+          <span
+            style={{
+              fontFamily: '"Burgues Script W00 Regular", BurguesScriptW00-Regular, cursive',
+              color: '#FFEEB5',
+              fontSize: '1.4em',
+              fontStyle: 'normal',
+              verticalAlign: 'middle',
+              margin: '0 4px',
+            }}
+          >
+            Planora
+          </span>
+          <span> guide you to<br />the happiest day of your life.</span>
+        </div>
 
-          {/* Left Column: Full-Bleed Signature Forest card */}
-          <div className="hidden md:flex md:col-span-5 relative flex-col justify-between p-10 bg-sig-forest text-sig-cream overflow-hidden">
-
-            {/* Header */}
-            <div className="relative z-10 flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-sig-cream flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5 text-sig-forest" />
-              </div>
-              <span className="text-md font-medium tracking-widest text-sig-cream font-display">
-                PLANORA
-              </span>
-            </div>
-
-            {/* Visual Showcase - Print Magazine Layout Style */}
-            <div className="relative z-10 my-auto space-y-6">
-              <div className="space-y-3">
-                <h2 className="text-2xl font-medium tracking-tight text-white leading-snug font-display">
-                  Kiến tạo mọi trải nghiệm hoàn hảo
-                </h2>
-                <p className="text-xs text-sig-cream/80 leading-relaxed font-sans max-w-[280px]">
-                  Nền tảng quản lý sự kiện và lập kế hoạch tiệc cưới tinh giản, chuẩn mực dành cho đơn vị chuyên nghiệp.
-                </p>
-              </div>
-
-              {/* Editorial color-block cards mimicking product UI fragments */}
-              <div className="space-y-3 pt-4">
-
-                {/* Cream Callout Card */}
-                <div className="bg-sig-cream text-ink p-4 rounded-md shadow-sm border border-sig-cream/20">
-                  <span className="text-xs font-semibold uppercase tracking-wider block text-sig-coral mb-1">
-                    Quản lý ngân sách
-                  </span>
-                  <p className="text-xs text-body-text leading-normal">
-                    Kiểm soát chi phí theo thời gian thực trực quan, minh bạch.
-                  </p>
-                </div>
-
-                {/* Peach Callout Card */}
-                <div className="bg-sig-peach text-ink p-4 rounded-md shadow-sm border border-sig-peach/20">
-                  <span className="text-xs font-semibold uppercase tracking-wider block text-sig-forest mb-1">
-                    Lịch trình chi tiết
-                  </span>
-                  <p className="text-xs text-body-text leading-normal">
-                    Phân chia đầu việc thông minh cho từng mốc thời gian.
-                  </p>
-                </div>
-
-              </div>
-            </div>
-
-            {/* Footer list */}
-            <div className="relative z-10 text-[10px] text-sig-cream/60 flex justify-between border-t border-white/10 pt-4">
-              <span>Phiên bản 1.0.0</span>
-              <span>© Planora Inc.</span>
-            </div>
+        {/* Main Login Card Container */}
+        <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+          
+          {/* Floating Accent Badge: LOGIN TO */}
+          <div
+            className="absolute -left-4 top-6 bg-[#5D0F12] text-white px-6 py-2 rounded-full shadow-lg z-20 select-none"
+            style={{ fontFamily: '"IM Fell French Canon", serif', fontSize: '1.1rem', letterSpacing: '0.05em' }}
+          >
+            LOGIN TO
           </div>
 
-          {/* Right Column: Clean White Canvas Form */}
-          <div className="md:col-span-7 flex flex-col justify-center p-8 sm:p-16 bg-canvas">
-
-            <div className="max-w-md w-full mx-auto">
-              {/* Header */}
-              <div className="mb-8">
-                <h1 className="text-3xl font-medium text-ink tracking-tight mb-2 font-display">
-                  Chào mừng trở lại
-                </h1>
-                <p className="text-muted-text text-sm">
-                  Đăng nhập vào tài khoản của bạn để tiếp tục làm việc.
-                </p>
+          {/* Left Column: Form */}
+          <div className="md:col-span-7 px-6 pb-6 pt-16 sm:px-8 sm:pb-8 sm:pt-20 flex flex-col justify-between overflow-visible">
+            
+            {/* Inner Content Wrapper */}
+            <div className="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center">
+              
+              {/* Header text */}
+              <div className="mb-4 mt-2 font-serif text-ink leading-normal">
+                <p className="font-semibold text-md">Welcome back to PLANORA.</p>
+                <p className="text-muted-text text-xs">Your dream wedding journey continues here.</p>
               </div>
 
-              {/* Error Message: Full-Bleed Signature Coral card with cream text */}
+              {/* Error & Success Messages */}
               {errorMessage && (
-                <div className="mb-6 p-4 bg-sig-coral text-sig-cream rounded-lg text-xs font-sans flex items-start gap-3 shadow-sm">
-                  <span className="text-sig-cream text-sm shrink-0">⚠️</span>
-                  <div className="flex-1 font-medium">{errorMessage}</div>
+                <div className="mb-3 p-2 bg-red-50 border border-red-200 text-red-700 rounded-xl text-[11px] font-medium flex items-center gap-2">
+                  <span>⚠️</span>
+                  <div>{errorMessage}</div>
                 </div>
               )}
-
-              {/* Success Message: Full-Bleed Signature Mint card with forest text */}
               {successMessage && (
-                <div className="mb-6 p-4 bg-sig-mint text-sig-forest rounded-lg text-xs font-sans flex items-start gap-3 shadow-sm border border-sig-mint/20">
-                  <CheckCircle2 className="w-4 h-4 text-sig-forest shrink-0 mt-0.5" />
-                  <div className="flex-1 font-medium">{successMessage}</div>
+                <div className="mb-3 p-2 bg-green-50 border border-green-200 text-green-700 rounded-xl text-[11px] font-medium flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                  <div>{successMessage}</div>
                 </div>
               )}
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-5">
-
-                {/* Email Input */}
-                <div className="space-y-1.5">
+              {/* Input Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                
+                {/* Email input with floating-style label */}
+                <div className="relative">
                   <label
                     htmlFor="email"
-                    className="text-xs font-medium uppercase tracking-wider text-ink block"
+                    className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-[10px] font-bold text-ink uppercase tracking-wider"
+                    style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
-                    Địa chỉ Email
+                    Email
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 text-muted-text" />
-                    </div>
-                    <input
-                      id="email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="email@example.com"
-                      disabled={isSubmitting}
-                      className="block w-full h-[44px] pl-10 pr-4 bg-canvas border border-hairline rounded-sm text-ink placeholder-slate-400 focus:outline-none focus:border-ink transition-editorial disabled:opacity-50 text-sm"
-                    />
-                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    disabled={isSubmitting}
+                    className="block w-full h-[40px] px-6 bg-transparent border border-gray-400/80 rounded-full text-xs text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                  />
                 </div>
 
-                {/* Password Input */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <label
-                      htmlFor="password"
-                      className="text-xs font-medium uppercase tracking-wider text-ink block"
-                    >
-                      Mật khẩu
-                    </label>
-                    <a
-                      href="#forgot"
-                      className="text-xs text-link hover:text-link-active font-medium"
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      Quên mật khẩu?
-                    </a>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-4 w-4 text-muted-text" />
-                    </div>
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      disabled={isSubmitting}
-                      className="block w-full h-[44px] pl-10 pr-10 bg-canvas border border-hairline rounded-sm text-ink placeholder-slate-400 focus:outline-none focus:border-ink transition-editorial disabled:opacity-50 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isSubmitting}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-text hover:text-ink transition-colors focus:outline-none cursor-pointer"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
+                {/* Password input with floating-style label */}
+                <div className="relative">
+                  <label
+                    htmlFor="password"
+                    className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-[10px] font-bold text-ink uppercase tracking-wider"
+                    style={{ fontFamily: '"Istok Web", sans-serif' }}
+                  >
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    disabled={isSubmitting}
+                    className="block w-full h-[40px] pl-6 pr-12 bg-transparent border border-gray-400/80 rounded-full text-xs text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isSubmitting}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
 
-                {/* Submit Button: Near-black Ink Primary CTA */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-[48px] flex items-center justify-center gap-2 rounded-lg font-medium text-white bg-primary hover:bg-primary-active active:scale-[0.99] transition-editorial cursor-pointer shadow-sm disabled:opacity-50 disabled:pointer-events-none text-sm group"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Đang kiểm tra...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Đăng nhập</span>
-                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                    </>
-                  )}
-                </button>
+                {/* Forgot password */}
+                <div className="text-right">
+                  <a
+                    href="/forgot-password"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      router.push('/forgot-password');
+                    }}
+                    className="text-[11px] italic underline text-ink/70 hover:text-ink font-serif"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
 
+                {/* LOGIN button */}
+                <div className="flex justify-center pt-1">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full max-w-[160px] h-[38px] rounded-full bg-[#5D0F12] text-white text-[11px] font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Logging in...</span>
+                      </>
+                    ) : (
+                      <span>LOGIN</span>
+                    )}
+                  </button>
+                </div>
               </form>
 
-              {/* Google Login Divider */}
-              <div className="relative flex py-4 items-center">
-                <div className="flex-grow border-t border-hairline"></div>
-                <span className="flex-shrink mx-4 text-muted-text text-[11px] uppercase tracking-wider font-semibold">Hoặc đăng nhập bằng</span>
-                <div className="flex-grow border-t border-hairline"></div>
+              {/* OR Divider */}
+              <div className="relative flex py-2 items-center justify-center max-w-xs mx-auto my-1">
+                <div className="flex-grow border-t border-gray-300/80"></div>
+                <span className="flex-shrink mx-3 text-gray-400 text-[11px] font-serif italic">OR</span>
+                <div className="flex-grow border-t border-gray-300/80"></div>
               </div>
 
-              {/* Google Login Button */}
-              <div className="flex justify-center w-full">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  useOneTap
-                  theme="filled_blue"
-                  shape="pill"
-                />
+              {/* Google login container */}
+              <div className="flex flex-col items-center justify-center gap-1.5 mb-2">
+                <div className="hover:scale-[1.01] transition-transform duration-200">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    theme="outline"
+                    shape="pill"
+                    width="240"
+                  />
+                </div>
+                <p className="text-[9px] text-gray-400 italic">We won&apos;t publish posts on your behalf.</p>
               </div>
 
-              {/* Register link */}
-              <div className="mt-8 text-center border-t border-hairline pt-6 text-sm text-muted-text">
-                Chưa có tài khoản?{' '}
+              {/* Bottom footer links */}
+              <div className="text-center text-xs text-ink/80 font-serif mt-1">
+                <span>Don&apos;t have an account? </span>
                 <a
-                  href="#register"
-                  className="text-link hover:text-link-active font-medium"
-                  onClick={(e) => e.preventDefault()}
+                  href="/register"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    router.push('/register');
+                  }}
+                  className="font-bold underline hover:text-[#5D0F12] transition-colors"
                 >
-                  Đăng ký thành viên
+                  Sign up
                 </a>
               </div>
 
-              {/* Quick Login Assist (cleaner card structure) */}
-              <div className="mt-8 p-4 bg-surface-soft rounded-md border border-hairline text-[11px] text-body-text flex flex-col gap-1.5">
-                <span className="font-semibold text-ink uppercase tracking-wider block mb-0.5">
-                  Tài khoản thử nghiệm (Demo)
-                </span>
-                <div className="grid grid-cols-2 gap-2 text-muted-text font-mono border-t border-hairline/60 pt-2">
-                  <div>
-                    <span className="block text-[9px] font-sans uppercase font-medium text-ink">Vai trò Khách</span>
-                    <span>user@planora.com</span>
-                  </div>
-                  <div>
-                    <span className="block text-[9px] font-sans uppercase font-medium text-ink font-semibold">Mật khẩu chung</span>
-                    <span className="text-sig-coral">123456</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="block text-[9px] font-sans uppercase font-medium text-ink">Vai trò Khác</span>
-                    <div className="flex gap-2">
-                      <span>vendor@planora.com</span>
-                      <span>•</span>
-                      <span>admin@planora.com</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
+            {/* Subdued Assist Card */}
+            <details className="mt-3 text-left border border-gray-200 rounded-xl p-2 bg-gray-50/50 cursor-pointer select-none">
+              <summary className="text-[9px] font-bold text-ink/60 uppercase tracking-wider">
+                Demo Accounts (Click to expand)
+              </summary>
+              <div className="grid grid-cols-2 gap-1.5 text-[9px] text-muted-text font-mono border-t border-gray-200 mt-1.5 pt-1.5">
+                <div>
+                  <span className="block text-[8px] font-sans uppercase font-semibold text-ink">User Role</span>
+                  <span>user@planora.com</span>
+                </div>
+                <div>
+                  <span className="block text-[8px] font-sans uppercase font-semibold text-ink">Password</span>
+                  <span className="text-[#5D0F12]">123456</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="block text-[8px] font-sans uppercase font-semibold text-ink">Other Roles</span>
+                  <span>vendor@planora.com | admin@planora.com</span>
+                </div>
+              </div>
+            </details>
+
+          </div>
+
+          {/* Right Column: Visual Showcase Image */}
+          <div className="md:col-span-5 p-3 hidden md:flex items-stretch">
+            <div className="w-full relative rounded-[28px] overflow-hidden">
+              <img
+                src="/login/couple-showcase.png"
+                alt="Wedding Couple"
+                className="w-full h-full object-cover"
+              />
+              {/* Optional soft inner shadow overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+            </div>
           </div>
 
         </div>
