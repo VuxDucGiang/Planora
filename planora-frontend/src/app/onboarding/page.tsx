@@ -209,7 +209,15 @@ export default function Onboarding() {
   ];
 
   return (
-    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-hidden">
+    <div 
+      className="min-h-screen text-body-text font-sans flex flex-col relative w-full overflow-hidden"
+      style={{ 
+        backgroundImage: `linear-gradient(rgba(255, 251, 245, 0.88), rgba(255, 251, 245, 0.88)), url('/onboarding/background.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <DashboardHeader logout={logout} />
 
       {/* Main Content Area */}
@@ -217,7 +225,7 @@ export default function Onboarding() {
         
         {/* Loading configuration data */}
         {isLoadingData ? (
-          <div className="flex flex-col items-center py-20 gap-3">
+          <div className="flex flex-col items-center py-20 gap-3 bg-white/80 backdrop-blur-sm rounded-xl border border-hairline p-8 shadow-sm">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <span className="text-sm text-muted-text font-display">Đang chuẩn bị khảo sát thông minh...</span>
           </div>
@@ -275,24 +283,52 @@ export default function Onboarding() {
           <div className="space-y-8">
             
             {/* Step Indicators */}
-            <div className="flex justify-between items-center max-w-md mx-auto relative mb-4">
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1px] bg-border-strong -z-10" />
-              {[1, 2, 3, 4].map(step => (
-                <button
-                  key={step}
-                  onClick={() => step < currentStep && setCurrentStep(step)}
-                  disabled={step >= currentStep}
-                  className={`w-9 h-9 rounded-full border text-xs font-semibold flex items-center justify-center transition-all ${
-                    step < currentStep
-                      ? 'bg-primary border-primary text-white cursor-pointer hover:opacity-90'
-                      : step === currentStep
-                      ? 'bg-white border-primary text-primary ring-4 ring-primary/10 shadow-sm font-bold'
-                      : 'bg-white border-border-strong text-muted-text cursor-not-allowed'
-                  }`}
-                >
-                  {step < currentStep ? <Check className="w-4 h-4" /> : step}
-                </button>
-              ))}
+            <div className="max-w-2xl mx-auto mb-10 mt-2 animate-fade-in bg-transparent px-4 sm:px-8">
+              <div className="relative">
+                {/* Horizontal line running behind all dots */}
+                <div className="absolute left-[12%] right-[12%] top-[5px] h-[1px] bg-white/40" />
+                
+                <div className="flex justify-between items-center relative">
+                  {[
+                    { number: 1, label: 'Wedding Details' },
+                    { number: 2, label: 'Budget' },
+                    { number: 3, label: 'Wedding Style' },
+                    { number: 4, label: 'Priority Services' }
+                  ].map((step) => {
+                    const isCompleted = step.number < currentStep;
+                    const isActive = step.number === currentStep;
+                    
+                    return (
+                      <div key={step.number} className="flex flex-col items-center z-10 w-[22%]">
+                        {/* Small circular dot wrapper to handle alignment and line centering */}
+                        <div className="h-[10px] flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() => step.number < currentStep && setCurrentStep(step.number)}
+                            disabled={step.number >= currentStep}
+                            className={`w-2.5 h-2.5 rounded-full border border-white transition-all ${
+                              isCompleted || isActive
+                                ? 'bg-white'
+                                : 'bg-transparent'
+                            } ${step.number < currentStep ? 'cursor-pointer hover:scale-125' : 'cursor-not-allowed'}`}
+                          />
+                        </div>
+                        {/* Serif italic label */}
+                        <span 
+                          className="text-xs sm:text-sm text-center whitespace-nowrap text-white italic mt-3 transition-all duration-300"
+                          style={{ 
+                            fontFamily: 'EB Garamond, Georgia, serif',
+                            opacity: isActive ? 1 : 0.65,
+                            transform: isActive ? 'scale(1.03)' : 'scale(1)'
+                          }}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Error Message Alert */}
@@ -304,7 +340,7 @@ export default function Onboarding() {
             )}
 
             {/* Form Steps Rendering */}
-            <div className="bg-white rounded-lg border border-hairline p-8 md:p-10 shadow-sm transition-all duration-300">
+            <div className="bg-white/95 backdrop-blur-md rounded-xl border border-hairline p-8 md:p-10 shadow-md transition-all duration-300 vintage-card">
               
               {/* STEP 1: Basic Information */}
               {currentStep === 1 && (
@@ -400,16 +436,16 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* STEP 2: Budget and Priorities */}
+              {/* STEP 2: Budget */}
               {currentStep === 2 && (
                 <div className="space-y-6">
                   <div className="border-b border-hairline pb-4 mb-2">
                     <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
                       <DollarSign className="w-5 h-5 text-primary" />
-                      Ngân sách &amp; Dịch vụ Ưu tiên
+                      Ngân sách dự kiến
                     </h2>
                     <p className="text-xs text-muted-text mt-1">
-                      Nhập ngân sách của bạn và chọn các dịch vụ cần ưu tiên phân bổ ngân sách cao hơn.
+                      Nhập ngân sách của bạn để hệ thống tự động phân bổ chi phí hợp lý.
                     </p>
                   </div>
 
@@ -438,40 +474,6 @@ export default function Onboarding() {
                       <p className="text-[11px] text-muted-text italic">
                         Mức phân bổ đề xuất: {(budget || 0).toLocaleString('vi-VN')} VND
                       </p>
-                    </div>
-
-                    {/* Priority Categories */}
-                    <div className="space-y-3">
-                      <label className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                        Chọn các dịch vụ muốn ưu tiên đặc biệt
-                      </label>
-                      <p className="text-[11px] text-muted-text">
-                        Chúng tôi sẽ tự động tăng tỉ lệ ngân sách phân bổ cho các hạng mục này trong bảng dự chi.
-                      </p>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-                        {availableCategories.map(category => {
-                          const isSelected = selectedCategories.includes(category.id);
-                          return (
-                            <button
-                              key={category.id}
-                              type="button"
-                              onClick={() => {
-                                toggleCategory(category.id);
-                                setErrorMessage(null);
-                              }}
-                              className={`p-3 border rounded-sm text-xs font-medium text-left transition-all flex items-center justify-between ${
-                                isSelected
-                                  ? 'bg-primary/5 border-primary text-primary font-semibold ring-1 ring-primary/20'
-                                  : 'bg-white border-hairline text-body-text hover:bg-canvas'
-                              }`}
-                            >
-                              <span>{category.name}</span>
-                              {isSelected && <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
-                            </button>
-                          );
-                        })}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -523,7 +525,7 @@ export default function Onboarding() {
                               ? 'bg-primary border-primary text-white' 
                               : 'border-hairline bg-white'
                           }`}>
-                            {isSelected && <Check className="w-3 h-3" />}
+                            {isSelected && <Check className="w-3.5 h-3.5" />}
                           </div>
                         </button>
                       );
@@ -532,82 +534,46 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* STEP 4: Review and Submit */}
+              {/* STEP 4: Priority Services */}
               {currentStep === 4 && (
                 <div className="space-y-6">
                   <div className="border-b border-hairline pb-4 mb-2">
                     <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Check className="w-5 h-5 text-primary animate-pulse" />
-                      Xác nhận thông tin
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      Dịch vụ Ưu tiên (Priority Services)
                     </h2>
                     <p className="text-xs text-muted-text mt-1">
-                      Vui lòng xem lại thông tin đã khai báo. Hệ thống Planora AI sẽ phân bổ và đề xuất dựa trên các thông số này.
+                      Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Chúng tôi sẽ phân bổ ngân sách tối ưu cho các hạng mục này.
                     </p>
                   </div>
 
-                  {/* Summary Breakdown Grid */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      
-                      {/* Section 1: Basic */}
-                      <div className="p-4 bg-canvas rounded-sm border border-hairline space-y-2">
-                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block">Thông tin chung</span>
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-text font-normal">Tên kế hoạch:</p>
-                          <p className="text-sm font-semibold text-ink">{title}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div>
-                            <p className="text-xs text-muted-text font-normal">Ngày cưới:</p>
-                            <p className="text-xs font-semibold text-ink">{weddingDate}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-text font-normal">Khách mời:</p>
-                            <p className="text-xs font-semibold text-ink">{guestCount} người</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Section 2: Budget */}
-                      <div className="p-4 bg-canvas rounded-sm border border-hairline space-y-2">
-                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block">Ngân sách &amp; Ưu tiên</span>
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-text font-normal">Tổng ngân sách:</p>
-                          <p className="text-sm font-semibold text-primary font-mono">{(budget || 0).toLocaleString('vi-VN')} ₫</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-text font-normal mb-1">Dịch vụ ưu tiên:</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {selectedCategories.map(catId => {
-                              const name = availableCategories.find(c => c.id === catId)?.name || '';
-                              return (
-                                <span key={catId} className="px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-medium rounded-sm">
-                                  {name}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Section 3: Styles */}
-                    <div className="p-4 bg-canvas rounded-sm border border-hairline space-y-2">
-                      <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block">Phong cách thiết kế lựa chọn</span>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedStyles.map(styleId => {
-                          const style = availableStyles.find(s => s.id === styleId);
-                          return (
-                            <div key={styleId} className="px-3 py-1 bg-white border border-hairline text-ink text-xs font-semibold rounded-sm">
-                              {style?.name}
-                            </div>
-                          );
-                        })}
-                      </div>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                      {availableCategories.map(category => {
+                        const isSelected = selectedCategories.includes(category.id);
+                        return (
+                          <button
+                            key={category.id}
+                            type="button"
+                            onClick={() => {
+                              toggleCategory(category.id);
+                              setErrorMessage(null);
+                            }}
+                            className={`p-3 border rounded-sm text-xs font-medium text-left transition-all flex items-center justify-between ${
+                              isSelected
+                                ? 'bg-primary/5 border-primary text-primary font-semibold ring-1 ring-primary/20'
+                                : 'bg-white border-hairline text-body-text hover:bg-canvas'
+                            }`}
+                          >
+                            <span>{category.name}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* AI Notice Card */}
-                    <div className="p-4 bg-primary/5 rounded-sm border border-primary/20 flex gap-3 text-xs text-primary leading-relaxed items-start">
+                    <div className="p-4 bg-primary/5 rounded-sm border border-primary/20 flex gap-3 text-xs text-primary leading-relaxed items-start mt-6">
                       <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-semibold block mb-0.5">Về thuật toán phân bổ thông minh</span>
