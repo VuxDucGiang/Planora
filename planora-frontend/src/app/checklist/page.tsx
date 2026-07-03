@@ -37,9 +37,10 @@ export default function Checklist() {
   const router = useRouter();
 
   // Data Loading States
-  const [planId, setPlanId] = useState<number | null>(null);
+    const [planId, setPlanId] = useState<number | null>(null);
   const [tasks, setTasks] = useState<ChecklistTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [weddingDate, setWeddingDate] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -71,9 +72,10 @@ export default function Checklist() {
     async function loadData() {
       try {
         setIsLoading(true);
-        const activePlan = await getActivePlan();
+                const activePlan = await getActivePlan();
         if (activePlan) {
           setPlanId(activePlan.id);
+          setWeddingDate(activePlan.weddingDate);
           const checklist = await getChecklist(activePlan.id);
           setTasks(checklist);
         } else {
@@ -102,11 +104,9 @@ export default function Checklist() {
     );
   }
 
-  // Quick toggle status: TODO -> IN_PROGRESS -> DONE -> TODO
+    // Quick toggle status: TODO <=> DONE
   const handleQuickToggleStatus = async (task: ChecklistTask) => {
-    let nextStatus: TaskStatus = 'TODO';
-    if (task.status === 'TODO') nextStatus = 'IN_PROGRESS';
-    else if (task.status === 'IN_PROGRESS') nextStatus = 'DONE';
+    const nextStatus: TaskStatus = task.status === 'DONE' ? 'TODO' : 'DONE';
 
     try {
       const updated = await updateTask(task.id, { status: nextStatus });
@@ -210,6 +210,37 @@ export default function Checklist() {
     setTaskPriority('MEDIUM');
     setErrorMessage(null);
     setSuccessMessage(null);
+  };
+
+    // Get task section grouping based on due date and wedding date
+  const getTaskSection = (task: ChecklistTask, weddingDateStr: string | null): string => {
+    if (!task.dueDate || !weddingDateStr) {
+      return 'Chưa có thời hạn';
+    }
+    try {
+      const weddingDateObj = new Date(weddingDateStr);
+      const dueDateObj = new Date(task.dueDate);
+      
+      const diffTime = weddingDateObj.getTime() - dueDateObj.getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      const diffMonths = diffDays / 30.4;
+      
+      if (diffDays < 0) {
+        return 'Sau ngày cưới';
+      }
+      if (diffMonths >= 6) {
+        return 'Trước cưới 6+ tháng';
+      }
+      if (diffMonths >= 3) {
+        return 'Trước cưới 3 - 6 tháng';
+      }
+      if (diffMonths >= 1) {
+        return 'Trước cưới 1 - 3 tháng';
+      }
+      return 'Trong vòng 1 tháng';
+    } catch (e) {
+      return 'Chưa có thời hạn';
+    }
   };
 
   // Filter & Sort Logic
@@ -370,99 +401,114 @@ export default function Checklist() {
               </div>
             </div>
 
-            {/* Task Card List */}
-            <div className="space-y-3">
-              {filteredTasks.length > 0 ? (
-                filteredTasks.map(task => {
-                  const isDone = task.status === 'DONE';
-                  const isInProgress = task.status === 'IN_PROGRESS';
-                  
-                  // Color codes for priority
-                  let priorityStyles = 'border-light-grey text-light-grey bg-light-grey/5';
-                  if (task.priority === 'HIGH') priorityStyles = 'border-red-200 text-red-600 bg-red-50';
-                  else if (task.priority === 'MEDIUM') priorityStyles = 'border-primary/20 text-primary bg-primary/5';
-
+                        {/* Grouped Task Card List */}
+            <div className="space-y-6">
+              {filteredTasks.length > 0 ? (() => {
+                const sectionOrder = [
+                  'Trước cưới 6+ tháng',
+                  'Trước cưới 3 - 6 tháng',
+                  'Trước cưới 1 - 3 tháng',
+                  'Trong vòng 1 tháng',
+                  'Sau ngày cưới',
+                  'Chưa có thời hạn'
+                ];
+                const groupedTasks: Record<string, ChecklistTask[]> = {};
+                sectionOrder.forEach(sec => { groupedTasks[sec] = []; });
+                filteredTasks.forEach(task => {
+                  const sec = getTaskSection(task, weddingDate);
+                  if (!groupedTasks[sec]) { groupedTasks[sec] = []; }
+                  groupedTasks[sec].push(task);
+                });
+                return sectionOrder.map(section => {
+                  const sectionTasks = groupedTasks[section];
+                  if (!sectionTasks || sectionTasks.length === 0) return null;
                   return (
-                    <div 
-                      key={task.id}
-                      className={`p-4 bg-white border rounded-lg shadow-sm flex items-start justify-between gap-4 transition-all hover:border-border-strong ${
-                        isDone ? 'border-hairline bg-canvas/30 opacity-75' : 'border-hairline'
-                      }`}
-                    >
-                      {/* Left: Quick Status checkbox and Text details */}
-                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                        <button
-                          type="button"
-                          onClick={() => handleQuickToggleStatus(task)}
-                          className="mt-0.5 text-muted-text hover:text-primary transition-colors flex-shrink-0"
-                          title={`Nhấp để đổi trạng thái sang: ${task.status === 'TODO' ? 'Đang tiến hành' : task.status === 'IN_PROGRESS' ? 'Hoàn thành' : 'Cần làm'}`}
-                        >
-                          {isDone ? (
-                            <CheckCircle2 className="w-5.5 h-5.5 text-success fill-success/10" />
-                          ) : isInProgress ? (
-                            <div className="w-5.5 h-5.5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                          ) : (
-                            <Circle className="w-5.5 h-5.5 text-border-strong hover:border-primary" />
-                          )}
-                        </button>
-
-                        <div className="space-y-1 min-w-0">
-                          <h3 className={`text-sm font-semibold transition-all ${
-                            isDone ? 'line-through text-muted-text font-normal' : 'text-ink'
-                          }`}>
-                            {task.title}
-                          </h3>
-                          {task.description && (
-                            <p className="text-xs text-muted-text leading-relaxed break-words">
-                              {task.description}
-                            </p>
-                          )}
-
-                          <div className="flex flex-wrap items-center gap-3 pt-1.5">
-                            {/* Due date display formatted as DD/MM/YYYY */}
-                            <span className="flex items-center gap-1 text-[10px] font-medium text-muted-text font-mono">
-                              <Calendar className="w-3 h-3 text-muted-text" /> Hạn: {formatDate(task.dueDate)}
-                            </span>
-                            <span className="text-hairline text-xs">•</span>
-                            <span className={`px-2 py-0.5 border text-[9px] font-bold uppercase rounded-sm ${priorityStyles}`}>
-                              {task.priority === 'HIGH' ? 'Cao' : task.priority === 'MEDIUM' ? 'Trung bình' : 'Thấp'}
-                            </span>
-                            <span className="text-hairline text-xs">•</span>
-                            <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-sm border ${
-                              isDone 
-                                ? 'bg-success/5 border-success/20 text-success' 
-                                : isInProgress 
-                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600' 
-                                : 'bg-canvas border-hairline text-muted-text'
-                            }`}>
-                              {getStatusText(task.status)}
-                            </span>
-                          </div>
-                        </div>
+                    <div key={section} className="space-y-3">
+                      <h3 className="text-xs font-bold text-primary uppercase tracking-wider pl-1 mt-6 first:mt-0 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        {section} ({sectionTasks.length})
+                      </h3>
+                      <div className="space-y-3">
+                        {sectionTasks.map(task => {
+                          const isDone = task.status === 'DONE';
+                          let priorityStyles = 'border-light-grey text-light-grey bg-light-grey/5';
+                          if (task.priority === 'HIGH') priorityStyles = 'border-red-200 text-red-600 bg-red-50';
+                          else if (task.priority === 'MEDIUM') priorityStyles = 'border-primary/20 text-primary bg-primary/5';
+                          return (
+                            <div
+                              key={task.id}
+                              className={`p-4 bg-white border rounded-lg shadow-sm flex items-start justify-between gap-4 transition-all hover:border-border-strong ${
+                                isDone ? 'border-hairline bg-canvas/30 opacity-75' : 'border-hairline'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickToggleStatus(task)}
+                                  className="mt-0.5 text-muted-text hover:text-primary transition-colors flex-shrink-0 focus:ring-2 focus:ring-primary focus:outline-none rounded-full"
+                                  title={isDone ? 'Nhấp để đánh dấu chưa làm' : 'Nhấp để hoàn thành'}
+                                  aria-label={`Đánh dấu công việc ${task.title} là ${isDone ? 'chưa hoàn thành' : 'đã hoàn thành'}`}
+                                >
+                                  {isDone ? (
+                                    <CheckCircle2 className="w-5.5 h-5.5 text-success fill-success/10" />
+                                  ) : (
+                                    <Circle className="w-5.5 h-5.5 text-border-strong hover:border-primary" />
+                                  )}
+                                </button>
+                                <div className="space-y-1 min-w-0">
+                                  <h3 className={`text-sm font-semibold transition-all ${
+                                    isDone ? 'line-through text-muted-text font-normal font-sans' : 'text-ink'
+                                  }`}>
+                                    {task.title}
+                                  </h3>
+                                  {task.description && (
+                                    <p className="text-xs text-muted-text leading-relaxed break-words">
+                                      {task.description}
+                                    </p>
+                                  )}
+                                  <div className="flex flex-wrap items-center gap-3 pt-1.5">
+                                    <span className="flex items-center gap-1 text-[10px] font-medium text-muted-text font-mono">
+                                      <Calendar className="w-3 h-3 text-muted-text" /> Hạn: {formatDate(task.dueDate)}
+                                    </span>
+                                    <span className="text-hairline text-xs">•</span>
+                                    <span className={`px-2 py-0.5 border text-[9px] font-bold uppercase rounded-sm ${priorityStyles}`}>
+                                      {task.priority === 'HIGH' ? 'Cao' : task.priority === 'MEDIUM' ? 'Trung bình' : 'Thấp'}
+                                    </span>
+                                    <span className="text-hairline text-xs">•</span>
+                                    <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-sm border ${
+                                      isDone
+                                        ? 'bg-success/5 border-success/20 text-success'
+                                        : 'bg-canvas border-hairline text-muted-text'
+                                    }`}>
+                                      {getStatusText(task.status)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => handleOpenEdit(task)}
+                                  className="p-2 text-muted-text hover:text-primary hover:bg-canvas rounded-sm transition-all"
+                                  title="Sửa công việc"
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="p-2 text-muted-text hover:text-red-500 hover:bg-red-50 rounded-sm transition-all"
+                                  title="Xóa công việc"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-
-                      {/* Right: Actions menu */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => handleOpenEdit(task)}
-                          className="p-2 text-muted-text hover:text-primary hover:bg-canvas rounded-sm transition-all"
-                          title="Sửa công việc"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTask(task.id)}
-                          className="p-2 text-muted-text hover:text-red-500 hover:bg-red-50 rounded-sm transition-all"
-                          title="Xóa công việc"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
                     </div>
                   );
-                })
-              ) : (
+                });
+              })() : (
                 <div className="py-16 text-center bg-white border border-hairline rounded-lg shadow-sm text-muted-text flex flex-col items-center gap-2">
                   <ListTodo className="w-10 h-10 text-hairline" />
                   <span className="text-xs font-semibold">Không tìm thấy công việc nào phù hợp với bộ lọc.</span>
@@ -511,10 +557,11 @@ export default function Checklist() {
                 <label htmlFor="modal-title" className="text-xs font-semibold text-ink uppercase tracking-wider block">
                   Tiêu đề công việc
                 </label>
-                <input
+                                <input
                   type="text"
                   id="modal-title"
                   required
+                  autoFocus
                   placeholder="Ví dụ: Đặt cọc địa điểm tiệc cưới"
                   className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink"
                   value={taskTitle}
