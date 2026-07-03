@@ -362,3 +362,18 @@ a:hover {
     url("https://db.onlinewebfonts.com/t/4d436237636cf4843a2b3af336b8f9dd.ttf") format("truetype"),
     url("https://db.onlinewebfonts.com/t/4d436237636cf4843a2b3af336b8f9dd.svg#Burgues Script W00 Regular") format("svg");
 }
+
+/* Custom date input styling to hide native calendar picker icon while maintaining overlay clickability */
+.custom-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  color: transparent;
+  background: transparent;
+  cursor: pointer;
+  z-index: 10;
+}
