@@ -319,7 +319,7 @@ Progression note: *Break this into steps with a progress indicator (e.g. “Step
 - **Responsive:** Same form as others.  
 - **Accessibility:** Focus on task name on open.  
 - **Figma Components:** Reuse input and button components.  
-
+x
 ### 19. Timeline Dashboard  
 - **Actors:** Authenticated user.  
 - **Purpose:** Visualize major milestones in a chronological format.  
