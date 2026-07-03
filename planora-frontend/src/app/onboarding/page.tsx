@@ -6,9 +6,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   getWeddingStyles, 
   getServiceCategories, 
-  createOnboardingPlan 
+  createOnboardingPlan,
+  getActivePlan
 } from '@/services/weddingPlan';
-import type { WeddingStyle, ServiceCategory } from '@/types/weddingPlan';
+import type { WeddingStyle, ServiceCategory, ActivePlanResponse } from '@/types/weddingPlan';
 import { 
   Calendar, 
   Users, 
@@ -21,7 +22,8 @@ import {
   AlertCircle, 
   Loader2,
   Heart,
-  Info
+  Info,
+  ListTodo
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
@@ -46,8 +48,9 @@ export default function Onboarding() {
   const [weddingDate, setWeddingDate] = useState('');
   const [location, setLocation] = useState('');
   const [guestCount, setGuestCount] = useState<number>(50);
-  const [budget, setBudget] = useState<number>(200000000); // 200,000,000 VND default
+    const [budget, setBudget] = useState<number>(200000000); // 200,000,000 VND default
   const [selectedStyles, setSelectedStyles] = useState<number[]>([]);
+  const [generatedPlan, setGeneratedPlan] = useState<ActivePlanResponse | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   // Redirect to login if not authenticated
@@ -176,7 +179,7 @@ export default function Onboarding() {
     );
   };
 
-  // Submit and Auto Generate Plan
+    // Submit and Auto Generate Plan
   const handleSubmit = async () => {
     if (selectedCategories.length === 0) {
       setErrorMessage('Vui lòng chọn ít nhất một dịch vụ bạn muốn ưu tiên đầu tư!');
@@ -197,10 +200,15 @@ export default function Onboarding() {
         priorityCategoryIds: selectedCategories,
       });
 
-      // Show final phase for half a second before redirecting
+      // Fetch active plan details for Step 5 summary
+      const activePlan = await getActivePlan();
+      setGeneratedPlan(activePlan);
+
+      // Show final phase briefly before displaying Step 5
       setGenerationPhase(4);
       setTimeout(() => {
-        router.replace('/');
+        setIsGenerating(false);
+        setCurrentStep(5);
       }, 1000);
 
     } catch (err) {
@@ -291,7 +299,8 @@ export default function Onboarding() {
           /* Active Multi-step Survey form */
           <div className="space-y-8">
             
-            {/* Step Indicators */}
+                        {/* Step Indicators */}
+            {currentStep <= 4 && (
             <div className="max-w-2xl mx-auto mb-6 mt-2 animate-fade-in bg-transparent px-4 sm:px-8">
               <div className="relative">
                 {/* Horizontal line running behind all dots */}
@@ -334,9 +343,10 @@ export default function Onboarding() {
                       </div>
                     );
                   })}
-                </div>
+                                </div>
               </div>
             </div>
+            )}
 
             {/* Error Message Alert */}
             {errorMessage && (
@@ -346,8 +356,8 @@ export default function Onboarding() {
               </div>
             )}
 
-            {/* Form Steps Rendering - centered card */}
-            <div className="bg-[#FFFBF5] rounded-2xl border border-primary/10 p-6 sm:p-8 shadow-md max-w-[500px] w-full mx-auto z-10">
+                        {/* Form Steps Rendering - centered card */}
+            <div className={`bg-[#FFFBF5] rounded-2xl border border-primary/10 p-6 sm:p-8 shadow-md w-full mx-auto z-10 transition-all duration-500 ${currentStep === 5 ? 'max-w-[680px]' : 'max-w-[500px]'}`}>
               
               {/* STEP 1: Basic Information */}
               {currentStep === 1 && (
@@ -674,7 +684,7 @@ export default function Onboarding() {
                       })}
                     </div>
 
-                    {/* AI Notice Card */}
+                                        {/* AI Notice Card */}
                     <div className="p-3 bg-primary/5 rounded-sm border border-primary/20 flex gap-2 text-[10px] text-primary leading-relaxed items-start mt-2">
                       <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                       <div>
@@ -686,9 +696,117 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* Form Navigation Controls */}
+              {/* STEP 5: Wedding Plan Result Summary */}
+              {currentStep === 5 && (
+                <div className="space-y-6 py-2 animate-fade-in">
+                  {/* Header */}
+                  <div className="text-center space-y-1 mb-6">
+                    <h2 
+                      className="text-[28px] md:text-[32px] italic text-[#2C0600]"
+                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '40px' }}
+                    >
+                      Your Wedding Plan is Ready!
+                    </h2>
+                    <p 
+                      className="text-xs sm:text-sm font-normal text-[#2C0600]"
+                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '24px' }}
+                    >
+                      Dưới đây là dự toán chi tiết và kế hoạch được thiết kế riêng cho ngày trọng đại của bạn.
+                    </p>
+                  </div>
+
+                  {/* Summary Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {/* Left: General info & Styles */}
+                    <div className="space-y-4">
+                      {/* Overview details */}
+                      <div className="p-4 rounded-xl border border-primary/10 bg-white/40 space-y-3">
+                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider pl-1">Thông tin ngày cưới</h3>
+                        <div className="grid grid-cols-2 gap-3 text-[11px] font-sans text-ink">
+                          <div>
+                            <span className="text-muted-text block">Ngày cưới:</span>
+                            <span className="font-semibold">{weddingDate ? new Date(weddingDate).toLocaleDateString('vi-VN') : 'Chưa chọn'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-text block">Địa điểm:</span>
+                            <span className="font-semibold truncate block">{location}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-text block">Số lượng khách:</span>
+                            <span className="font-semibold">{guestCount} guests</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-text block">Tổng ngân sách:</span>
+                            <span className="font-semibold text-primary">{(budget || 0).toLocaleString('vi-VN')} ₫</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Styles/Concept */}
+                      <div className="space-y-2">
+                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider pl-1">Phong cách Đám cưới đề xuất</h3>
+                        {generatedPlan?.conceptSuggestions && generatedPlan.conceptSuggestions.length > 0 ? (
+                          <div className="space-y-2">
+                            {generatedPlan.conceptSuggestions.map((concept, index) => (
+                              <div key={index} className="p-3.5 rounded-xl border border-primary/15 bg-primary/5 space-y-1.5">
+                                <h4 className="text-xs font-bold text-primary font-display flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-gold" />
+                                  {concept.conceptName}
+                                </h4>
+                                <p className="text-[11px] text-body-text leading-relaxed">
+                                  {concept.description || 'Gợi ý phong cách thiết kế không gian trang trí cho tiệc cưới của bạn.'}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-3.5 rounded-xl border border-primary/10 bg-white/40 text-center">
+                            <span className="text-[11px] text-muted-text italic">Không tìm thấy phong cách phù hợp</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Budget Breakdown */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-primary uppercase tracking-wider pl-1">Bảng phân bổ ngân sách đề xuất</h3>
+                      {generatedPlan?.budgetItems && generatedPlan.budgetItems.length > 0 ? (
+                        <div className="space-y-2 max-h-[290px] overflow-y-auto pr-1 dashboard-scroll">
+                          {generatedPlan.budgetItems.map((item, index) => (
+                            <div key={index} className="flex items-center justify-between p-2.5 rounded-full border border-primary/10 bg-white/60 px-4">
+                              <span className="text-[11px] font-semibold text-ink truncate max-w-[170px]">{item.categoryName}</span>
+                              <span className="text-[11px] font-mono font-bold text-primary">{(item.estimatedCost || 0).toLocaleString('vi-VN')} ₫</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-3 rounded-xl border border-primary/10 bg-white/40 text-center">
+                          <span className="text-[11px] text-muted-text italic">Không có dữ liệu phân bổ</span>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Checklist Auto-generation Stat */}
+                  <div className="p-3.5 rounded-xl border border-primary/10 bg-white/50 flex items-center gap-3.5">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <ListTodo className="w-4.5 h-4.5" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-ink block">Kế hoạch công việc tự động</span>
+                      <span className="text-[11px] text-muted-text leading-normal">
+                        Planora AI đã tạo sẵn <strong>{generatedPlan?.checklistStats?.totalTasks || 0} công việc</strong> cần chuẩn bị và sắp xếp theo trình tự thời gian đám cưới của bạn.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+                            {/* Form Navigation Controls */}
               <div className="flex justify-between items-center mt-5 pt-4 border-t border-hairline">
-                {currentStep > 1 ? (
+                {currentStep > 1 && currentStep <= 4 ? (
                   <button
                     type="button"
                     onClick={handlePrevStep}
@@ -696,6 +814,15 @@ export default function Onboarding() {
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                     Quay lại
+                  </button>
+                ) : currentStep === 5 ? (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(4)}
+                    className="px-5 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs font-semibold transition-all flex items-center gap-1"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    Tùy chỉnh lại
                   </button>
                 ) : (
                   <div />
@@ -710,7 +837,7 @@ export default function Onboarding() {
                     Tiếp tục
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
-                ) : (
+                ) : currentStep === 4 ? (
                   <button
                     type="button"
                     onClick={handleSubmit}
@@ -718,6 +845,15 @@ export default function Onboarding() {
                   >
                     <Sparkles className="w-3.5 h-3.5 text-cream" />
                     Tạo kế hoạch tự động
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => router.replace('/')}
+                    className="px-6 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs font-semibold transition-all flex items-center gap-1 shadow-sm uppercase tracking-wide"
+                  >
+                    Xác nhận & Vào Dashboard
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
