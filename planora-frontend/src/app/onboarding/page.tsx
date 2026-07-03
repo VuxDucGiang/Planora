@@ -42,10 +42,10 @@ export default function Onboarding() {
   const [availableCategories, setAvailableCategories] = useState<ServiceCategory[]>([]);
 
   // Form States
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState('Kế hoạch đám cưới của tôi');
   const [weddingDate, setWeddingDate] = useState('');
   const [location, setLocation] = useState('');
-  const [guestCount, setGuestCount] = useState<number>(100);
+  const [guestCount, setGuestCount] = useState<number>(50);
   const [budget, setBudget] = useState<number>(200000000); // 200,000,000 VND default
   const [selectedStyles, setSelectedStyles] = useState<number[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
@@ -95,6 +95,17 @@ export default function Onboarding() {
     return () => clearInterval(timer);
   }, [isGenerating]);
 
+  // Auto-generate title for the wedding plan based on date and location
+  useEffect(() => {
+    if (weddingDate || location) {
+      const datePart = weddingDate ? new Date(weddingDate).toLocaleDateString('vi-VN') : '';
+      const locPart = location.trim() ? ` tại ${location.trim()}` : '';
+      setTitle(`Kế hoạch đám cưới${datePart ? ' ngày ' + datePart : ''}${locPart}`);
+    } else {
+      setTitle('Kế hoạch đám cưới của tôi');
+    }
+  }, [weddingDate, location]);
+
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
@@ -133,10 +144,6 @@ export default function Onboarding() {
         setErrorMessage('Tổng ngân sách dự kiến phải lớn hơn 0!');
         return;
       }
-      if (selectedCategories.length === 0) {
-        setErrorMessage('Vui lòng chọn ít nhất một dịch vụ bạn muốn ưu tiên đầu tư!');
-        return;
-      }
     }
 
     if (currentStep === 3) {
@@ -171,6 +178,10 @@ export default function Onboarding() {
 
   // Submit and Auto Generate Plan
   const handleSubmit = async () => {
+    if (selectedCategories.length === 0) {
+      setErrorMessage('Vui lòng chọn ít nhất một dịch vụ bạn muốn ưu tiên đầu tư!');
+      return;
+    }
     setIsGenerating(true);
     setGenerationPhase(0);
     setErrorMessage(null);
@@ -209,15 +220,21 @@ export default function Onboarding() {
   ];
 
   return (
-    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-hidden">
+    <div 
+      className="min-h-screen text-body-text font-sans flex flex-col relative w-full overflow-hidden"
+      style={{ 
+        backgroundImage: `url('/onboarding/background.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <DashboardHeader logout={logout} />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-6 py-12 flex flex-col justify-center relative">
-        
-        {/* Loading configuration data */}
         {isLoadingData ? (
-          <div className="flex flex-col items-center py-20 gap-3">
+          <div className="flex flex-col items-center py-20 gap-3 bg-white/80 backdrop-blur-sm rounded-xl border border-hairline p-8 shadow-sm">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <span className="text-sm text-muted-text font-display">Đang chuẩn bị khảo sát thông minh...</span>
           </div>
@@ -275,222 +292,309 @@ export default function Onboarding() {
           <div className="space-y-8">
             
             {/* Step Indicators */}
-            <div className="flex justify-between items-center max-w-md mx-auto relative mb-4">
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[1px] bg-border-strong -z-10" />
-              {[1, 2, 3, 4].map(step => (
-                <button
-                  key={step}
-                  onClick={() => step < currentStep && setCurrentStep(step)}
-                  disabled={step >= currentStep}
-                  className={`w-9 h-9 rounded-full border text-xs font-semibold flex items-center justify-center transition-all ${
-                    step < currentStep
-                      ? 'bg-primary border-primary text-white cursor-pointer hover:opacity-90'
-                      : step === currentStep
-                      ? 'bg-white border-primary text-primary ring-4 ring-primary/10 shadow-sm font-bold'
-                      : 'bg-white border-border-strong text-muted-text cursor-not-allowed'
-                  }`}
-                >
-                  {step < currentStep ? <Check className="w-4 h-4" /> : step}
-                </button>
-              ))}
+            <div className="max-w-2xl mx-auto mb-6 mt-2 animate-fade-in bg-transparent px-4 sm:px-8">
+              <div className="relative">
+                {/* Horizontal line running behind all dots */}
+                <div className="absolute left-[12%] right-[12%] top-[5px] h-[1px] bg-white/40" />
+                
+                <div className="flex justify-between items-center relative">
+                  {[
+                    { number: 1, label: 'Wedding Details' },
+                    { number: 2, label: 'Budget' },
+                    { number: 3, label: 'Wedding Style' },
+                    { number: 4, label: 'Priority Services' }
+                  ].map((step) => {
+                    const isCompleted = step.number < currentStep;
+                    const isActive = step.number === currentStep;
+                    
+                    return (
+                      <div key={step.number} className="flex flex-col items-center z-10 w-[22%]">
+                        <div className="h-[10px] flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() => step.number < currentStep && setCurrentStep(step.number)}
+                            disabled={step.number >= currentStep}
+                            className={`w-2.5 h-2.5 rounded-full border border-white transition-all ${
+                              isCompleted || isActive
+                                ? 'bg-white'
+                                : 'bg-transparent'
+                            } ${step.number < currentStep ? 'cursor-pointer hover:scale-125' : 'cursor-not-allowed'}`}
+                          />
+                        </div>
+                        <span 
+                          className="text-[10px] sm:text-xs text-center whitespace-nowrap text-white italic mt-2.5 transition-all duration-300"
+                          style={{ 
+                            fontFamily: 'EB Garamond, Georgia, serif',
+                            opacity: isActive ? 1 : 0.65,
+                            transform: isActive ? 'scale(1.03)' : 'scale(1)'
+                          }}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Error Message Alert */}
             {errorMessage && (
-              <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-sm flex items-start gap-3 text-sm animate-fade-in shadow-sm">
-                <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" />
+              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-sm flex items-start gap-2.5 text-xs animate-fade-in shadow-sm">
+                <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 text-red-500 mt-0.5" />
                 <span className="font-medium">{errorMessage}</span>
               </div>
             )}
 
-            {/* Form Steps Rendering */}
-            <div className="bg-white rounded-lg border border-hairline p-8 md:p-10 shadow-sm transition-all duration-300">
+            {/* Form Steps Rendering - centered card */}
+            <div className="bg-[#FFFBF5] rounded-2xl border border-primary/10 p-6 sm:p-8 shadow-md max-w-[500px] w-full mx-auto z-10">
               
               {/* STEP 1: Basic Information */}
               {currentStep === 1 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Heart className="w-5 h-5 text-primary" />
-                      Thông tin ngày cưới
+                <div className="space-y-8 py-2">
+                  {/* Header */}
+                  <div className="text-center space-y-1 mb-8">
+                    <h2 
+                      className="text-[28px] md:text-[32px] italic"
+                      style={{ 
+                        fontFamily: "'IM Fell French Canon', serif", 
+                        fontWeight: 400, 
+                        lineHeight: '40px',
+                        color: '#2C0600'
+                      }}
+                    >
+                      Let's start with the essentials
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
-                      Hãy chia sẻ những thông tin cơ bản về ngày trọng đại để chúng tôi thiết kế kế hoạch phù hợp nhất.
+                    <p 
+                      className="text-sm sm:text-base font-normal"
+                      style={{ 
+                        fontFamily: "'IM Fell French Canon', serif", 
+                        fontWeight: 400, 
+                        lineHeight: '40px',
+                        color: '#2C0600'
+                      }}
+                    >
+                      Tell us a bit about your upcoming wedding day.
                     </p>
                   </div>
 
-                  <div className="space-y-4">
-                    {/* Title */}
+                                    <div className="space-y-6">
+                                        {/* Wedding Date Capsule */}
                     <div className="space-y-2">
-                      <label htmlFor="title" className="text-xs font-semibold text-ink uppercase tracking-wider">
-                        Tên kế hoạch đám cưới
+                      <label 
+                        htmlFor="date" 
+                        className="block text-xs font-bold text-primary tracking-wider pl-1"
+                      >
+                        Wedding Date *
                       </label>
-                      <input
-                        type="text"
-                        id="title"
-                        className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
-                        placeholder="Ví dụ: Kế hoạch đám cưới của Giang & Mai"
-                        value={title}
-                        onChange={e => {
-                          setTitle(e.target.value);
-                          setErrorMessage(null);
-                        }}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Wedding Date */}
-                      <div className="space-y-2">
-                        <label htmlFor="date" className="text-xs font-semibold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-muted-text" />
-                          Ngày cưới mong muốn
-                        </label>
+                      <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-6 transition-all relative">
                         <input
                           type="date"
                           id="date"
-                          className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
+                          className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans cursor-pointer pr-8 focus:ring-0 focus:outline-none custom-date-input"
                           value={weddingDate}
                           onChange={e => {
                             setWeddingDate(e.target.value);
                             setErrorMessage(null);
                           }}
+                          style={{ colorScheme: 'light' }}
                         />
+                        <Calendar className="w-5 h-5 text-primary absolute right-6 pointer-events-none" />
                       </div>
+                    </div>
 
-                      {/* Guest Count */}
-                      <div className="space-y-2">
-                        <label htmlFor="guests" className="text-xs font-semibold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-muted-text" />
-                          Số lượng khách mời dự kiến
-                        </label>
+                    {/* Location Capsule */}
+                    <div className="space-y-2">
+                      <label 
+                        htmlFor="location" 
+                        className="block text-xs font-bold text-primary tracking-wider pl-1"
+                      >
+                        Location *
+                      </label>
+                      <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-6 transition-all relative">
                         <input
-                          type="number"
-                          id="guests"
-                          min="1"
-                          className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
-                          placeholder="Ví dụ: 150"
-                          value={guestCount}
+                          type="text"
+                          id="location"
+                          className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans placeholder:text-muted-text/60 focus:ring-0 focus:outline-none"
+                          placeholder="Select city or destination"
+                          value={location}
                           onChange={e => {
-                            setGuestCount(parseInt(e.target.value) || 0);
+                            setLocation(e.target.value);
                             setErrorMessage(null);
                           }}
                         />
+                        <div className="absolute right-6 pointer-events-none">
+                          <svg 
+                            className="w-3.5 h-3.5 text-primary fill-none stroke-current stroke-2" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Location */}
-                    <div className="space-y-2">
-                      <label htmlFor="location" className="text-xs font-semibold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-muted-text" />
-                        Địa điểm tổ chức
-                      </label>
-                      <input
-                        type="text"
-                        id="location"
-                        className="w-full bg-canvas border border-hairline rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors text-ink"
-                        placeholder="Ví dụ: Trung tâm hội nghị tiệc cưới Hà Nội hoặc Khách sạn Lotte"
-                        value={location}
-                        onChange={e => {
-                          setLocation(e.target.value);
-                          setErrorMessage(null);
-                        }}
-                      />
+                    {/* Estimated Guest Count Capsule */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label 
+                          className="block text-xs font-bold text-primary tracking-wider pl-1"
+                        >
+                          Estimated Guest Count *
+                        </label>
+                        <div className="w-full h-14 rounded-full border border-primary/30 bg-transparent flex items-center justify-between px-6 transition-all focus-within:border-primary/80">
+                          <input
+                            type="number"
+                            min="1"
+                            value={guestCount || ''}
+                            onChange={e => {
+                              const val = parseInt(e.target.value) || 0;
+                              setGuestCount(val);
+                              setErrorMessage(null);
+                            }}
+                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="Ví dụ: 150"
+                          />
+                          <span className="text-xs sm:text-sm font-sans text-muted-text italic ml-2">
+                            guests
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Custom Slider */}
+                      <div className="px-1 pt-1 pb-2">
+                        <div className="relative w-full px-1 flex flex-col gap-2">
+                          <input
+                            type="range"
+                            min="50"
+                            max="500"
+                            step="10"
+                            value={guestCount > 500 ? 500 : guestCount < 50 ? 50 : guestCount}
+                            onChange={e => {
+                              setGuestCount(parseInt(e.target.value));
+                              setErrorMessage(null);
+                            }}
+                            className="w-full h-1.5 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                          />
+                          {/* Labels container */}
+                          <div className="relative w-full h-4 mt-0.5">
+                            <span className="absolute left-0 text-[11px] font-sans text-primary/60">50</span>
+                            <span className="absolute left-[22.2%] -translate-x-1/2 text-[11px] font-sans text-primary/60">150</span>
+                            <span className="absolute right-0 text-[11px] font-sans text-primary/60">500+</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+
                   </div>
                 </div>
               )}
 
-              {/* STEP 2: Budget and Priorities */}
+                            {/* STEP 2: Budget */}
               {currentStep === 2 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-primary" />
-                      Ngân sách &amp; Dịch vụ Ưu tiên
+                <div className="space-y-8 py-2">
+                  {/* Header */}
+                  <div className="text-center space-y-1 mb-8">
+                    <h2 
+                      className="text-[28px] md:text-[32px] italic"
+                      style={{ 
+                        fontFamily: "'IM Fell French Canon', serif", 
+                        fontWeight: 400, 
+                        lineHeight: '40px',
+                        color: '#2C0600'
+                      }}
+                    >
+                      What is your estimated budget?
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
-                      Nhập ngân sách của bạn và chọn các dịch vụ cần ưu tiên phân bổ ngân sách cao hơn.
+                    <p 
+                      className="text-sm sm:text-base font-normal"
+                      style={{ 
+                        fontFamily: "'IM Fell French Canon', serif", 
+                        fontWeight: 400, 
+                        lineHeight: '40px',
+                        color: '#2C0600'
+                      }}
+                    >
+                      Planora AI will automatically allocate it for you.
                     </p>
                   </div>
 
                   <div className="space-y-6">
-                    {/* Budget Input */}
+                    {/* Budget Input Capsule */}
                     <div className="space-y-2">
-                      <label htmlFor="budget" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                        Tổng ngân sách dự trù (VND)
+                      <label 
+                        htmlFor="budget" 
+                        className="block text-xs font-bold text-primary tracking-wider pl-1"
+                      >
+                        Total Budget *
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-text font-mono text-sm">₫</span>
-                        <input
-                          type="number"
-                          id="budget"
-                          min="1"
-                          step="1000000"
-                          className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-4 py-3 text-sm font-mono focus:outline-none focus:border-primary transition-colors text-ink"
-                          placeholder="Ví dụ: 200000000"
-                          value={budget}
-                          onChange={e => {
-                            setBudget(parseInt(e.target.value) || 0);
-                            setErrorMessage(null);
-                          }}
-                        />
+                      <div className="w-full h-14 rounded-full border border-primary/30 bg-transparent flex items-center justify-between px-6 transition-all focus-within:border-primary/80">
+                        <div className="flex items-center w-full">
+                          <span className="text-xs sm:text-sm font-sans text-muted-text mr-1.5">₫</span>
+                          <input
+                            type="number"
+                            id="budget"
+                            min="1"
+                            value={budget || ''}
+                            onChange={e => {
+                              setBudget(parseInt(e.target.value) || 0);
+                              setErrorMessage(null);
+                            }}
+                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="Ví dụ: 200000000"
+                          />
+                        </div>
+                        <span className="text-xs sm:text-sm font-sans text-muted-text italic ml-2">
+                          VND
+                        </span>
                       </div>
-                      <p className="text-[11px] text-muted-text italic">
+                      <p className="text-[11px] text-muted-text italic pl-1">
                         Mức phân bổ đề xuất: {(budget || 0).toLocaleString('vi-VN')} VND
                       </p>
                     </div>
 
-                    {/* Priority Categories */}
-                    <div className="space-y-3">
-                      <label className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                        Chọn các dịch vụ muốn ưu tiên đặc biệt
-                      </label>
-                      <p className="text-[11px] text-muted-text">
-                        Chúng tôi sẽ tự động tăng tỉ lệ ngân sách phân bổ cho các hạng mục này trong bảng dự chi.
-                      </p>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-                        {availableCategories.map(category => {
-                          const isSelected = selectedCategories.includes(category.id);
-                          return (
-                            <button
-                              key={category.id}
-                              type="button"
-                              onClick={() => {
-                                toggleCategory(category.id);
-                                setErrorMessage(null);
-                              }}
-                              className={`p-3 border rounded-sm text-xs font-medium text-left transition-all flex items-center justify-between ${
-                                isSelected
-                                  ? 'bg-primary/5 border-primary text-primary font-semibold ring-1 ring-primary/20'
-                                  : 'bg-white border-hairline text-body-text hover:bg-canvas'
-                              }`}
-                            >
-                              <span>{category.name}</span>
-                              {isSelected && <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
-                            </button>
-                          );
-                        })}
+                    {/* Custom Slider */}
+                    <div className="px-1 pt-1 pb-2">
+                      <div className="relative w-full px-1 flex flex-col gap-2">
+                        <input
+                          type="range"
+                          min="50000000"
+                          max="1000000000"
+                          step="10000000"
+                          value={budget > 1000000000 ? 1000000000 : budget < 50000000 ? 50000000 : budget}
+                          onChange={e => {
+                            setBudget(parseInt(e.target.value));
+                            setErrorMessage(null);
+                          }}
+                          className="w-full h-1.5 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                        {/* Labels container */}
+                        <div className="relative w-full h-4 mt-0.5">
+                          <span className="absolute left-0 text-[10px] sm:text-[11px] font-sans text-primary/60">50 Triệu</span>
+                          <span className="absolute left-[15.8%] -translate-x-1/2 text-[10px] sm:text-[11px] font-sans text-primary/60">200 Triệu</span>
+                          <span className="absolute right-0 text-[10px] sm:text-[11px] font-sans text-primary/60">1 Tỷ+</span>
+                        </div>
                       </div>
                     </div>
+
                   </div>
                 </div>
               )}
 
               {/* STEP 3: Wedding Style Selection */}
               {currentStep === 3 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-primary" />
+                <div className="space-y-4">
+                  <div className="border-b border-hairline pb-3 mb-1">
+                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
                       Phong cách thiết kế
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
+                    <p className="text-[11px] text-muted-text mt-0.5">
                       Chọn phong cách đám cưới bạn mong muốn (Có thể chọn nhiều phong cách).
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1 dashboard-scroll">
                     {availableStyles.map(style => {
                       const isSelected = selectedStyles.includes(style.id);
                       return (
@@ -501,29 +605,29 @@ export default function Onboarding() {
                             toggleStyle(style.id);
                             setErrorMessage(null);
                           }}
-                          className={`p-5 border rounded-lg text-left transition-all flex flex-col justify-between h-full relative group ${
+                          className={`p-3 border rounded-lg text-left transition-all flex flex-col justify-between relative group ${
                             isSelected
                               ? 'bg-primary/5 border-primary text-primary ring-1 ring-primary/25 shadow-sm'
                               : 'bg-white border-hairline text-body-text hover:border-border-strong hover:bg-canvas/50'
                           }`}
                         >
-                          <div className="space-y-1.5">
-                            <h3 className={`text-sm font-semibold transition-colors ${
+                          <div className="space-y-1 pr-4">
+                            <h3 className={`text-xs font-semibold transition-colors ${
                               isSelected ? 'text-primary' : 'text-ink group-hover:text-primary'
                             }`}>
                               {style.name}
                             </h3>
-                            <p className="text-xs text-muted-text leading-relaxed font-normal">
+                            <p className="text-[10px] text-muted-text leading-relaxed font-normal line-clamp-2">
                               {style.description || 'Không có mô tả thêm.'}
                             </p>
                           </div>
                           
-                          <div className={`absolute top-4 right-4 w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                          <div className={`absolute top-3 right-3 w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
                             isSelected 
                               ? 'bg-primary border-primary text-white' 
                               : 'border-hairline bg-white'
                           }`}>
-                            {isSelected && <Check className="w-3 h-3" />}
+                            {isSelected && <Check className="w-2.5 h-2.5" />}
                           </div>
                         </button>
                       );
@@ -532,86 +636,50 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* STEP 4: Review and Submit */}
+              {/* STEP 4: Priority Services */}
               {currentStep === 4 && (
-                <div className="space-y-6">
-                  <div className="border-b border-hairline pb-4 mb-2">
-                    <h2 className="text-xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Check className="w-5 h-5 text-primary animate-pulse" />
-                      Xác nhận thông tin
+                <div className="space-y-4">
+                  <div className="border-b border-hairline pb-3 mb-1">
+                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      Dịch vụ Ưu tiên (Priority Services)
                     </h2>
-                    <p className="text-xs text-muted-text mt-1">
-                      Vui lòng xem lại thông tin đã khai báo. Hệ thống Planora AI sẽ phân bổ và đề xuất dựa trên các thông số này.
+                    <p className="text-[11px] text-muted-text mt-0.5">
+                      Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Chúng tôi sẽ phân bổ ngân sách tối ưu cho các hạng mục này.
                     </p>
                   </div>
 
-                  {/* Summary Breakdown Grid */}
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      
-                      {/* Section 1: Basic */}
-                      <div className="p-4 bg-canvas rounded-sm border border-hairline space-y-2">
-                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block">Thông tin chung</span>
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-text font-normal">Tên kế hoạch:</p>
-                          <p className="text-sm font-semibold text-ink">{title}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div>
-                            <p className="text-xs text-muted-text font-normal">Ngày cưới:</p>
-                            <p className="text-xs font-semibold text-ink">{weddingDate}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-text font-normal">Khách mời:</p>
-                            <p className="text-xs font-semibold text-ink">{guestCount} người</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Section 2: Budget */}
-                      <div className="p-4 bg-canvas rounded-sm border border-hairline space-y-2">
-                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block">Ngân sách &amp; Ưu tiên</span>
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-text font-normal">Tổng ngân sách:</p>
-                          <p className="text-sm font-semibold text-primary font-mono">{(budget || 0).toLocaleString('vi-VN')} ₫</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-text font-normal mb-1">Dịch vụ ưu tiên:</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {selectedCategories.map(catId => {
-                              const name = availableCategories.find(c => c.id === catId)?.name || '';
-                              return (
-                                <span key={catId} className="px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-medium rounded-sm">
-                                  {name}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Section 3: Styles */}
-                    <div className="p-4 bg-canvas rounded-sm border border-hairline space-y-2">
-                      <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block">Phong cách thiết kế lựa chọn</span>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedStyles.map(styleId => {
-                          const style = availableStyles.find(s => s.id === styleId);
-                          return (
-                            <div key={styleId} className="px-3 py-1 bg-white border border-hairline text-ink text-xs font-semibold rounded-sm">
-                              {style?.name}
-                            </div>
-                          );
-                        })}
-                      </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 max-h-[160px] overflow-y-auto pr-1 dashboard-scroll">
+                      {availableCategories.map(category => {
+                        const isSelected = selectedCategories.includes(category.id);
+                        return (
+                          <button
+                            key={category.id}
+                            type="button"
+                            onClick={() => {
+                              toggleCategory(category.id);
+                              setErrorMessage(null);
+                            }}
+                            className={`p-2 border rounded-sm text-xs font-medium text-left transition-all flex items-center justify-between ${
+                              isSelected
+                                ? 'bg-primary/5 border-primary text-primary font-semibold ring-1 ring-primary/20'
+                                : 'bg-white border-hairline text-body-text hover:bg-canvas'
+                            }`}
+                          >
+                            <span className="truncate">{category.name}</span>
+                            {isSelected && <Check className="w-3 h-3 text-primary flex-shrink-0" />}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* AI Notice Card */}
-                    <div className="p-4 bg-primary/5 rounded-sm border border-primary/20 flex gap-3 text-xs text-primary leading-relaxed items-start">
-                      <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <div className="p-3 bg-primary/5 rounded-sm border border-primary/20 flex gap-2 text-[10px] text-primary leading-relaxed items-start mt-2">
+                      <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                       <div>
                         <span className="font-semibold block mb-0.5">Về thuật toán phân bổ thông minh</span>
-                        Hệ thống sẽ chia nhỏ ngân sách cưới dựa theo bộ lọc ưu tiên và các mốc thời gian chuẩn bị 12 tháng. Danh sách Checklist và Timeline sẽ được tự động tạo sẵn kèm gợi ý chi tiết.
+                        Hệ thống sẽ chia nhỏ ngân sách cưới dựa theo bộ lọc ưu tiên và các mốc thời gian chuẩn bị 12 tháng. Danh sách Checklist và Dòng thời gian sẽ được tự động tạo sẵn.
                       </div>
                     </div>
                   </div>
@@ -619,14 +687,14 @@ export default function Onboarding() {
               )}
 
               {/* Form Navigation Controls */}
-              <div className="flex justify-between items-center mt-8 pt-6 border-t border-hairline">
+              <div className="flex justify-between items-center mt-5 pt-4 border-t border-hairline">
                 {currentStep > 1 ? (
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="px-4 py-2 border border-border-strong rounded-sm text-xs font-semibold text-body-text hover:bg-canvas transition-colors flex items-center gap-1.5"
+                    className="px-5 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs font-semibold transition-all flex items-center gap-1"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                     Quay lại
                   </button>
                 ) : (
@@ -637,18 +705,18 @@ export default function Onboarding() {
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="px-5 py-2.5 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 shadow-sm"
+                    className="px-6 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs font-semibold transition-all flex items-center gap-1 shadow-sm"
                   >
                     Tiếp tục
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="px-6 py-3 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-all flex items-center gap-2 shadow-sm font-display tracking-wide uppercase"
+                    className="px-6 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm font-display tracking-wide uppercase"
                   >
-                    <Sparkles className="w-4 h-4 text-cream" />
+                    <Sparkles className="w-3.5 h-3.5 text-cream" />
                     Tạo kế hoạch tự động
                   </button>
                 )}
