@@ -200,17 +200,19 @@ export default function Home() {
   const timelinePercent = totalTasks > 0 ? Math.min(Math.round((completedTasks / totalTasks) * 50) + 10, 100) : 0;
 
   return (
-    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full overflow-hidden">
+    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full">
       {/* Top Info Bar */}
-      <DashboardHeader logout={logout} plan={plan} daysLeft={timeLeft.days} />
+      <div className="sticky top-0 z-50">
+        <DashboardHeader logout={logout} plan={plan} daysLeft={timeLeft.days} />
+      </div>
 
       {/* Main Layout: Sidebar + Content */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 w-full relative">
         {/* Sidebar */}
         <DashboardSidebar hasPlan={!!plan} />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto dashboard-scroll">
+        <div className="flex-1 flex flex-col min-w-0">
           {isLoadingPlan ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -545,13 +547,13 @@ export default function Home() {
                   </div>
                 )}
               </main>
-
-              {/* Footer */}
-              <DashboardFooter />
             </>
           )}
         </div>
       </div>
+
+      {/* Footer */}
+      <DashboardFooter />
     </div>
   );
 }

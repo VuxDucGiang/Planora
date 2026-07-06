@@ -63,7 +63,7 @@ export default function DashboardSidebar({ hasPlan }: DashboardSidebarProps) {
   ];
 
   return (
-    <aside className="w-[230px] bg-white border-r border-hairline flex flex-col py-5 px-3 gap-1 shrink-0 min-h-full overflow-y-auto dashboard-scroll">
+    <aside className="w-[230px] bg-white border-r border-hairline flex flex-col py-5 px-3 gap-1 shrink-0 sticky top-[52px] h-[calc(100vh-52px)] overflow-y-auto dashboard-scroll z-20">
       {sections.map((section, sIdx) => (
         <div key={sIdx} className={sIdx > 0 ? 'mt-3' : ''}>
           {/* Section Title */}
