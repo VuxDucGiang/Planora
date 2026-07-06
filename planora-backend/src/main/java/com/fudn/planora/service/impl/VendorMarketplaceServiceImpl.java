@@ -116,9 +116,74 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     }
 
     @Override
+    @Transactional
     public List<VendorMatchResponse> getMatches(Long planId, Long currentUserId) {
-        validateWeddingPlanOwner(planId, currentUserId);
-        return matchesRepository.findByWeddingPlanIdOrderByMatchingScoreDesc(planId).stream()
+        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+        List<VendorMatches> existingMatches = matchesRepository.findByWeddingPlanIdOrderByMatchingScoreDesc(planId);
+        
+        if (existingMatches.isEmpty()) {
+            List<Vendor> allVendors = vendorRepository.findAll();
+            List<VendorMatches> newMatches = new java.util.ArrayList<>();
+            
+            for (Vendor vendor : allVendors) {
+                double score = 0.5;
+                String reason = "Nhà cung cấp dịch vụ cưới được đánh giá tốt.";
+                
+                boolean cityMatches = false;
+                if (plan.getLocation() != null && vendor.getCity() != null && 
+                    plan.getLocation().trim().equalsIgnoreCase(vendor.getCity().trim())) {
+                    score += 0.3;
+                    cityMatches = true;
+                }
+                
+                boolean styleMatches = false;
+                String matchedStyleName = "";
+                if (plan.getWeddingStyles() != null && vendor.getWeddingStyles() != null) {
+                    for (WeddingStyle planStyle : plan.getWeddingStyles()) {
+                        for (WeddingStyle vendorStyle : vendor.getWeddingStyles()) {
+                            if (planStyle.getId().equals(vendorStyle.getId())) {
+                                score += 0.15;
+                                styleMatches = true;
+                                matchedStyleName = planStyle.getName();
+                                break;
+                            }
+                        }
+                        if (styleMatches) break;
+                    }
+                }
+                
+                if (vendor.getVerified() != null && vendor.getVerified()) {
+                    score += 0.05;
+                }
+                
+                if (cityMatches && styleMatches) {
+                    reason = "Phù hợp hoàn hảo với địa điểm cưới tại " + vendor.getCity() + " và phong cách " + matchedStyleName + " bạn chọn.";
+                } else if (cityMatches) {
+                    reason = "Phù hợp với địa điểm tổ chức đám cưới của bạn tại " + vendor.getCity() + ".";
+                } else if (styleMatches) {
+                    reason = "Phù hợp với phong cách cưới " + matchedStyleName + " mà bạn yêu thích.";
+                } else {
+                    reason = "Nhà cung cấp nổi bật với " + (vendor.getExperienceYears() != null ? vendor.getExperienceYears() : 3) + " năm kinh nghiệm và đánh giá " + (vendor.getRatingAverage() != null ? vendor.getRatingAverage() : 4.8) + " sao.";
+                }
+                
+                if (score >= 0.6) {
+                    VendorMatches match = VendorMatches.builder()
+                            .weddingPlan(plan)
+                            .vendor(vendor)
+                            .matchingScore(score)
+                            .reason(reason)
+                            .build();
+                    newMatches.add(match);
+                }
+            }
+            
+            if (!newMatches.isEmpty()) {
+                matchesRepository.saveAll(newMatches);
+                existingMatches = matchesRepository.findByWeddingPlanIdOrderByMatchingScoreDesc(planId);
+            }
+        }
+        
+        return existingMatches.stream()
                 .map(match -> VendorMatchResponse.builder()
                         .id(match.getId())
                         .vendor(mapToVendorResponse(match.getVendor()))
