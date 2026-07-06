@@ -150,7 +150,7 @@ export default function Marketplace() {
             priceFrom: priceFrom ? parseFloat(priceFrom) : undefined,
             priceTo: priceTo ? parseFloat(priceTo) : undefined,
             page: currentPage,
-            size: 8
+            size: 9
           });
           setVendors(res.content);
           setTotalPages(res.totalPages);
@@ -265,10 +265,9 @@ export default function Marketplace() {
     }
   };
 
-  // Open detail popup
+  // Open detail page
   const handleOpenDetail = (id: number) => {
-    setSelectedVendorId(id);
-    setIsModalOpen(true);
+    router.push(`/marketplace/${id}`);
   };
 
   // Close detail popup
@@ -278,10 +277,19 @@ export default function Marketplace() {
     setVendorDetail(null);
   };
 
-  // Render Stars
+  const handleClearAllFilters = () => {
+    setSelectedCategory('ALL');
+    setSelectedCity('ALL');
+    setSelectedStyle('ALL');
+    setPriceFrom('');
+    setPriceTo('');
+    setSearchQuery('');
+    setCurrentPage(0);
+  };
+
   const renderStars = (rating: number) => {
     const stars = [];
-    const roundedRating = Math.round(rating * 2) / 2; // round to nearest 0.5
+    const roundedRating = Math.round(rating * 2) / 2;
     for (let i = 1; i <= 5; i++) {
       if (i <= roundedRating) {
         stars.push(<Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />);
@@ -305,26 +313,38 @@ export default function Marketplace() {
     <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-hidden">
       <DashboardHeader logout={logout} />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-10 py-12 flex flex-col justify-start">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 flex flex-col justify-start">
         
-        {/* Header Breadcrumbs */}
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline uppercase tracking-wider">
-            <ArrowLeft className="w-3.5 h-3.5" /> Quay lại Dashboard
-          </Link>
+        {/* Header Breadcrumbs & Search Row */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Link 
+              href="/marketplace" 
+              className="bg-primary text-cream text-[10px] font-bold uppercase tracking-[0.2em] px-5 py-2.5 rounded-sm hover:bg-primary-active transition-all"
+            >
+              Marketplace &gt; All Wedding Vendors
+            </Link>
+          </div>
+          
+          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-[280px]">
+            <input
+              type="text"
+              placeholder="Search vendor name..."
+              className="w-full bg-white border border-hairline rounded-full pl-5 pr-10 py-2.5 text-xs focus:outline-none focus:border-primary text-ink shadow-sm placeholder:text-muted-text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+            <button type="submit" className="absolute right-3.5 top-3 text-muted-text hover:text-primary transition-colors">
+              <Search className="w-3.5 h-3.5" />
+            </button>
+          </form>
         </div>
 
-        {/* Page Title */}
-        <div className="flex flex-col md:flex-row justify-between md:items-end border-b border-hairline pb-6 mb-8 gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-              <Award className="w-7 h-7 text-primary" />
-              Chợ Dịch Vụ Cưới
-            </h1>
-            <p className="text-xs text-muted-text">
-              Khám phá và kết nối với các nhà cung cấp dịch vụ tiệc cưới hàng đầu phù hợp với phong cách cưới của bạn.{activeTab === 'ALL' && totalElements > 0 && ` (Có ${totalElements} nhà cung cấp)`}
-            </p>
-          </div>
+        {/* Title */}
+        <div className="mb-8">
+          <h2 className="text-2xl sm:text-3xl font-medium tracking-tight text-ink font-display">
+            Explore Top Wedding Vendors
+          </h2>
         </div>
 
         {/* System Messages */}
@@ -342,7 +362,7 @@ export default function Marketplace() {
         )}
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-hairline mb-6">
+        <div className="flex border-b border-hairline mb-8">
           <button
             onClick={() => { setActiveTab('ALL'); setCurrentPage(0); }}
             className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
@@ -377,242 +397,246 @@ export default function Marketplace() {
           </button>
         </div>
 
-        {/* Filters Toolbar - Only visible on ALL Tab */}
-        {activeTab === 'ALL' && (
-          <form onSubmit={handleSearchSubmit} className="p-6 bg-white border border-hairline rounded-lg shadow-sm space-y-4 mb-6">
-            
-            {/* Row 1: Search & Category */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              
-              {/* Search input */}
-              <div className="md:col-span-7 relative">
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm theo tên thương hiệu..."
-                  className="w-full bg-canvas border border-hairline rounded-sm pl-9 pr-4 py-2.5 text-xs focus:outline-none focus:border-primary text-ink"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                />
-                <Search className="w-4 h-4 text-muted-text absolute left-3 top-3" />
-              </div>
-
-              {/* Category dropdown */}
-              <div className="md:col-span-5 flex items-center gap-1.5 border border-hairline rounded-sm bg-canvas px-3 py-1">
-                <Filter className="w-3.5 h-3.5 text-muted-text" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text border-r border-hairline pr-2.5 mr-1">Dịch vụ</span>
-                <select
-                  value={selectedCategory}
-                  onChange={e => setSelectedCategory(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
-                  className="text-xs font-semibold text-ink bg-transparent focus:outline-none cursor-pointer flex-1"
-                >
-                  <option value="ALL">Tất cả dịch vụ</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-
-            </div>
-
-            {/* Row 2: Location, Wedding Style, Price Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-12 gap-4 items-center">
-              
-              {/* City dropdown */}
-              <div className="md:col-span-4 flex items-center gap-1.5 border border-hairline rounded-sm bg-canvas px-3 py-1">
-                <MapPin className="w-3.5 h-3.5 text-muted-text" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text border-r border-hairline pr-2.5 mr-1">Khu vực</span>
-                <select
-                  value={selectedCity}
-                  onChange={e => setSelectedCity(e.target.value)}
-                  className="text-xs font-semibold text-ink bg-transparent focus:outline-none cursor-pointer flex-1"
-                >
-                  <option value="ALL">Tất cả tỉnh thành</option>
-                  <option value="Hà Nội">Hà Nội</option>
-                  <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
-                  <option value="Đà Nẵng">Đà Nẵng</option>
-                  <option value="Cần Thơ">Cần Thơ</option>
-                  <option value="Hải Phòng">Hải Phòng</option>
-                </select>
-              </div>
-
-              {/* Wedding Style dropdown */}
-              <div className="md:col-span-4 flex items-center gap-1.5 border border-hairline rounded-sm bg-canvas px-3 py-1">
-                <Sparkles className="w-3.5 h-3.5 text-muted-text" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text border-r border-hairline pr-2.5 mr-1">Concept</span>
-                <select
-                  value={selectedStyle}
-                  onChange={e => setSelectedStyle(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
-                  className="text-xs font-semibold text-ink bg-transparent focus:outline-none cursor-pointer flex-1"
-                >
-                  <option value="ALL">Tất cả concept</option>
-                  {styles.map(sty => (
-                    <option key={sty.id} value={sty.id}>{sty.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Price From / To */}
-              <div className="md:col-span-4 flex items-center gap-2">
-                <div className="flex-1 relative">
-                  <input
-                    type="number"
-                    placeholder="Giá từ..."
-                    className="w-full bg-canvas border border-hairline rounded-sm px-2.5 py-2 text-xs focus:outline-none focus:border-primary text-ink font-mono"
-                    value={priceFrom}
-                    onChange={e => setPriceFrom(e.target.value)}
-                  />
-                </div>
-                <span className="text-muted-text text-xs">—</span>
-                <div className="flex-1 relative">
-                  <input
-                    type="number"
-                    placeholder="Giá đến..."
-                    className="w-full bg-canvas border border-hairline rounded-sm px-2.5 py-2 text-xs focus:outline-none focus:border-primary text-ink font-mono"
-                    value={priceTo}
-                    onChange={e => setPriceTo(e.target.value)}
-                  />
-                </div>
-              </div>
-
-            </div>
-
-            {/* Row 3: Submit Filter Action */}
-            <div className="flex justify-end pt-1">
-              <button
-                type="submit"
-                className="px-6 py-2 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-all tracking-wider uppercase font-display"
+        {/* Main Grid: Filters on Left, Vendors in Red Box on Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+          
+          {/* Left: Filter Panel */}
+          <div className="space-y-6 lg:col-span-1 bg-white border border-hairline rounded-2xl p-6 shadow-sm">
+            <div className="flex justify-between items-center border-b border-hairline pb-3">
+              <h3 className="text-xs font-bold text-ink uppercase tracking-wider">Filter By</h3>
+              <button 
+                type="button" 
+                onClick={handleClearAllFilters}
+                className="text-[10px] font-semibold text-primary hover:underline uppercase tracking-wider"
               >
-                Áp dụng bộ lọc
+                [Clear All]
               </button>
             </div>
 
-          </form>
-        )}
-
-        {/* Matched Vendors Intro Header - Tab MATCHES */}
-        {activeTab === 'MATCHES' && (
-          <div className="p-5 mb-6 bg-primary/5 border border-primary/10 rounded-lg flex items-start gap-4">
-            <div className="p-3 bg-primary/10 text-primary rounded-full animate-pulse">
-              <Sparkles className="w-5 h-5 text-primary" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-ink">Gợi ý từ Trí tuệ Nhân tạo (Planora Matcher)</h3>
-              <p className="text-xs text-muted-text leading-relaxed">
-                Hệ thống tự động chấm điểm độ tương thích và đề xuất các nhà cung cấp phù hợp nhất dựa trên: địa điểm tiệc cưới, ngân sách chi tiết của bạn và phong cách đám cưới chủ đạo bạn đã chọn trong kế hoạch.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Vendors Listing Grid */}
-        {isLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-24 gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="text-sm text-muted-text font-display">Đang tải danh sách nhà cung cấp...</span>
-          </div>
-        ) : (
-          <div className="space-y-8 flex-1 flex flex-col justify-start">
-            
-            {/* List renders depending on Tab */}
-            {activeTab === 'ALL' && (
-              <>
-                {vendors.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {vendors.map(v => (
-                      <VendorCard 
-                        key={v.id} 
-                        vendor={v} 
-                        isSaved={shortlistIds.has(v.id)}
-                        isToggling={isTogglingShortlist === v.id}
-                        onToggleShortlist={(e) => handleToggleShortlist(e, v.id)}
-                        onOpenDetail={() => handleOpenDetail(v.id)}
-                        renderStars={renderStars}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState message="Không tìm thấy nhà cung cấp nào phù hợp với bộ lọc." />
-                )}
-
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-4 border-t border-hairline pt-6 mt-4">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                      disabled={currentPage === 0}
-                      className="p-2 border border-hairline rounded-sm hover:bg-canvas disabled:opacity-50 transition-colors"
-                      title="Trang trước"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="text-xs font-semibold text-ink font-mono">
-                      Trang {currentPage + 1} / {totalPages}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                      disabled={currentPage === totalPages - 1}
-                      className="p-2 border border-hairline rounded-sm hover:bg-canvas disabled:opacity-50 transition-colors"
-                      title="Trang sau"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-
-            {activeTab === 'MATCHES' && (
-              <>
-                {matches.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {matches.map(m => (
-                      <div key={m.id} className="relative group">
-                        {/* Score Tag */}
-                        <div className="absolute top-2 left-2 z-10 bg-primary text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow-sm flex items-center gap-0.5">
-                          <Sparkles className="w-2.5 h-2.5 text-cream fill-cream" /> {Math.round(m.matchingScore * 100)}% Match
-                        </div>
-                        <VendorCard 
-                          vendor={m.vendor} 
-                          isSaved={shortlistIds.has(m.vendor.id)}
-                          isToggling={isTogglingShortlist === m.vendor.id}
-                          onToggleShortlist={(e) => handleToggleShortlist(e, m.vendor.id)}
-                          onOpenDetail={() => handleOpenDetail(m.vendor.id)}
-                          renderStars={renderStars}
-                          reason={m.reason}
+            {/* Category Section */}
+            <div className="space-y-2.5">
+              <h4 className="text-[11px] font-bold text-ink uppercase tracking-wider">Category</h4>
+              <div className="flex flex-col gap-2">
+                {categories.map(cat => {
+                  const count = getMockCount(cat.name);
+                  return (
+                    <label key={cat.id} className="flex items-center justify-between text-xs text-body-text cursor-pointer hover:text-ink select-none">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedCategory === cat.id}
+                          onChange={() => setSelectedCategory(selectedCategory === cat.id ? 'ALL' : cat.id)}
+                          className="rounded-xs border-hairline text-primary focus:ring-primary w-3.5 h-3.5 accent-primary cursor-pointer"
                         />
+                        <span>{cat.name}</span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState message="Chưa có gợi ý nào. Hệ thống cần thêm thông tin ngân sách hoặc phong cách cưới để xử lý đề xuất." />
-                )}
-              </>
-            )}
+                      <span className="text-[10px] text-muted-text font-medium">({count})</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
 
-            {activeTab === 'SHORTLIST' && (
-              <>
-                {shortlist.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {shortlist.map(v => (
-                      <VendorCard 
-                        key={v.id} 
-                        vendor={v} 
-                        isSaved={true}
-                        isToggling={isTogglingShortlist === v.id}
-                        onToggleShortlist={(e) => handleToggleShortlist(e, v.id)}
-                        onOpenDetail={() => handleOpenDetail(v.id)}
-                        renderStars={renderStars}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyState message="Danh sách lưu trữ đang trống. Hãy thả tim ở mục tất cả nhà cung cấp để lưu lại các dịch vụ bạn ưng ý!" />
-                )}
-              </>
-            )}
+            {/* Pricing Section */}
+            <div className="space-y-2.5">
+              <h4 className="text-[11px] font-bold text-ink uppercase tracking-wider">Pricing (VND)</h4>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  className="w-full bg-canvas border border-hairline rounded-sm px-2.5 py-1.5 text-xs focus:outline-none focus:border-primary text-ink font-mono text-center"
+                  value={priceFrom}
+                  onChange={e => setPriceFrom(e.target.value)}
+                />
+                <span className="text-muted-text text-xs">—</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  className="w-full bg-canvas border border-hairline rounded-sm px-2.5 py-1.5 text-xs focus:outline-none focus:border-primary text-ink font-mono text-center"
+                  value={priceTo}
+                  onChange={e => setPriceTo(e.target.value)}
+                />
+              </div>
+            </div>
 
+            {/* Wedding Style Section */}
+            <div className="space-y-2.5">
+              <h4 className="text-[11px] font-bold text-ink uppercase tracking-wider">Wedding Style</h4>
+              <div className="flex flex-col gap-2">
+                {styles.map(sty => {
+                  const count = getMockCount(sty.name + "style");
+                  return (
+                    <label key={sty.id} className="flex items-center justify-between text-xs text-body-text cursor-pointer hover:text-ink select-none">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedStyle === sty.id}
+                          onChange={() => setSelectedStyle(selectedStyle === sty.id ? 'ALL' : sty.id)}
+                          className="rounded-xs border-hairline text-primary focus:ring-primary w-3.5 h-3.5 accent-primary cursor-pointer"
+                        />
+                        <span>{sty.name}</span>
+                      </div>
+                      <span className="text-[10px] text-muted-text font-medium">({count})</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Location Section */}
+            <div className="space-y-2.5">
+              <h4 className="text-[11px] font-bold text-ink uppercase tracking-wider">Location</h4>
+              <div className="flex flex-col gap-2">
+                {['Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Đà Lạt', 'Nha Trang'].map(city => {
+                  const count = getMockCount(city + "city");
+                  return (
+                    <label key={city} className="flex items-center justify-between text-xs text-body-text cursor-pointer hover:text-ink select-none">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedCity === city}
+                          onChange={() => setSelectedCity(selectedCity === city ? 'ALL' : city)}
+                          className="rounded-xs border-hairline text-primary focus:ring-primary w-3.5 h-3.5 accent-primary cursor-pointer"
+                        />
+                        <span>{city}</span>
+                      </div>
+                      <span className="text-[10px] text-muted-text font-medium">({count})</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* Right: Red Box with Vendor Cards */}
+          <div className="lg:col-span-3">
+            <div 
+              className="relative bg-primary rounded-3xl p-6 md:p-8 pl-10 md:pl-14 shadow-xl overflow-hidden min-h-[600px] flex flex-col justify-between"
+            >
+              {/* Lace SVG Border on the left */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-8 opacity-90"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='40' viewBox='0 0 20 40' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='2' y1='0' x2='2' y2='40' stroke='%23FFFBF5' stroke-width='1' stroke-dasharray='2 2' opacity='0.3'/%3E%3Cpath d='M2,5 C10,5 18,13 18,20 C18,27 10,35 2,35' stroke='%23FFFBF5' stroke-width='1.5' fill='none'/%3E%3Cpath d='M2,10 C7,10 13,15 13,20 C13,25 7,30 2,30' stroke='%23FFFBF5' stroke-width='1' fill='none' opacity='0.7'/%3E%3Ccircle cx='18' cy='20' r='1.5' fill='%23FFFBF5'/%3E%3Ccircle cx='13' cy='12' r='1' fill='%23FFFBF5'/%3E%3Ccircle cx='13' cy='28' r='1' fill='%23FFFBF5'/%3E%3Cpath d='M2,0 C4,1 4,4 2,5' stroke='%23FFFBF5' stroke-width='1' fill='none'/%3E%3Cpath d='M2,35 C4,36 4,39 2,40' stroke='%23FFFBF5' stroke-width='1' fill='none'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'repeat-y',
+                  backgroundSize: '20px 40px'
+                }}
+              ></div>
+
+              {/* Grid Header inside Red Box */}
+              <div className="flex justify-between items-center text-cream mb-6 text-xs border-b border-cream/10 pb-4">
+                <span className="italic font-light">
+                  {activeTab === 'ALL' && `Showing ${vendors.length > 0 ? currentPage * 9 + 1 : 0}-${Math.min((currentPage + 1) * 9, totalElements)} of ${totalElements} trusted vendors`}
+                  {activeTab === 'MATCHES' && `Showing ${matches.length} matched vendors`}
+                  {activeTab === 'SHORTLIST' && `Showing ${shortlist.length} shortlisted vendors`}
+                </span>
+                <span className="font-semibold cursor-pointer hover:underline uppercase tracking-wider text-[10px]">
+                  [ Sort: Featured ▾ ]
+                </span>
+              </div>
+
+              {/* Loader or Grid Content */}
+              {isLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3 text-cream">
+                  <Loader2 className="w-8 h-8 animate-spin text-gold" />
+                  <span className="text-xs uppercase tracking-wider text-cream/70">Loading Vendors...</span>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col justify-between gap-8">
+                  {/* Grid items */}
+                  {activeTab === 'ALL' && (
+                    <>
+                      {vendors.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {vendors.map(v => (
+                            <VendorCard 
+                              key={v.id} 
+                              vendor={v} 
+                              isSaved={shortlistIds.has(v.id)}
+                              isToggling={isTogglingShortlist === v.id}
+                              onToggleShortlist={(e) => handleToggleShortlist(e, v.id)}
+                              onOpenDetail={() => handleOpenDetail(v.id)}
+                              renderStars={renderStars}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState message="No vendors match your criteria. Try adjusting or resetting filters." />
+                      )}
+                    </>
+                  )}
+
+                  {activeTab === 'MATCHES' && (
+                    <>
+                      {matches.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {matches.map(m => (
+                            <div key={m.id} className="relative group">
+                              <div className="absolute top-2 left-2 z-10 bg-gold text-primary text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
+                                <Sparkles className="w-2.5 h-2.5 text-primary fill-primary" /> {Math.round(m.matchingScore * 100)}% Match
+                              </div>
+                              <VendorCard 
+                                vendor={m.vendor} 
+                                isSaved={shortlistIds.has(m.vendor.id)}
+                                isToggling={isTogglingShortlist === m.vendor.id}
+                                onToggleShortlist={(e) => handleToggleShortlist(e, m.vendor.id)}
+                                onOpenDetail={() => handleOpenDetail(m.vendor.id)}
+                                renderStars={renderStars}
+                                reason={m.reason}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState message="No suggestions available. Please complete your budget or wedding style settings to get matched recommendations." />
+                      )}
+                    </>
+                  )}
+
+                  {activeTab === 'SHORTLIST' && (
+                    <>
+                      {shortlist.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {shortlist.map(v => (
+                            <VendorCard 
+                              key={v.id} 
+                              vendor={v} 
+                              isSaved={true}
+                              isToggling={isTogglingShortlist === v.id}
+                              onToggleShortlist={(e) => handleToggleShortlist(e, v.id)}
+                              onOpenDetail={() => handleOpenDetail(v.id)}
+                              renderStars={renderStars}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState message="Your shortlist is empty. Save your favorite vendors by clicking the heart button!" />
+                      )}
+                    </>
+                  )}
+
+                  {/* Pagination Dots at Bottom */}
+                  {activeTab === 'ALL' && totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 pt-6 mt-4">
+                      {Array.from({ length: totalPages }).map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentPage(idx)}
+                          className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                            currentPage === idx 
+                              ? 'bg-cream scale-125' 
+                              : 'bg-cream/40 hover:bg-cream/70'
+                          }`}
+                          title={`Page ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
       </main>
 
@@ -822,92 +846,110 @@ function VendorCard({
   renderStars,
   reason
 }: VendorCardProps) {
+  const { category, imageUrl } = getVendorCategoryAndImage(vendor.id);
+  const { min, max } = getMockPriceRange(vendor.id);
+
+  // Format currency VND local helper
+  const formatCurrencyLocal = (amount: number | null | undefined): string => {
+    if (amount === null || amount === undefined) return '0 ₫';
+    return amount.toLocaleString('vi-VN') + ' ₫';
+  };
+
   return (
     <div 
       onClick={onOpenDetail}
-      className="bg-white border border-hairline rounded-lg overflow-hidden shadow-sm flex flex-col justify-between hover:border-border-strong transition-all duration-300 cursor-pointer h-full hover:shadow-md relative group"
+      className="bg-white rounded-[24px] overflow-hidden flex flex-col justify-between hover:scale-[1.02] transition-all duration-300 cursor-pointer h-full shadow-lg border border-hairline/65 p-3 pb-4 relative group"
     >
       
-      {/* Top box: Heart button */}
-      <div className="absolute top-2 right-2 z-10">
-        <button
-          onClick={onToggleShortlist}
-          disabled={isToggling}
-          className={`p-2 rounded-full border border-hairline/60 bg-white/90 shadow-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50 ${
-            isSaved ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-400'
-          }`}
-          title={isSaved ? 'Bỏ lưu nhà cung cấp' : 'Lưu nhà cung cấp'}
-        >
-          {isToggling ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-500' : ''}`} />
-          )}
-        </button>
+      {/* Arched Image Container */}
+      <div className="relative aspect-[4/5] w-full bg-cream/35 rounded-t-[18px] overflow-hidden p-2.5 flex items-center justify-center">
+        {/* Heart icon at top-right of image */}
+        <div className="absolute top-4 right-4 z-10">
+          <button
+            onClick={onToggleShortlist}
+            disabled={isToggling}
+            className={`p-2 rounded-full border border-hairline/40 bg-white/95 shadow-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50 ${
+              isSaved ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-400'
+            }`}
+            title={isSaved ? 'Bỏ lưu nhà cung cấp' : 'Lưu nhà cung cấp'}
+          >
+            {isToggling ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-500' : ''}`} />
+            )}
+          </button>
+        </div>
+
+        <div className="w-full h-full rounded-t-full overflow-hidden relative border border-primary/5 bg-white shadow-inner">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src={imageUrl} 
+            alt={vendor.businessName} 
+            className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600';
+            }}
+          />
+        </div>
       </div>
 
-      {/* Profile info block */}
-      <div className="p-4 space-y-3 flex-1 flex flex-col justify-start">
+      {/* Card Content details */}
+      <div className="pt-4 px-2 pb-1 space-y-2.5 flex-1 flex flex-col justify-between text-center">
         
-        {/* Name and Rating */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
-            <h4 className="text-xs font-bold text-ink truncate max-w-[130px] sm:max-w-full">
-              {vendor.businessName}
-            </h4>
-            {vendor.verified && (
-              <span className="bg-success/10 border border-success/20 text-success text-[7px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-sm">
-                V
-              </span>
-            )}
+        <div className="space-y-1.5">
+          {/* Rating */}
+          <div className="flex items-center justify-center gap-1">
+            <div className="flex text-gold">
+              {renderStars(vendor.ratingAverage)}
+            </div>
+            <span className="text-[9px] text-muted-text font-bold">({vendor.totalReviews})</span>
           </div>
 
-          <div className="flex items-center gap-1">
-            <div className="flex">{renderStars(vendor.ratingAverage)}</div>
-            <span className="text-[9px] text-muted-text font-bold">({vendor.totalReviews})</span>
+          {/* Category */}
+          <div className="text-[10px] text-muted-text italic tracking-wide uppercase font-medium">
+            {category}
+          </div>
+
+          {/* Business Name */}
+          <h4 className="text-xs font-semibold tracking-wider text-ink font-display uppercase line-clamp-1">
+            {vendor.businessName}
+          </h4>
+
+          {/* Price Range */}
+          <div className="text-[11px] font-bold text-primary font-mono">
+            Est. {formatCurrencyLocal(min)} - {formatCurrencyLocal(max)}
           </div>
         </div>
 
-        {/* Description snippet */}
-        <p className="text-[11px] text-muted-text line-clamp-3 leading-relaxed">
-          {vendor.description || 'Hệ thống nhà cung cấp dịch vụ chuyên nghiệp hàng đầu.'}
-        </p>
-
         {/* AI reason block - only displays when matched */}
         {reason && (
-          <div className="p-2.5 bg-primary/5 border border-primary/10 rounded-sm text-[10px] text-primary leading-relaxed">
-            <span className="font-bold uppercase tracking-wide block mb-0.5">Lý do gợi ý</span>
+          <div className="p-2 bg-primary/5 border border-primary/10 rounded-lg text-[9px] text-primary leading-relaxed text-left">
             <span className="line-clamp-2">{reason}</span>
           </div>
         )}
 
-      </div>
-
-      {/* Footer details card */}
-      <div className="p-4 border-t border-hairline bg-canvas/20 flex flex-col gap-2">
+        {/* Buttons Row */}
+        <div className="flex items-center justify-center gap-2 pt-2.5 border-t border-hairline/50">
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpenDetail(); }}
+            className="px-3.5 py-1.5 bg-primary text-cream text-[9px] font-bold tracking-wider uppercase rounded-full hover:bg-primary-active transition-all"
+          >
+            Inquire Now
+          </button>
+          <button
+            onClick={onToggleShortlist}
+            disabled={isToggling}
+            className={`px-3.5 py-1.5 text-[9px] font-bold tracking-wider uppercase rounded-full border transition-all ${
+              isSaved 
+                ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                : 'bg-white text-body-text border-border-strong hover:bg-canvas'
+            }`}
+          >
+            {isSaved ? 'Shortlisted' : 'Shortlist'}
+          </button>
+        </div>
         
-        {/* Location & Experience info */}
-        <div className="flex justify-between items-center text-[10px] text-muted-text font-medium">
-          <span className="flex items-center gap-0.5 font-mono truncate max-w-[110px]">
-            <MapPin className="w-3 h-3 text-muted-text" /> {vendor.city}
-          </span>
-          <span className="flex items-center gap-0.5">
-            <Briefcase className="w-3 h-3 text-muted-text" /> {vendor.experienceYears} năm EXP
-          </span>
-        </div>
-
-        {/* Styles chips */}
-        <div className="flex gap-1 overflow-hidden h-[16px] max-w-full">
-          {vendor.styles && vendor.styles.slice(0, 2).map((s, idx) => (
-            <span 
-              key={idx}
-              className="bg-primary/5 text-primary text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border border-primary/10 truncate max-w-[80px]"
-            >
-              {s}
-            </span>
-          ))}
-        </div>
-
       </div>
 
     </div>
@@ -917,9 +959,59 @@ function VendorCard({
 // Subcomponent: Empty State
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="py-16 text-center bg-white border border-hairline rounded-lg shadow-sm text-muted-text flex flex-col items-center gap-2 max-w-xl mx-auto w-full">
-      <Briefcase className="w-10 h-10 text-hairline" />
-      <span className="text-xs font-semibold px-6">{message}</span>
+    <div className="py-16 text-center text-cream/70 flex flex-col items-center gap-3 w-full">
+      <Briefcase className="w-10 h-10 text-gold-light" />
+      <span className="text-xs font-semibold max-w-md px-6 leading-relaxed">{message}</span>
     </div>
   );
 }
+
+const getMockCount = (name: string) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 21) + 4; // Generate consistent counts like (4) to (24)
+};
+
+const getVendorCategoryAndImage = (vendorId: number) => {
+  const categoriesList = ['Photography', 'Decoration', 'Makeup Artist', 'Wedding Venue'];
+  
+  const imagesByCategory: Record<string, string[]> = {
+    'Photography': [
+      'https://images.unsplash.com/photo-1537633552985-df8429e8048b?q=80&w=600',
+      'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600',
+      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600'
+    ],
+    'Decoration': [
+      'https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=600',
+      'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?q=80&w=600',
+      'https://images.unsplash.com/photo-1519225495810-7512c696505a?q=80&w=600'
+    ],
+    'Makeup Artist': [
+      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=600',
+      'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600',
+      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=600'
+    ],
+    'Wedding Venue': [
+      'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=600',
+      'https://images.unsplash.com/photo-1507504038482-7621c37c2f0f?q=80&w=600',
+      'https://images.unsplash.com/photo-1561542320-9a18cd340469?q=80&w=600'
+    ]
+  };
+
+  const catIndex = vendorId % categoriesList.length;
+  const category = categoriesList[catIndex];
+  
+  const imgList = imagesByCategory[category];
+  const imgIndex = (vendorId * 7) % imgList.length;
+  const imageUrl = imgList[imgIndex];
+
+  return { category, imageUrl };
+};
+
+const getMockPriceRange = (vendorId: number) => {
+  const basePrice = (vendorId % 10) * 5000000 + 15000000;
+  const maxPrice = basePrice + (vendorId % 3) * 10000000 + 5000000;
+  return { min: basePrice, max: maxPrice };
+};
