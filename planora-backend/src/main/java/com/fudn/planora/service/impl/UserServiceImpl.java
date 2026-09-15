@@ -1,8 +1,9 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.user.UserDTO;
-import com.fudn.planora.entity.User;
-import com.fudn.planora.entity.UserAddress;
+import com.fudn.planora.model.User;
+import com.fudn.planora.model.User.UserAddress;
+import com.fudn.planora.exceptions.ResourceNotFoundException;
 import com.fudn.planora.repository.UserAddressRepository;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.service.UserService;
@@ -20,7 +21,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO.ProfileResponse getUserProfile(String email) {
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + email));
 
         return mapToResponse(user);
     }
@@ -29,7 +30,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDTO.ProfileResponse updateProfile(String email, UserDTO.UpdateProfileRequest request) {
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + email));
 
         // Cập nhật thông tin cơ bản
         if (request.getFullname() != null) user.setFullname(request.getFullname());
@@ -84,3 +85,4 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 }
+

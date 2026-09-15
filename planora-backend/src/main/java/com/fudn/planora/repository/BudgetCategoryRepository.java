@@ -1,6 +1,6 @@
 package com.fudn.planora.repository;
 
-import com.fudn.planora.entity.BudgetCategory;
+import com.fudn.planora.model.WeddingPlan.BudgetCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

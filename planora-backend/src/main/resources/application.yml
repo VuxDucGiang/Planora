@@ -1,3 +1,6 @@
+server:
+  http2:
+    enabled: true
 
 spring:
   datasource:
@@ -8,18 +11,54 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-    show-sql: ${SPRING_JPA_SHOW_SQL}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    open-in-view: false
 
   flyway:
-    enabled: ${SPRING_FLYWAY_ENABLED}
-    locations: ${SPRING_FLYWAY_LOCATIONS}
+    enabled: ${SPRING_FLYWAY_ENABLED:true}
+    locations: ${SPRING_FLYWAY_LOCATIONS:classpath:db/migration}
     aiven:
-      enabled: ${SPRING_FLYWAY_AIVEN_ENABLED}
+      enabled: ${SPRING_FLYWAY_AIVEN_ENABLED:false}
+
+springdoc:
+  show-actuator: true
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+management:
+  info:
+    build:
+      enabled: true
+    env:
+      enabled: true
+    java:
+      enabled: true
+  endpoint:
+    health:
+      show-details: ALWAYS
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+
+swagger:
+  contact-name: Planora Team
+  contact-mail: contact@planora.vn
+  contact-url: https://planora.vn
+  app-name: Planora Wedding Planning API
+  app-description: "Planora Wedding Planning Platform API - Smart, comprehensive wedding coordination service."
+  app-version: 1.0.0
+  app-license: Apache 2.0
+  app-license-url: https://www.apache.org/licenses/LICENSE-2.0.html
 
 app:
   google:
-    client-id: ${GOOGLE_CLIENT_ID}
+    client-id: ${GOOGLE_CLIENT_ID:}
   jwt:
     secret: ${APP_JWT_SECRET}
-    expiration: ${APP_JWT_EXPIRATION}
+    expiration: ${APP_JWT_EXPIRATION:86400000}

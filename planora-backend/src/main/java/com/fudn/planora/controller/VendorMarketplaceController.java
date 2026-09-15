@@ -1,9 +1,15 @@
 package com.fudn.planora.controller;
 
 import com.fudn.planora.dto.vendor.VendorDTO;
-import com.fudn.planora.entity.User;
+import com.fudn.planora.model.User;
+import com.fudn.planora.exceptions.ResourceNotFoundException;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.service.VendorMarketplaceService;
+import com.fudn.planora.utils.SecurityUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +22,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Tag(name = "Vendor Marketplace", description = "Tìm kiếm nhà cung cấp dịch vụ cưới, quản lý Shortlist và Smart Match")
 public class VendorMarketplaceController {
 
     private final VendorMarketplaceService marketplaceService;
     private final UserRepository userRepository;
 
+    @Operation(summary = "Tìm kiếm và lọc danh sách nhà cung cấp", responses = {
+            @ApiResponse(responseCode = "200", description = "Lấy danh sách nhà cung cấp thành công")
+    })
     @GetMapping("/vendors")
     public ResponseEntity<Page<VendorDTO.VendorResponse>> getVendors(
             @RequestParam(required = false) String query,
@@ -37,12 +47,18 @@ public class VendorMarketplaceController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Lấy chi tiết thông tin nhà cung cấp dịch vụ", responses = {
+            @ApiResponse(responseCode = "200", description = "Lấy chi tiết thành công"),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy nhà cung cấp")
+    })
     @GetMapping("/vendors/{vendorId}")
     public ResponseEntity<VendorDTO.VendorDetailResponse> getVendorDetail(@PathVariable Long vendorId) {
         VendorDTO.VendorDetailResponse response = marketplaceService.getVendorDetail(vendorId);
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Lấy danh sách nhà cung cấp yêu thích (Shortlist) của kế hoạch cưới")
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/wedding-plans/{planId}/shortlist")
     public ResponseEntity<List<VendorDTO.VendorResponse>> getShortlist(
             @PathVariable Long planId,
@@ -53,6 +69,8 @@ public class VendorMarketplaceController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Thêm nhà cung cấp vào danh sách yêu thích (Shortlist)")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/wedding-plans/{planId}/shortlist")
     public ResponseEntity<Void> addToShortlist(
             @PathVariable Long planId,
@@ -64,6 +82,8 @@ public class VendorMarketplaceController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Xóa nhà cung cấp khỏi danh sách yêu thích (Shortlist)")
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/wedding-plans/{planId}/shortlist/{vendorId}")
     public ResponseEntity<Void> removeFromShortlist(
             @PathVariable Long planId,
@@ -75,6 +95,8 @@ public class VendorMarketplaceController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Lấy danh sách gợi ý nhà cung cấp phù hợp (Smart Matches)")
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/wedding-plans/{planId}/matches")
     public ResponseEntity<List<VendorDTO.VendorMatchResponse>> getMatches(
             @PathVariable Long planId,
@@ -86,8 +108,10 @@ public class VendorMarketplaceController {
     }
 
     private Long getUserIdByEmail(String email) {
-        User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng có email: " + email));
+        String userEmail = email != null ? email : SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findUserByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + userEmail));
         return user.getId();
     }
 }
+
