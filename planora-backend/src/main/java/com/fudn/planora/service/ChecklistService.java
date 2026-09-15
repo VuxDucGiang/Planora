@@ -1,13 +1,11 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.request.CreateTaskRequest;
-import com.fudn.planora.dto.request.UpdateTaskRequest;
-import com.fudn.planora.dto.response.TaskResponse;
+import com.fudn.planora.dto.checklist.TaskDTO;
 import java.util.List;
 
 public interface ChecklistService {
-    List<TaskResponse> getChecklistByPlan(Long planId);
-    TaskResponse createTask(Long planId, CreateTaskRequest request);
-    TaskResponse updateTask(Long taskId, UpdateTaskRequest request);
+    List<TaskDTO.Response> getChecklistByPlan(Long planId);
+    TaskDTO.Response createTask(Long planId, TaskDTO.CreateRequest request);
+    TaskDTO.Response updateTask(Long taskId, TaskDTO.UpdateRequest request);
     void deleteTask(Long taskId);
 }

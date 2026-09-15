@@ -1,10 +1,8 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.request.UpdateBudgetItemRequest;
-import com.fudn.planora.dto.response.BudgetResponse;
-import com.fudn.planora.dto.response.BudgetItemResponse;
+import com.fudn.planora.dto.budget.BudgetDTO;
 
 public interface BudgetService {
-    BudgetResponse getBudget(Long planId, String email);
-    BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, String email);
+    BudgetDTO.Response getBudget(Long planId, String email);
+    BudgetDTO.ItemResponse updateBudgetItem(Long itemId, BudgetDTO.UpdateItemRequest request, String email);
 }

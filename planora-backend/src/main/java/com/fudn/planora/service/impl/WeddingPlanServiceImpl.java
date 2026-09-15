@@ -1,8 +1,6 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.request.OnboardingRequest;
-import com.fudn.planora.dto.response.ActivePlanResponse;
-import com.fudn.planora.dto.response.WeddingPlanResponse;
+import com.fudn.planora.dto.wedding.WeddingDTO;
 import com.fudn.planora.entity.*;
 import com.fudn.planora.enums.*;
 import com.fudn.planora.repository.*;
@@ -31,7 +29,7 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
 
     @Override
     @Transactional
-    public WeddingPlanResponse createOnboardingPlan(String userEmail, OnboardingRequest request) {
+    public WeddingDTO.PlanResponse createOnboardingPlan(String userEmail, WeddingDTO.OnboardingRequest request) {
         User user = userRepository.findUserByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
@@ -73,7 +71,7 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
         // 5. Tự động tạo concept gợi ý dựa trên styles đã chọn
         generateDefaultConcepts(savedPlan);
 
-        return WeddingPlanResponse.builder()
+        return WeddingDTO.PlanResponse.builder()
                 .id(savedPlan.getId())
                 .title(savedPlan.getTitle())
                 .weddingDate(savedPlan.getWeddingDate())
@@ -85,7 +83,7 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
     }
 
     @Override
-    public ActivePlanResponse getActivePlan(String userEmail) {
+    public WeddingDTO.ActivePlanResponse getActivePlan(String userEmail) {
         User user = userRepository.findUserByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
@@ -100,8 +98,8 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
                 .count();
 
         // Map Budget Items
-        List<ActivePlanResponse.BudgetItemSummary> budgetSummary = plan.getBudgetItems().stream()
-                .map(item -> ActivePlanResponse.BudgetItemSummary.builder()
+        List<WeddingDTO.ActivePlanResponse.BudgetItemSummary> budgetSummary = plan.getBudgetItems().stream()
+                .map(item -> WeddingDTO.ActivePlanResponse.BudgetItemSummary.builder()
                         .categoryName(item.getCategory().getName())
                         .estimatedCost(item.getEstimatedCost())
                         .actualCost(item.getActualCost())
@@ -110,11 +108,10 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
                 .collect(Collectors.toList());
 
         // Map Concept suggestions
-        List<ActivePlanResponse.ConceptSummary> concepts = plan.getBudgetItems().stream().findFirst().map(b ->
-                // Giả lập hoặc lấy từ DB (trong ví dụ này ta lấy từ database conceptRepository)
+        List<WeddingDTO.ActivePlanResponse.ConceptSummary> concepts = plan.getBudgetItems().stream().findFirst().map(b ->
                 conceptRepository.findAll().stream()
                         .filter(c -> c.getWeddingPlan().getId().equals(plan.getId()))
-                        .map(c -> ActivePlanResponse.ConceptSummary.builder()
+                        .map(c -> WeddingDTO.ActivePlanResponse.ConceptSummary.builder()
                                 .conceptName(c.getConceptName())
                                 .description(c.getDescription())
                                 .estimatedBudget(c.getEstimatedBudget())
@@ -122,7 +119,7 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
                         .collect(Collectors.toList())
         ).orElse(new ArrayList<>());
 
-        return ActivePlanResponse.builder()
+        return WeddingDTO.ActivePlanResponse.builder()
                 .id(plan.getId())
                 .title(plan.getTitle())
                 .weddingDate(plan.getWeddingDate())
@@ -132,7 +129,7 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
                 .status(plan.getStatus().name())
                 .budgetItems(budgetSummary)
                 .conceptSuggestions(concepts)
-                .checklistStats(new ActivePlanResponse.ChecklistStats(totalTasks, completedTasks))
+                .checklistStats(new WeddingDTO.ActivePlanResponse.ChecklistStats(totalTasks, completedTasks))
                 .build();
     }
 
@@ -142,14 +139,6 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
     private List<BudgetItem> allocateDefaultBudget(WeddingPlan plan, BigDecimal totalBudget) {
         List<BudgetItem> items = new ArrayList<>();
 
-        // Tỷ lệ phần trăm phân bổ mẫu:
-        // Venue (Nhà hàng tiệc cưới) -> 50%
-        // Food & Beverage -> 15%
-        // Decoration (Trang trí) -> 10%
-        // Photography (Quay phim, chụp ảnh) -> 10%
-        // Makeup -> 5%
-        // Wedding Dress -> 5%
-        // Entertainment -> 5%
         Map<String, Double> allocationRules = new LinkedHashMap<>();
         allocationRules.put("Venue", 0.50);
         allocationRules.put("Food & Beverage", 0.15);

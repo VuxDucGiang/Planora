@@ -1,8 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.request.CreateEventRequest;
-import com.fudn.planora.dto.request.UpdateEventRequest;
-import com.fudn.planora.dto.response.EventResponse;
+import com.fudn.planora.dto.timeline.EventDTO;
 import com.fudn.planora.service.TimelineService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,23 +16,23 @@ public class TimelineController {
 
     // 5. Lấy dòng thời gian đám cưới (Timeline)
     @GetMapping("/wedding-plans/{planId}/timeline")
-    public List<EventResponse> getTimeline(@PathVariable Long planId) {
+    public List<EventDTO.Response> getTimeline(@PathVariable Long planId) {
         return timelineService.getTimelineByPlan(planId);
     }
 
     // 6. Thêm mốc thời gian
     @PostMapping("/wedding-plans/{planId}/timeline")
-    public EventResponse createEvent(
+    public EventDTO.Response createEvent(
             @PathVariable Long planId,
-            @RequestBody @Valid CreateEventRequest request) {
+            @RequestBody @Valid EventDTO.CreateRequest request) {
         return timelineService.createEvent(planId, request);
     }
 
     // 7. Sửa thông tin mốc thời gian
     @PutMapping("/timeline-events/{eventId}")
-    public EventResponse updateEvent(
+    public EventDTO.Response updateEvent(
             @PathVariable Long eventId,
-            @RequestBody @Valid UpdateEventRequest request) {
+            @RequestBody @Valid EventDTO.UpdateRequest request) {
         return timelineService.updateEvent(eventId, request);
     }
 

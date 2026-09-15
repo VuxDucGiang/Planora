@@ -1,6 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.response.WeddingStyleResponse;
+import com.fudn.planora.dto.wedding.WeddingDTO;
 import com.fudn.planora.service.WeddingStyleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +16,7 @@ public class WeddingStyleController {
     private final WeddingStyleService styleService;
 
     @GetMapping
-    public List<WeddingStyleResponse> getStyles() {
+    public List<WeddingDTO.StyleResponse> getStyles() {
         return styleService.getAllStyles();
     }
 }
