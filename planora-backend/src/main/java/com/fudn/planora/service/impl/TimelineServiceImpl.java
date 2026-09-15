@@ -1,8 +1,6 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.request.CreateEventRequest;
-import com.fudn.planora.dto.request.UpdateEventRequest;
-import com.fudn.planora.dto.response.EventResponse;
+import com.fudn.planora.dto.timeline.EventDTO;
 import com.fudn.planora.entity.TimelineEvent;
 import com.fudn.planora.entity.WeddingPlan;
 import com.fudn.planora.repository.TimelineEventRepository;
@@ -22,7 +20,7 @@ public class TimelineServiceImpl implements TimelineService {
     private final WeddingPlanRepository planRepository;
 
     @Override
-    public List<EventResponse> getTimelineByPlan(Long planId) {
+    public List<EventDTO.Response> getTimelineByPlan(Long planId) {
         if (!planRepository.existsById(planId)) {
             throw new RuntimeException("Không tìm thấy kế hoạch đám cưới có ID: " + planId);
         }
@@ -34,7 +32,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     @Transactional
-    public EventResponse createEvent(Long planId, CreateEventRequest request) {
+    public EventDTO.Response createEvent(Long planId, EventDTO.CreateRequest request) {
         WeddingPlan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy kế hoạch đám cưới"));
 
@@ -51,7 +49,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     @Transactional
-    public EventResponse updateEvent(Long eventId, UpdateEventRequest request) {
+    public EventDTO.Response updateEvent(Long eventId, EventDTO.UpdateRequest request) {
         TimelineEvent event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy mốc thời gian cần cập nhật"));
 
@@ -72,8 +70,8 @@ public class TimelineServiceImpl implements TimelineService {
         eventRepository.deleteById(eventId);
     }
 
-    private EventResponse mapToResponse(TimelineEvent event) {
-        return EventResponse.builder()
+    private EventDTO.Response mapToResponse(TimelineEvent event) {
+        return EventDTO.Response.builder()
                 .id(event.getId())
                 .weddingPlanId(event.getWeddingPlan().getId())
                 .title(event.getTitle())

@@ -1,8 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.request.OnboardingRequest;
-import com.fudn.planora.dto.response.ActivePlanResponse;
-import com.fudn.planora.dto.response.WeddingPlanResponse;
+import com.fudn.planora.dto.wedding.WeddingDTO;
 import com.fudn.planora.service.WeddingPlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +16,13 @@ public class WeddingPlanController {
     private final WeddingPlanService planService;
 
     @PostMapping("/onboarding")
-    public WeddingPlanResponse createOnboarding(@RequestBody @Valid OnboardingRequest request) {
+    public WeddingDTO.PlanResponse createOnboarding(@RequestBody @Valid WeddingDTO.OnboardingRequest request) {
         String email = getLoggedInUserEmail();
         return planService.createOnboardingPlan(email, request);
     }
 
     @GetMapping("/active")
-    public ActivePlanResponse getActivePlan() {
+    public WeddingDTO.ActivePlanResponse getActivePlan() {
         String email = getLoggedInUserEmail();
         return planService.getActivePlan(email);
     }

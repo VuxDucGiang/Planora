@@ -1,8 +1,6 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.request.UpdateBudgetItemRequest;
-import com.fudn.planora.dto.response.BudgetItemResponse;
-import com.fudn.planora.dto.response.BudgetResponse;
+import com.fudn.planora.dto.budget.BudgetDTO;
 import com.fudn.planora.entity.BudgetItem;
 import com.fudn.planora.entity.User;
 import com.fudn.planora.entity.WeddingPlan;
@@ -16,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +26,7 @@ public class BudgetServiceImpl implements BudgetService {
     private final UserRepository userRepository;
 
     @Override
-    public BudgetResponse getBudget(Long planId, String email) {
+    public BudgetDTO.Response getBudget(Long planId, String email) {
         WeddingPlan plan = validateWeddingPlanOwner(planId, email);
 
         List<BudgetItem> items = budgetItemRepository.findByWeddingPlanId(planId);
@@ -36,19 +35,21 @@ public class BudgetServiceImpl implements BudgetService {
 
         // Tính tổng ngân sách ước tính đã phân bổ
         BigDecimal totalEstimated = items.stream()
-                .map(BudgetItem::getEstimatedCost)
-                .filter(cost -> cost != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .filter(Objects::nonNull)
+                .map(item -> item.getEstimatedCost())
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         // Tính tổng chi tiêu thực tế
         BigDecimal totalActualSpent = items.stream()
-                .map(BudgetItem::getActualCost)
-                .filter(cost -> cost != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .filter(Objects::nonNull)
+                .map(item -> item.getActualCost())
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         // Map danh sách các hạng mục chi tiêu sang DTO
-        List<BudgetItemResponse> categories = items.stream()
-                .map(item -> BudgetItemResponse.builder()
+        List<BudgetDTO.ItemResponse> categories = items.stream()
+                .map(item -> BudgetDTO.ItemResponse.builder()
                         .itemId(item.getId())
                         .categoryId(item.getCategory().getId())
                         .categoryName(item.getCategory().getName())
@@ -58,7 +59,7 @@ public class BudgetServiceImpl implements BudgetService {
                         .build())
                 .collect(Collectors.toList());
 
-        return BudgetResponse.builder()
+        return BudgetDTO.Response.builder()
                 .totalBudget(totalBudget)
                 .totalEstimated(totalEstimated)
                 .totalActualSpent(totalActualSpent)
@@ -68,7 +69,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional
-    public BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, String email) {
+    public BudgetDTO.ItemResponse updateBudgetItem(Long itemId, BudgetDTO.UpdateItemRequest request, String email) {
         BudgetItem item = budgetItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng mục ngân sách có ID: " + itemId));
 
@@ -87,7 +88,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         BudgetItem updatedItem = budgetItemRepository.save(item);
 
-        return BudgetItemResponse.builder()
+        return BudgetDTO.ItemResponse.builder()
                 .itemId(updatedItem.getId())
                 .categoryId(updatedItem.getCategory().getId())
                 .categoryName(updatedItem.getCategory().getName())

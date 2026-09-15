@@ -1,26 +1,23 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.request.LoginRequest;
-import com.fudn.planora.dto.request.RegisterRequest;
-import com.fudn.planora.dto.response.LoginResponse;
+import com.fudn.planora.dto.auth.AuthDTO;
+import com.fudn.planora.entity.Role;
 import com.fudn.planora.entity.User;
+import com.fudn.planora.enums.ERole;
+import com.fudn.planora.enums.EUserProvider;
+import com.fudn.planora.enums.EUserStatus;
+import com.fudn.planora.repository.RoleRepository;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.security.JwtService;
 import com.fudn.planora.service.AuthService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.fudn.planora.dto.request.GoogleLoginRequest;
-import com.fudn.planora.entity.Role;
-import com.fudn.planora.repository.RoleRepository;
-import com.fudn.planora.enums.ERole;
-import com.fudn.planora.enums.EUserProvider;
-import com.fudn.planora.enums.EUserStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
@@ -33,22 +30,22 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    @Value("${app.google.client-id}")
+    private String googleClientId;
+
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public AuthDTO.LoginResponse login(AuthDTO.LoginRequest request) {
         User user = userRepository.findUserByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Password is incorrect!");
         }
         String token = jwtService.generateToken(user.getEmail());
-        return new LoginResponse(token, "Bearer");
+        return new AuthDTO.LoginResponse(token, "Bearer");
     }
 
-    @Value("${app.google.client-id}")
-    private String googleClientId;
-
     @Override
-    public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
+    public AuthDTO.LoginResponse loginWithGoogle(AuthDTO.GoogleLoginRequest request) {
         try {
             // Khởi tạo bộ xác thực Token của Google
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
@@ -91,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
                     });
             // Sinh JWT của hệ thống chúng ta dựa trên email
             String token = jwtService.generateToken(user.getEmail());
-            return new LoginResponse(token, "Bearer");
+            return new AuthDTO.LoginResponse(token, "Bearer");
         } catch (Exception e) {
             throw new RuntimeException("Xác thực Google thất bại: " + e.getMessage(), e);
         }
@@ -99,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public LoginResponse register(RegisterRequest request) {
+    public AuthDTO.LoginResponse register(AuthDTO.RegisterRequest request) {
         // 1. Kiểm tra xem Email đã tồn tại chưa
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống!");
@@ -129,18 +126,8 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        // Nếu role đăng ký là VENDOR, ta có thể tự động tạo một bản ghi Vendor rỗng
-        // tương ứng
-        if (roleEnum == ERole.VENDOR) {
-            // import com.fudn.planora.repository.VendorRepository; (Inject thêm
-            // vendorRepository vào service)
-            // Vendor vendor =
-            // Vendor.builder().user(user).businessName(user.getFullname()).build();
-            // vendorRepository.save(vendor);
-        }
-
         // 4. Sinh và trả về Token để Frontend tự động Login
         String token = jwtService.generateToken(user.getEmail());
-        return new LoginResponse(token, "Bearer");
+        return new AuthDTO.LoginResponse(token, "Bearer");
     }
 }
