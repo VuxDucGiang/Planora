@@ -60,5 +60,5 @@ app:
   google:
     client-id: ${GOOGLE_CLIENT_ID:}
   jwt:
-    secret: ${APP_JWT_SECRET:c3VwZXJfc2VjcmV0X2tleV9wbGFub3JhX3BsYXRmb3JtX2tleV8xMjM0NTY3ODkw}
+    secret: ${APP_JWT_SECRET}
     expiration: ${APP_JWT_EXPIRATION:86400000}
