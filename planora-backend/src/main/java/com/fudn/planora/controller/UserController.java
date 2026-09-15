@@ -1,7 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.request.UpdateProfileRequest;
-import com.fudn.planora.dto.response.UserProfileResponse;
+import com.fudn.planora.dto.user.UserDTO;
 import com.fudn.planora.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +15,15 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/profile")
-    public UserProfileResponse getMyProfile() {
+    public UserDTO.ProfileResponse getMyProfile() {
         String email = getLoggedInUserEmail();
         return userService.getUserProfile(email);
     }
 
     @PutMapping("/profile")
-    public UserProfileResponse updateMyProfile(@RequestBody @Valid UpdateProfileRequest request){
+    public UserDTO.ProfileResponse updateMyProfile(@RequestBody @Valid UserDTO.UpdateProfileRequest request){
         String email = getLoggedInUserEmail();
-        return userService.updateProfile(email,request);
+        return userService.updateProfile(email, request);
     }
 
     private String getLoggedInUserEmail() {

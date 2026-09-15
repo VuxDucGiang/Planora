@@ -1,13 +1,11 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.request.CreateEventRequest;
-import com.fudn.planora.dto.request.UpdateEventRequest;
-import com.fudn.planora.dto.response.EventResponse;
+import com.fudn.planora.dto.timeline.EventDTO;
 import java.util.List;
 
 public interface TimelineService {
-    List<EventResponse> getTimelineByPlan(Long planId);
-    EventResponse createEvent(Long planId, CreateEventRequest request);
-    EventResponse updateEvent(Long eventId, UpdateEventRequest request);
+    List<EventDTO.Response> getTimelineByPlan(Long planId);
+    EventDTO.Response createEvent(Long planId, EventDTO.CreateRequest request);
+    EventDTO.Response updateEvent(Long eventId, EventDTO.UpdateRequest request);
     void deleteEvent(Long eventId);
 }

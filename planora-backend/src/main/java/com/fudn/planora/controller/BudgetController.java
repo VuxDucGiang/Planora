@@ -1,8 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.request.UpdateBudgetItemRequest;
-import com.fudn.planora.dto.response.BudgetItemResponse;
-import com.fudn.planora.dto.response.BudgetResponse;
+import com.fudn.planora.dto.budget.BudgetDTO;
 import com.fudn.planora.service.BudgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,21 +15,21 @@ public class BudgetController {
     private final BudgetService budgetService;
 
     @GetMapping("/wedding-plans/{planId}/budget")
-    public ResponseEntity<BudgetResponse> getBudget(
+    public ResponseEntity<BudgetDTO.Response> getBudget(
             @PathVariable Long planId,
             @AuthenticationPrincipal String email
     ) {
-        BudgetResponse response = budgetService.getBudget(planId, email);
+        BudgetDTO.Response response = budgetService.getBudget(planId, email);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/budget-items/{itemId}")
-    public ResponseEntity<BudgetItemResponse> updateBudgetItem(
+    public ResponseEntity<BudgetDTO.ItemResponse> updateBudgetItem(
             @PathVariable Long itemId,
-            @RequestBody UpdateBudgetItemRequest request,
+            @RequestBody BudgetDTO.UpdateItemRequest request,
             @AuthenticationPrincipal String email
     ) {
-        BudgetItemResponse response = budgetService.updateBudgetItem(itemId, request, email);
+        BudgetDTO.ItemResponse response = budgetService.updateBudgetItem(itemId, request, email);
         return ResponseEntity.ok(response);
     }
 }

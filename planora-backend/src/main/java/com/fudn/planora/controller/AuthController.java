@@ -1,9 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.request.GoogleLoginRequest;
-import com.fudn.planora.dto.request.LoginRequest;
-import com.fudn.planora.dto.request.RegisterRequest;
-import com.fudn.planora.dto.response.LoginResponse;
+import com.fudn.planora.dto.auth.AuthDTO;
 import com.fudn.planora.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +16,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public AuthDTO.LoginResponse login(@RequestBody AuthDTO.LoginRequest request) {
         return authService.login(request);
     }
 
@@ -29,14 +26,12 @@ public class AuthController {
     }
 
     @PostMapping("/google")
-    public LoginResponse loginWithGoogle(@RequestBody @Valid GoogleLoginRequest googleLoginRequest) {
+    public AuthDTO.LoginResponse loginWithGoogle(@RequestBody @Valid AuthDTO.GoogleLoginRequest googleLoginRequest) {
         return authService.loginWithGoogle(googleLoginRequest);
     }
 
     @PostMapping("/register")
-
-    public LoginResponse register(@RequestBody @Valid RegisterRequest request) {
+    public AuthDTO.LoginResponse register(@RequestBody @Valid AuthDTO.RegisterRequest request) {
         return authService.register(request);
-
     }
 }
