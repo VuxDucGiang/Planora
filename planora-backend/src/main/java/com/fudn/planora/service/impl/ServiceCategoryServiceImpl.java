@@ -1,7 +1,6 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.vendor.VendorDTO;
-import com.fudn.planora.entity.ServiceCategorie;
 import com.fudn.planora.repository.ServiceCategorieRepository;
 import com.fudn.planora.service.ServiceCategoryService;
 import lombok.RequiredArgsConstructor;
