@@ -1,16 +1,21 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.vendor.VendorDTO;
-import com.fudn.planora.entity.*;
+import com.fudn.planora.model.*;
+import com.fudn.planora.exceptions.PlanoraException;
+import com.fudn.planora.exceptions.ResourceNotFoundException;
 import com.fudn.planora.repository.*;
 import com.fudn.planora.service.VendorMarketplaceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fudn.planora.model.Vendor.VendorMatches;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -21,7 +26,6 @@ import java.util.stream.Collectors;
 public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
 
     private final VendorRepository vendorRepository;
-    private final VendorShortlistRepository shortlistRepository;
     private final VendorMatchesRepository matchesRepository;
     private final WeddingPlanRepository weddingPlanRepository;
 
@@ -39,7 +43,7 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     @Override
     public VendorDTO.VendorDetailResponse getVendorDetail(Long vendorId) {
         Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhà cung cấp có ID: " + vendorId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Nhà cung cấp có ID: " + vendorId));
 
         List<VendorDTO.PortfolioResponse> portfolios = vendor.getPortfolios().stream()
                 .map(p -> VendorDTO.PortfolioResponse.builder()
@@ -85,9 +89,13 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
 
     @Override
     public List<VendorDTO.VendorResponse> getShortlist(Long planId, Long currentUserId) {
-        validateWeddingPlanOwner(planId, currentUserId);
-        return shortlistRepository.findByWeddingPlanId(planId).stream()
-                .map(shortlist -> mapToVendorResponse(shortlist.getVendor()))
+        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+        Set<Vendor> shortlisted = plan.getShortlistedVendors();
+        if (shortlisted == null) {
+            return Collections.emptyList();
+        }
+        return shortlisted.stream()
+                .map(this::mapToVendorResponse)
                 .collect(Collectors.toList());
     }
 
@@ -96,28 +104,29 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     public void addToShortlist(Long planId, Long vendorId, Long currentUserId) {
         WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
         Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhà cung cấp"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Nhà cung cấp với ID: " + vendorId));
 
-        if (shortlistRepository.existsByWeddingPlanIdAndVendorId(planId, vendorId)) {
-            throw new RuntimeException("Nhà cung cấp này đã nằm trong danh sách yêu thích");
+        if (plan.getShortlistedVendors() == null) {
+            plan.setShortlistedVendors(new HashSet<>());
         }
 
-        VendorShortlist shortlist = VendorShortlist.builder()
-                .weddingPlan(plan)
-                .vendor(vendor)
-                .build();
+        boolean added = plan.getShortlistedVendors().add(vendor);
+        if (!added) {
+            throw new PlanoraException("Nhà cung cấp này đã nằm trong danh sách yêu thích", HttpStatus.CONFLICT);
+        }
 
-        shortlistRepository.save(shortlist);
+        weddingPlanRepository.save(plan);
     }
 
     @Override
     @Transactional
     public void removeFromShortlist(Long planId, Long vendorId, Long currentUserId) {
-        validateWeddingPlanOwner(planId, currentUserId);
-        VendorShortlist shortlist = shortlistRepository.findByWeddingPlanIdAndVendorId(planId, vendorId)
-                .orElseThrow(() -> new RuntimeException("Nhà cung cấp không nằm trong danh sách yêu thích"));
+        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+        if (plan.getShortlistedVendors() == null || !plan.getShortlistedVendors().removeIf(v -> v.getId().equals(vendorId))) {
+            throw new ResourceNotFoundException("Nhà cung cấp không nằm trong danh sách yêu thích");
+        }
 
-        shortlistRepository.delete(shortlist);
+        weddingPlanRepository.save(plan);
     }
 
     @Override
@@ -200,9 +209,9 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
 
     private WeddingPlan validateWeddingPlanOwner(Long planId, Long userId) {
         WeddingPlan plan = weddingPlanRepository.findById(planId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Kế hoạch đám cưới"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Kế hoạch đám cưới với ID: " + planId));
         if (!plan.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Bạn không có quyền truy cập vào kế hoạch đám cưới này");
+            throw new PlanoraException("Bạn không có quyền truy cập vào kế hoạch đám cưới này", HttpStatus.FORBIDDEN);
         }
         return plan;
     }

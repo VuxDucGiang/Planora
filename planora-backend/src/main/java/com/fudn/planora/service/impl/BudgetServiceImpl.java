@@ -1,14 +1,17 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.budget.BudgetDTO;
-import com.fudn.planora.entity.BudgetItem;
-import com.fudn.planora.entity.User;
-import com.fudn.planora.entity.WeddingPlan;
+import com.fudn.planora.model.User;
+import com.fudn.planora.model.WeddingPlan;
+import com.fudn.planora.model.WeddingPlan.BudgetItem;
+import com.fudn.planora.exceptions.PlanoraException;
+import com.fudn.planora.exceptions.ResourceNotFoundException;
 import com.fudn.planora.repository.BudgetItemRepository;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.repository.WeddingPlanRepository;
 import com.fudn.planora.service.BudgetService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +74,7 @@ public class BudgetServiceImpl implements BudgetService {
     @Transactional
     public BudgetDTO.ItemResponse updateBudgetItem(Long itemId, BudgetDTO.UpdateItemRequest request, String email) {
         BudgetItem item = budgetItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng mục ngân sách có ID: " + itemId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hạng mục ngân sách có ID: " + itemId));
 
         // Xác thực người sở hữu kế hoạch đám cưới
         validateWeddingPlanOwner(item.getWeddingPlan().getId(), email);
@@ -100,11 +103,11 @@ public class BudgetServiceImpl implements BudgetService {
 
     private WeddingPlan validateWeddingPlanOwner(Long planId, String email) {
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + email));
         WeddingPlan plan = weddingPlanRepository.findById(planId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Kế hoạch đám cưới"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Kế hoạch đám cưới với ID: " + planId));
         if (!plan.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Bạn không có quyền truy cập vào kế hoạch đám cưới này");
+            throw new PlanoraException("Bạn không có quyền truy cập vào kế hoạch đám cưới này", HttpStatus.FORBIDDEN);
         }
         return plan;
     }

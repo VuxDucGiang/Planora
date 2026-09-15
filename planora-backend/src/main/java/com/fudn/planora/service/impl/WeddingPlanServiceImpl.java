@@ -1,8 +1,14 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.wedding.WeddingDTO;
-import com.fudn.planora.entity.*;
+import com.fudn.planora.model.*;
+import com.fudn.planora.model.WeddingPlan.BudgetItem;
+import com.fudn.planora.model.WeddingPlan.BudgetCategory;
+import com.fudn.planora.model.WeddingPlan.ChecklistTask;
+import com.fudn.planora.model.WeddingPlan.TimelineEvent;
+import com.fudn.planora.model.WeddingPlan.ConceptSuggestion;
 import com.fudn.planora.enums.*;
+import com.fudn.planora.exceptions.ResourceNotFoundException;
 import com.fudn.planora.repository.*;
 import com.fudn.planora.service.WeddingPlanService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +37,7 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
     @Transactional
     public WeddingDTO.PlanResponse createOnboardingPlan(String userEmail, WeddingDTO.OnboardingRequest request) {
         User user = userRepository.findUserByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + userEmail));
 
         // 1. Khởi tạo Kế hoạch cưới mới
         WeddingPlan plan = WeddingPlan.builder()
@@ -85,11 +91,11 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
     @Override
     public WeddingDTO.ActivePlanResponse getActivePlan(String userEmail) {
         User user = userRepository.findUserByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + userEmail));
 
         // Lấy plan gần nhất đang trong trạng thái PLANNING
         WeddingPlan plan = planRepository.findFirstByUserIdAndStatusOrderByCreatedAtDesc(user.getId(), EWeddingPlanStatus.PLANNING)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy kế hoạch cưới nào đang hoạt động. Hãy hoàn thành Onboarding trước!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy kế hoạch cưới nào đang hoạt động. Hãy hoàn thành Onboarding trước!"));
 
         // Tính toán thống kê checklist
         long totalTasks = plan.getChecklistTasks().size();
