@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.jwt")
 public class JwtProperties {
 
-    private String secret = "c3VwZXJfc2VjcmV0X2tleV9wbGFub3JhX3BsYXRmb3JtX2tleV8xMjM0NTY3ODkw";
+    private String secret;
 
     private long expiration = 86400000L; // 24 hours in milliseconds
 
