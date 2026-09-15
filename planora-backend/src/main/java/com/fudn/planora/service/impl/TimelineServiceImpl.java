@@ -1,8 +1,9 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.timeline.EventDTO;
-import com.fudn.planora.entity.TimelineEvent;
-import com.fudn.planora.entity.WeddingPlan;
+import com.fudn.planora.model.WeddingPlan;
+import com.fudn.planora.model.WeddingPlan.TimelineEvent;
+import com.fudn.planora.exceptions.ResourceNotFoundException;
 import com.fudn.planora.repository.TimelineEventRepository;
 import com.fudn.planora.repository.WeddingPlanRepository;
 import com.fudn.planora.service.TimelineService;
@@ -22,7 +23,7 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public List<EventDTO.Response> getTimelineByPlan(Long planId) {
         if (!planRepository.existsById(planId)) {
-            throw new RuntimeException("Không tìm thấy kế hoạch đám cưới có ID: " + planId);
+            throw new ResourceNotFoundException("Không tìm thấy kế hoạch đám cưới có ID: " + planId);
         }
         return eventRepository.findByWeddingPlanIdOrderByEventDateAsc(planId)
                 .stream()
@@ -34,7 +35,7 @@ public class TimelineServiceImpl implements TimelineService {
     @Transactional
     public EventDTO.Response createEvent(Long planId, EventDTO.CreateRequest request) {
         WeddingPlan plan = planRepository.findById(planId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy kế hoạch đám cưới"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy kế hoạch đám cưới với ID: " + planId));
 
         TimelineEvent event = TimelineEvent.builder()
                 .weddingPlan(plan)
@@ -51,7 +52,7 @@ public class TimelineServiceImpl implements TimelineService {
     @Transactional
     public EventDTO.Response updateEvent(Long eventId, EventDTO.UpdateRequest request) {
         TimelineEvent event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy mốc thời gian cần cập nhật"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mốc thời gian cần cập nhật với ID: " + eventId));
 
         if (request.getTitle() != null) event.setTitle(request.getTitle());
         if (request.getDescription() != null) event.setDescription(request.getDescription());
@@ -65,7 +66,7 @@ public class TimelineServiceImpl implements TimelineService {
     @Transactional
     public void deleteEvent(Long eventId) {
         if (!eventRepository.existsById(eventId)) {
-            throw new RuntimeException("Không tìm thấy mốc thời gian cần xóa");
+            throw new ResourceNotFoundException("Không tìm thấy mốc thời gian cần xóa với ID: " + eventId);
         }
         eventRepository.deleteById(eventId);
     }

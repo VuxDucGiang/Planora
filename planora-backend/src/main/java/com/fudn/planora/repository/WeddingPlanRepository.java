@@ -1,6 +1,6 @@
 package com.fudn.planora.repository;
 
-import com.fudn.planora.entity.WeddingPlan;
+import com.fudn.planora.model.WeddingPlan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

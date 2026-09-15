@@ -1,6 +1,6 @@
 package com.fudn.planora.repository;
 
-import com.fudn.planora.entity.Vendor;
+import com.fudn.planora.model.Vendor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
