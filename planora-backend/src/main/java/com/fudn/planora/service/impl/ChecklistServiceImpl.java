@@ -1,8 +1,6 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.request.CreateTaskRequest;
-import com.fudn.planora.dto.request.UpdateTaskRequest;
-import com.fudn.planora.dto.response.TaskResponse;
+import com.fudn.planora.dto.checklist.TaskDTO;
 import com.fudn.planora.entity.ChecklistTask;
 import com.fudn.planora.entity.WeddingPlan;
 import com.fudn.planora.enums.EChecklistTaskPriority;
@@ -24,7 +22,7 @@ public class ChecklistServiceImpl implements ChecklistService {
     private final WeddingPlanRepository planRepository;
 
     @Override
-    public List<TaskResponse> getChecklistByPlan(Long planId) {
+    public List<TaskDTO.Response> getChecklistByPlan(Long planId) {
         // Đảm bảo plan tồn tại
         if (!planRepository.existsById(planId)) {
             throw new RuntimeException("Không tìm thấy kế hoạch đám cưới có ID: " + planId);
@@ -37,7 +35,7 @@ public class ChecklistServiceImpl implements ChecklistService {
 
     @Override
     @Transactional
-    public TaskResponse createTask(Long planId, CreateTaskRequest request) {
+    public TaskDTO.Response createTask(Long planId, TaskDTO.CreateRequest request) {
         WeddingPlan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy kế hoạch đám cưới"));
 
@@ -56,7 +54,7 @@ public class ChecklistServiceImpl implements ChecklistService {
 
     @Override
     @Transactional
-    public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
+    public TaskDTO.Response updateTask(Long taskId, TaskDTO.UpdateRequest request) {
         ChecklistTask task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy công việc cần cập nhật"));
 
@@ -79,8 +77,8 @@ public class ChecklistServiceImpl implements ChecklistService {
         taskRepository.deleteById(taskId);
     }
 
-    private TaskResponse mapToResponse(ChecklistTask task) {
-        return TaskResponse.builder()
+    private TaskDTO.Response mapToResponse(ChecklistTask task) {
+        return TaskDTO.Response.builder()
                 .id(task.getId())
                 .weddingPlanId(task.getWeddingPlan().getId())
                 .title(task.getTitle())

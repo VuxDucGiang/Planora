@@ -1,10 +1,8 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.request.OnboardingRequest;
-import com.fudn.planora.dto.response.ActivePlanResponse;
-import com.fudn.planora.dto.response.WeddingPlanResponse;
+import com.fudn.planora.dto.wedding.WeddingDTO;
 
 public interface WeddingPlanService {
-    WeddingPlanResponse createOnboardingPlan(String userEmail, OnboardingRequest request);
-    ActivePlanResponse getActivePlan(String userEmail);
+    WeddingDTO.PlanResponse createOnboardingPlan(String userEmail, WeddingDTO.OnboardingRequest request);
+    WeddingDTO.ActivePlanResponse getActivePlan(String userEmail);
 }
