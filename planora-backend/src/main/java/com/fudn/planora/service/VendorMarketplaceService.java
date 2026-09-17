@@ -18,11 +18,11 @@ public interface VendorMarketplaceService {
 
     VendorDTO.VendorDetailResponse getVendorDetail(Long vendorId);
 
-    List<VendorDTO.VendorResponse> getShortlist(Long planId, Long currentUserId);
+    List<VendorDTO.VendorResponse> getShortlist(Long planId, String userEmail);
 
-    void addToShortlist(Long planId, Long vendorId, Long currentUserId);
+    void addToShortlist(Long planId, Long vendorId, String userEmail);
 
-    void removeFromShortlist(Long planId, Long vendorId, Long currentUserId);
+    void removeFromShortlist(Long planId, Long vendorId, String userEmail);
 
-    List<VendorDTO.VendorMatchResponse> getMatches(Long planId, Long currentUserId);
+    List<VendorDTO.VendorMatchResponse> getMatches(Long planId, String userEmail);
 }
