@@ -26,9 +26,6 @@ public class VendorDTO {
         private Set<String> styles;
     }
 
-    // Alias for shorter inner class syntax: VendorDTO.Response
-    public static class Response extends VendorResponse {}
-
     @Getter
     @Setter
     @NoArgsConstructor
@@ -50,9 +47,6 @@ public class VendorDTO {
         private List<PackageResponse> packages;
     }
 
-    // Alias: VendorDTO.DetailResponse
-    public static class DetailResponse extends VendorDetailResponse {}
-
     @Getter
     @Setter
     @NoArgsConstructor
@@ -64,9 +58,6 @@ public class VendorDTO {
         private Double matchingScore;
         private String reason;
     }
-
-    // Alias: VendorDTO.MatchResponse
-    public static class MatchResponse extends VendorMatchResponse {}
 
     @Getter
     @Setter
