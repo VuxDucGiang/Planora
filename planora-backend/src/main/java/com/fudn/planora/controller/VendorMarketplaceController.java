@@ -1,11 +1,7 @@
 package com.fudn.planora.controller;
 
 import com.fudn.planora.dto.vendor.VendorDTO;
-import com.fudn.planora.model.User;
-import com.fudn.planora.exceptions.ResourceNotFoundException;
-import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.service.VendorMarketplaceService;
-import com.fudn.planora.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -26,7 +22,6 @@ import java.util.List;
 public class VendorMarketplaceController {
 
     private final VendorMarketplaceService marketplaceService;
-    private final UserRepository userRepository;
 
     @Operation(summary = "Tìm kiếm và lọc danh sách nhà cung cấp", responses = {
             @ApiResponse(responseCode = "200", description = "Lấy danh sách nhà cung cấp thành công")
@@ -64,8 +59,7 @@ public class VendorMarketplaceController {
             @PathVariable Long planId,
             @AuthenticationPrincipal String email
     ) {
-        Long userId = getUserIdByEmail(email);
-        List<VendorDTO.VendorResponse> response = marketplaceService.getShortlist(planId, userId);
+        List<VendorDTO.VendorResponse> response = marketplaceService.getShortlist(planId, email);
         return ResponseEntity.ok(response);
     }
 
@@ -77,8 +71,7 @@ public class VendorMarketplaceController {
             @RequestParam Long vendorId,
             @AuthenticationPrincipal String email
     ) {
-        Long userId = getUserIdByEmail(email);
-        marketplaceService.addToShortlist(planId, vendorId, userId);
+        marketplaceService.addToShortlist(planId, vendorId, email);
         return ResponseEntity.ok().build();
     }
 
@@ -90,8 +83,7 @@ public class VendorMarketplaceController {
             @PathVariable Long vendorId,
             @AuthenticationPrincipal String email
     ) {
-        Long userId = getUserIdByEmail(email);
-        marketplaceService.removeFromShortlist(planId, vendorId, userId);
+        marketplaceService.removeFromShortlist(planId, vendorId, email);
         return ResponseEntity.ok().build();
     }
 
@@ -102,16 +94,8 @@ public class VendorMarketplaceController {
             @PathVariable Long planId,
             @AuthenticationPrincipal String email
     ) {
-        Long userId = getUserIdByEmail(email);
-        List<VendorDTO.VendorMatchResponse> response = marketplaceService.getMatches(planId, userId);
+        List<VendorDTO.VendorMatchResponse> response = marketplaceService.getMatches(planId, email);
         return ResponseEntity.ok(response);
-    }
-
-    private Long getUserIdByEmail(String email) {
-        String userEmail = email != null ? email : SecurityUtils.getCurrentUserEmail();
-        User user = userRepository.findUserByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + userEmail));
-        return user.getId();
     }
 }
 

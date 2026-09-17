@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fudn.planora.model.Vendor.VendorMatches;
+import com.fudn.planora.utils.SecurityUtils;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     private final VendorRepository vendorRepository;
     private final VendorMatchesRepository matchesRepository;
     private final WeddingPlanRepository weddingPlanRepository;
+    private final UserRepository userRepository;
 
     @Override
     public Page<VendorDTO.VendorResponse> getVendors(
@@ -88,8 +90,8 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     }
 
     @Override
-    public List<VendorDTO.VendorResponse> getShortlist(Long planId, Long currentUserId) {
-        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+    public List<VendorDTO.VendorResponse> getShortlist(Long planId, String userEmail) {
+        WeddingPlan plan = validateWeddingPlanOwner(planId, userEmail);
         Set<Vendor> shortlisted = plan.getShortlistedVendors();
         if (shortlisted == null) {
             return Collections.emptyList();
@@ -101,8 +103,8 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
 
     @Override
     @Transactional
-    public void addToShortlist(Long planId, Long vendorId, Long currentUserId) {
-        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+    public void addToShortlist(Long planId, Long vendorId, String userEmail) {
+        WeddingPlan plan = validateWeddingPlanOwner(planId, userEmail);
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Nhà cung cấp với ID: " + vendorId));
 
@@ -120,8 +122,8 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
 
     @Override
     @Transactional
-    public void removeFromShortlist(Long planId, Long vendorId, Long currentUserId) {
-        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+    public void removeFromShortlist(Long planId, Long vendorId, String userEmail) {
+        WeddingPlan plan = validateWeddingPlanOwner(planId, userEmail);
         if (plan.getShortlistedVendors() == null || !plan.getShortlistedVendors().removeIf(v -> v.getId().equals(vendorId))) {
             throw new ResourceNotFoundException("Nhà cung cấp không nằm trong danh sách yêu thích");
         }
@@ -131,8 +133,8 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
 
     @Override
     @Transactional
-    public List<VendorDTO.VendorMatchResponse> getMatches(Long planId, Long currentUserId) {
-        WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
+    public List<VendorDTO.VendorMatchResponse> getMatches(Long planId, String userEmail) {
+        WeddingPlan plan = validateWeddingPlanOwner(planId, userEmail);
         List<VendorMatches> existingMatches = matchesRepository.findByWeddingPlanIdOrderByMatchingScoreDesc(planId);
         
         if (existingMatches.isEmpty()) {
@@ -207,10 +209,14 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
                 .collect(Collectors.toList());
     }
 
-    private WeddingPlan validateWeddingPlanOwner(Long planId, Long userId) {
+    private WeddingPlan validateWeddingPlanOwner(Long planId, String userEmail) {
+        String email = userEmail != null ? userEmail : SecurityUtils.getCurrentUserEmail();
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + email));
+
         WeddingPlan plan = weddingPlanRepository.findById(planId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Kế hoạch đám cưới với ID: " + planId));
-        if (!plan.getUser().getId().equals(userId)) {
+        if (!plan.getUser().getId().equals(user.getId())) {
             throw new PlanoraException("Bạn không có quyền truy cập vào kế hoạch đám cưới này", HttpStatus.FORBIDDEN);
         }
         return plan;
