@@ -1,6 +1,6 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.vendor.VendorDTO;
+import com.fudn.planora.dto.response.*;
 import com.fudn.planora.entity.*;
 import com.fudn.planora.repository.*;
 import com.fudn.planora.service.VendorMarketplaceService;
@@ -10,9 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,7 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     private final WeddingPlanRepository weddingPlanRepository;
 
     @Override
-    public Page<VendorDTO.VendorResponse> getVendors(
+    public Page<VendorResponse> getVendors(
             String query, Long categoryId, String city,
             Long styleId, Double priceFrom, Double priceTo, Pageable pageable
     ) {
@@ -37,12 +35,12 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     }
 
     @Override
-    public VendorDTO.VendorDetailResponse getVendorDetail(Long vendorId) {
+    public VendorDetailResponse getVendorDetail(Long vendorId) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Nhà cung cấp có ID: " + vendorId));
 
-        List<VendorDTO.PortfolioResponse> portfolios = vendor.getPortfolios().stream()
-                .map(p -> VendorDTO.PortfolioResponse.builder()
+        List<PortfolioResponse> portfolios = vendor.getPortfolios().stream()
+                .map(p -> PortfolioResponse.builder()
                         .id(p.getId())
                         .imageUrl(p.getImageUrl())
                         .title(p.getTitle())
@@ -50,9 +48,9 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
                         .build())
                 .collect(Collectors.toList());
 
-        List<VendorDTO.PackageResponse> packages = vendor.getServices().stream()
+        List<PackageResponse> packages = vendor.getServices().stream()
                 .flatMap(s -> s.getPackages().stream())
-                .map(pkg -> VendorDTO.PackageResponse.builder()
+                .map(pkg -> PackageResponse.builder()
                         .id(pkg.getId())
                         .packageName(pkg.getPackageName())
                         .description(pkg.getDescription())
@@ -60,14 +58,11 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
                         .build())
                 .collect(Collectors.toList());
 
-        Set<String> styles = vendor.getWeddingStyles() != null
-                ? vendor.getWeddingStyles().stream()
-                        .filter(Objects::nonNull)
-                        .map(style -> style.getName())
-                        .collect(Collectors.toSet())
-                : Collections.emptySet();
+        Set<String> styles = vendor.getWeddingStyles().stream()
+                .map(WeddingStyle::getName)
+                .collect(Collectors.toSet());
 
-        return VendorDTO.VendorDetailResponse.builder()
+        return VendorDetailResponse.builder()
                 .id(vendor.getId())
                 .businessName(vendor.getBusinessName())
                 .description(vendor.getDescription())
@@ -84,7 +79,7 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
     }
 
     @Override
-    public List<VendorDTO.VendorResponse> getShortlist(Long planId, Long currentUserId) {
+    public List<VendorResponse> getShortlist(Long planId, Long currentUserId) {
         validateWeddingPlanOwner(planId, currentUserId);
         return shortlistRepository.findByWeddingPlanId(planId).stream()
                 .map(shortlist -> mapToVendorResponse(shortlist.getVendor()))
@@ -122,7 +117,7 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
 
     @Override
     @Transactional
-    public List<VendorDTO.VendorMatchResponse> getMatches(Long planId, Long currentUserId) {
+    public List<VendorMatchResponse> getMatches(Long planId, Long currentUserId) {
         WeddingPlan plan = validateWeddingPlanOwner(planId, currentUserId);
         List<VendorMatches> existingMatches = matchesRepository.findByWeddingPlanIdOrderByMatchingScoreDesc(planId);
         
@@ -189,7 +184,7 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
         }
         
         return existingMatches.stream()
-                .map(match -> VendorDTO.VendorMatchResponse.builder()
+                .map(match -> VendorMatchResponse.builder()
                         .id(match.getId())
                         .vendor(mapToVendorResponse(match.getVendor()))
                         .matchingScore(match.getMatchingScore())
@@ -207,15 +202,12 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
         return plan;
     }
 
-    private VendorDTO.VendorResponse mapToVendorResponse(Vendor vendor) {
-        Set<String> styles = vendor.getWeddingStyles() != null
-                ? vendor.getWeddingStyles().stream()
-                        .filter(Objects::nonNull)
-                        .map(style -> style.getName())
-                        .collect(Collectors.toSet())
-                : Collections.emptySet();
+    private VendorResponse mapToVendorResponse(Vendor vendor) {
+        Set<String> styles = vendor.getWeddingStyles().stream()
+                .map(WeddingStyle::getName)
+                .collect(Collectors.toSet());
 
-        return VendorDTO.VendorResponse.builder()
+        return VendorResponse.builder()
                 .id(vendor.getId())
                 .businessName(vendor.getBusinessName())
                 .description(vendor.getDescription())

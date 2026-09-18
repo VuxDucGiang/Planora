@@ -1,6 +1,8 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.checklist.TaskDTO;
+import com.fudn.planora.dto.request.CreateTaskRequest;
+import com.fudn.planora.dto.request.UpdateTaskRequest;
+import com.fudn.planora.dto.response.TaskResponse;
 import com.fudn.planora.service.ChecklistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,23 +18,23 @@ public class ChecklistController {
 
     // 1. Lấy danh sách Checklist nhiệm vụ
     @GetMapping("/wedding-plans/{planId}/checklist")
-    public List<TaskDTO.Response> getChecklist(@PathVariable Long planId) {
+    public List<TaskResponse> getChecklist(@PathVariable Long planId) {
         return checklistService.getChecklistByPlan(planId);
     }
 
     // 2. Tạo công việc mới (Custom Task)
     @PostMapping("/wedding-plans/{planId}/checklist")
-    public TaskDTO.Response createTask(
+    public TaskResponse createTask(
             @PathVariable Long planId,
-            @RequestBody @Valid TaskDTO.CreateRequest request) {
+            @RequestBody @Valid CreateTaskRequest request) {
         return checklistService.createTask(planId, request);
     }
 
     // 3. Cập nhật trạng thái/thông tin công việc
     @PutMapping("/checklist-tasks/{taskId}")
-    public TaskDTO.Response updateTask(
+    public TaskResponse updateTask(
             @PathVariable Long taskId,
-            @RequestBody @Valid TaskDTO.UpdateRequest request) {
+            @RequestBody @Valid UpdateTaskRequest request) {
         return checklistService.updateTask(taskId, request);
     }
 

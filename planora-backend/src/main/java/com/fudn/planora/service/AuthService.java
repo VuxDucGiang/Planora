@@ -1,11 +1,15 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.auth.AuthDTO;
+import com.fudn.planora.dto.request.GoogleLoginRequest;
+import com.fudn.planora.dto.request.LoginRequest;
+import com.fudn.planora.dto.request.RegisterRequest;
+import com.fudn.planora.dto.response.LoginResponse;
 
 public interface AuthService {
-    AuthDTO.LoginResponse login(AuthDTO.LoginRequest request);
+    LoginResponse login(LoginRequest request);
 
-    AuthDTO.LoginResponse loginWithGoogle(AuthDTO.GoogleLoginRequest googleLoginRequest);
+    LoginResponse loginWithGoogle(GoogleLoginRequest googleLoginRequestquest);
 
-    AuthDTO.LoginResponse register(AuthDTO.RegisterRequest request);
+    LoginResponse register(RegisterRequest request);
+
 }

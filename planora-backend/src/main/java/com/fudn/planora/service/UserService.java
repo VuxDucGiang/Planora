@@ -1,8 +1,9 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.user.UserDTO;
+import com.fudn.planora.dto.request.UpdateProfileRequest;
+import com.fudn.planora.dto.response.UserProfileResponse;
 
 public interface UserService {
-    UserDTO.ProfileResponse getUserProfile(String email);
-    UserDTO.ProfileResponse updateProfile(String email, UserDTO.UpdateProfileRequest request);
+    UserProfileResponse getUserProfile(String email);
+    UserProfileResponse updateProfile(String email, UpdateProfileRequest request);
 }

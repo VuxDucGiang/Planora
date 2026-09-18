@@ -1,6 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.vendor.VendorDTO;
+import com.fudn.planora.dto.response.*;
 import com.fudn.planora.entity.User;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.service.VendorMarketplaceService;
@@ -22,7 +22,7 @@ public class VendorMarketplaceController {
     private final UserRepository userRepository;
 
     @GetMapping("/vendors")
-    public ResponseEntity<Page<VendorDTO.VendorResponse>> getVendors(
+    public ResponseEntity<Page<VendorResponse>> getVendors(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String city,
@@ -31,25 +31,25 @@ public class VendorMarketplaceController {
             @RequestParam(required = false) Double priceTo,
             Pageable pageable
     ) {
-        Page<VendorDTO.VendorResponse> response = marketplaceService.getVendors(
+        Page<VendorResponse> response = marketplaceService.getVendors(
                 query, categoryId, city, styleId, priceFrom, priceTo, pageable
         );
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/vendors/{vendorId}")
-    public ResponseEntity<VendorDTO.VendorDetailResponse> getVendorDetail(@PathVariable Long vendorId) {
-        VendorDTO.VendorDetailResponse response = marketplaceService.getVendorDetail(vendorId);
+    public ResponseEntity<VendorDetailResponse> getVendorDetail(@PathVariable Long vendorId) {
+        VendorDetailResponse response = marketplaceService.getVendorDetail(vendorId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/wedding-plans/{planId}/shortlist")
-    public ResponseEntity<List<VendorDTO.VendorResponse>> getShortlist(
+    public ResponseEntity<List<VendorResponse>> getShortlist(
             @PathVariable Long planId,
             @AuthenticationPrincipal String email
     ) {
         Long userId = getUserIdByEmail(email);
-        List<VendorDTO.VendorResponse> response = marketplaceService.getShortlist(planId, userId);
+        List<VendorResponse> response = marketplaceService.getShortlist(planId, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -76,12 +76,12 @@ public class VendorMarketplaceController {
     }
 
     @GetMapping("/wedding-plans/{planId}/matches")
-    public ResponseEntity<List<VendorDTO.VendorMatchResponse>> getMatches(
+    public ResponseEntity<List<VendorMatchResponse>> getMatches(
             @PathVariable Long planId,
             @AuthenticationPrincipal String email
     ) {
         Long userId = getUserIdByEmail(email);
-        List<VendorDTO.VendorMatchResponse> response = marketplaceService.getMatches(planId, userId);
+        List<VendorMatchResponse> response = marketplaceService.getMatches(planId, userId);
         return ResponseEntity.ok(response);
     }
 
