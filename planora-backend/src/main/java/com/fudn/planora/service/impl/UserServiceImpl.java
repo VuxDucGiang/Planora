@@ -1,9 +1,10 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.user.UserDTO;
-import com.fudn.planora.model.User;
-import com.fudn.planora.model.User.UserAddress;
-import com.fudn.planora.exceptions.ResourceNotFoundException;
+import com.fudn.planora.dto.request.AddressRequest;
+import com.fudn.planora.dto.request.UpdateProfileRequest;
+import com.fudn.planora.dto.response.UserProfileResponse;
+import com.fudn.planora.entity.User;
+import com.fudn.planora.entity.UserAddress;
 import com.fudn.planora.repository.UserAddressRepository;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.service.UserService;
@@ -19,18 +20,18 @@ public class UserServiceImpl implements UserService {
     private final UserAddressRepository addressRepository;
 
     @Override
-    public UserDTO.ProfileResponse getUserProfile(String email) {
+    public UserProfileResponse getUserProfile(String email) {
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + email));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         return mapToResponse(user);
     }
 
     @Override
     @Transactional
-    public UserDTO.ProfileResponse updateProfile(String email, UserDTO.UpdateProfileRequest request) {
+    public UserProfileResponse updateProfile(String email, UpdateProfileRequest request) {
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + email));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         // Cập nhật thông tin cơ bản
         if (request.getFullname() != null) user.setFullname(request.getFullname());
@@ -39,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
         // Cập nhật Địa chỉ nếu có gửi
         if (request.getAddress() != null) {
-            UserDTO.AddressRequest addressRequest = request.getAddress();
+            AddressRequest addressRequest = request.getAddress();
             UserAddress address = user.getUserAddress();
 
             if (address == null) {
@@ -60,11 +61,11 @@ public class UserServiceImpl implements UserService {
     }
 
     // Helper mapper thủ công (có thể thay thế bằng MapStruct sau này)
-    private UserDTO.ProfileResponse mapToResponse(User user) {
-        UserDTO.ProfileResponse.AddressResponse addrResp = null;
+    private UserProfileResponse mapToResponse(User user) {
+        UserProfileResponse.AddressResponse addrResp = null;
         if (user.getUserAddress() != null) {
             UserAddress address = user.getUserAddress();
-            addrResp = UserDTO.ProfileResponse.AddressResponse.builder()
+            addrResp = UserProfileResponse.AddressResponse.builder()
                     .city(address.getCity())
                     .district(address.getDistrict())
                     .ward(address.getWard())
@@ -72,7 +73,7 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
 
-        return UserDTO.ProfileResponse.builder()
+        return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullname(user.getFullname())
@@ -85,4 +86,3 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 }
-

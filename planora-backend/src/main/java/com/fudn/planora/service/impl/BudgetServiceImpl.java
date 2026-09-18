@@ -1,23 +1,21 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.budget.BudgetDTO;
-import com.fudn.planora.model.User;
-import com.fudn.planora.model.WeddingPlan;
-import com.fudn.planora.model.WeddingPlan.BudgetItem;
-import com.fudn.planora.exceptions.PlanoraException;
-import com.fudn.planora.exceptions.ResourceNotFoundException;
+import com.fudn.planora.dto.request.UpdateBudgetItemRequest;
+import com.fudn.planora.dto.response.BudgetItemResponse;
+import com.fudn.planora.dto.response.BudgetResponse;
+import com.fudn.planora.entity.BudgetItem;
+import com.fudn.planora.entity.User;
+import com.fudn.planora.entity.WeddingPlan;
 import com.fudn.planora.repository.BudgetItemRepository;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.repository.WeddingPlanRepository;
 import com.fudn.planora.service.BudgetService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +27,7 @@ public class BudgetServiceImpl implements BudgetService {
     private final UserRepository userRepository;
 
     @Override
-    public BudgetDTO.Response getBudget(Long planId, String email) {
+    public BudgetResponse getBudget(Long planId, String email) {
         WeddingPlan plan = validateWeddingPlanOwner(planId, email);
 
         List<BudgetItem> items = budgetItemRepository.findByWeddingPlanId(planId);
@@ -38,21 +36,19 @@ public class BudgetServiceImpl implements BudgetService {
 
         // Tính tổng ngân sách ước tính đã phân bổ
         BigDecimal totalEstimated = items.stream()
-                .filter(Objects::nonNull)
-                .map(item -> item.getEstimatedCost())
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                .map(BudgetItem::getEstimatedCost)
+                .filter(cost -> cost != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Tính tổng chi tiêu thực tế
         BigDecimal totalActualSpent = items.stream()
-                .filter(Objects::nonNull)
-                .map(item -> item.getActualCost())
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                .map(BudgetItem::getActualCost)
+                .filter(cost -> cost != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Map danh sách các hạng mục chi tiêu sang DTO
-        List<BudgetDTO.ItemResponse> categories = items.stream()
-                .map(item -> BudgetDTO.ItemResponse.builder()
+        List<BudgetItemResponse> categories = items.stream()
+                .map(item -> BudgetItemResponse.builder()
                         .itemId(item.getId())
                         .categoryId(item.getCategory().getId())
                         .categoryName(item.getCategory().getName())
@@ -62,7 +58,7 @@ public class BudgetServiceImpl implements BudgetService {
                         .build())
                 .collect(Collectors.toList());
 
-        return BudgetDTO.Response.builder()
+        return BudgetResponse.builder()
                 .totalBudget(totalBudget)
                 .totalEstimated(totalEstimated)
                 .totalActualSpent(totalActualSpent)
@@ -72,9 +68,9 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     @Transactional
-    public BudgetDTO.ItemResponse updateBudgetItem(Long itemId, BudgetDTO.UpdateItemRequest request, String email) {
+    public BudgetItemResponse updateBudgetItem(Long itemId, UpdateBudgetItemRequest request, String email) {
         BudgetItem item = budgetItemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hạng mục ngân sách có ID: " + itemId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng mục ngân sách có ID: " + itemId));
 
         // Xác thực người sở hữu kế hoạch đám cưới
         validateWeddingPlanOwner(item.getWeddingPlan().getId(), email);
@@ -91,7 +87,7 @@ public class BudgetServiceImpl implements BudgetService {
 
         BudgetItem updatedItem = budgetItemRepository.save(item);
 
-        return BudgetDTO.ItemResponse.builder()
+        return BudgetItemResponse.builder()
                 .itemId(updatedItem.getId())
                 .categoryId(updatedItem.getCategory().getId())
                 .categoryName(updatedItem.getCategory().getName())
@@ -103,11 +99,11 @@ public class BudgetServiceImpl implements BudgetService {
 
     private WeddingPlan validateWeddingPlanOwner(Long planId, String email) {
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có email: " + email));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         WeddingPlan plan = weddingPlanRepository.findById(planId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Kế hoạch đám cưới với ID: " + planId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Kế hoạch đám cưới"));
         if (!plan.getUser().getId().equals(user.getId())) {
-            throw new PlanoraException("Bạn không có quyền truy cập vào kế hoạch đám cưới này", HttpStatus.FORBIDDEN);
+            throw new RuntimeException("Bạn không có quyền truy cập vào kế hoạch đám cưới này");
         }
         return plan;
     }
