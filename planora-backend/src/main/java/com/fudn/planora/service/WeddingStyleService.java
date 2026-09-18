@@ -1,8 +1,8 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.wedding.WeddingDTO;
+import com.fudn.planora.dto.response.WeddingStyleResponse;
 import java.util.List;
 
 public interface WeddingStyleService {
-    List<WeddingDTO.StyleResponse> getAllStyles();
+    List<WeddingStyleResponse> getAllStyles();
 }

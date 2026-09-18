@@ -1,11 +1,12 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.checklist.TaskDTO;
-import com.fudn.planora.model.WeddingPlan;
-import com.fudn.planora.model.WeddingPlan.ChecklistTask;
+import com.fudn.planora.dto.request.CreateTaskRequest;
+import com.fudn.planora.dto.request.UpdateTaskRequest;
+import com.fudn.planora.dto.response.TaskResponse;
+import com.fudn.planora.entity.ChecklistTask;
+import com.fudn.planora.entity.WeddingPlan;
 import com.fudn.planora.enums.EChecklistTaskPriority;
 import com.fudn.planora.enums.EChecklistTaskStatus;
-import com.fudn.planora.exceptions.ResourceNotFoundException;
 import com.fudn.planora.repository.ChecklistTaskRepository;
 import com.fudn.planora.repository.WeddingPlanRepository;
 import com.fudn.planora.service.ChecklistService;
@@ -23,10 +24,10 @@ public class ChecklistServiceImpl implements ChecklistService {
     private final WeddingPlanRepository planRepository;
 
     @Override
-    public List<TaskDTO.Response> getChecklistByPlan(Long planId) {
+    public List<TaskResponse> getChecklistByPlan(Long planId) {
         // Đảm bảo plan tồn tại
         if (!planRepository.existsById(planId)) {
-            throw new ResourceNotFoundException("Không tìm thấy kế hoạch đám cưới có ID: " + planId);
+            throw new RuntimeException("Không tìm thấy kế hoạch đám cưới có ID: " + planId);
         }
         return taskRepository.findByWeddingPlanIdOrderByDueDateAsc(planId)
                 .stream()
@@ -36,9 +37,9 @@ public class ChecklistServiceImpl implements ChecklistService {
 
     @Override
     @Transactional
-    public TaskDTO.Response createTask(Long planId, TaskDTO.CreateRequest request) {
+    public TaskResponse createTask(Long planId, CreateTaskRequest request) {
         WeddingPlan plan = planRepository.findById(planId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy kế hoạch đám cưới với ID: " + planId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy kế hoạch đám cưới"));
 
         ChecklistTask task = ChecklistTask.builder()
                 .weddingPlan(plan)
@@ -55,9 +56,9 @@ public class ChecklistServiceImpl implements ChecklistService {
 
     @Override
     @Transactional
-    public TaskDTO.Response updateTask(Long taskId, TaskDTO.UpdateRequest request) {
+    public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
         ChecklistTask task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc cần cập nhật với ID: " + taskId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy công việc cần cập nhật"));
 
         if (request.getTitle() != null) task.setTitle(request.getTitle());
         if (request.getDescription() != null) task.setDescription(request.getDescription());
@@ -73,13 +74,13 @@ public class ChecklistServiceImpl implements ChecklistService {
     @Transactional
     public void deleteTask(Long taskId) {
         if (!taskRepository.existsById(taskId)) {
-            throw new ResourceNotFoundException("Không tìm thấy công việc cần xóa với ID: " + taskId);
+            throw new RuntimeException("Không tìm thấy công việc cần xóa");
         }
         taskRepository.deleteById(taskId);
     }
 
-    private TaskDTO.Response mapToResponse(ChecklistTask task) {
-        return TaskDTO.Response.builder()
+    private TaskResponse mapToResponse(ChecklistTask task) {
+        return TaskResponse.builder()
                 .id(task.getId())
                 .weddingPlanId(task.getWeddingPlan().getId())
                 .title(task.getTitle())

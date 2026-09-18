@@ -1,8 +1,8 @@
 package com.fudn.planora.service;
 
-import com.fudn.planora.dto.vendor.VendorDTO;
+import com.fudn.planora.dto.response.ServiceCategoryResponse;
 import java.util.List;
 
 public interface ServiceCategoryService {
-    List<VendorDTO.ServiceCategoryResponse> getAllActiveCategories();
+    List<ServiceCategoryResponse> getAllActiveCategories();
 }
