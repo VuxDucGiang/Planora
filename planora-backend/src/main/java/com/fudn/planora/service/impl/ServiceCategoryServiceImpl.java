@@ -1,6 +1,6 @@
 package com.fudn.planora.service.impl;
 
-import com.fudn.planora.dto.vendor.VendorDTO;
+import com.fudn.planora.dto.response.ServiceCategoryResponse;
 import com.fudn.planora.entity.ServiceCategorie;
 import com.fudn.planora.repository.ServiceCategorieRepository;
 import com.fudn.planora.service.ServiceCategoryService;
@@ -16,9 +16,10 @@ public class ServiceCategoryServiceImpl implements ServiceCategoryService {
     private final ServiceCategorieRepository categoryRepository;
 
     @Override
-    public List<VendorDTO.ServiceCategoryResponse> getAllActiveCategories() {
-        return categoryRepository.findByActiveTrue().stream()
-                .map(cat -> VendorDTO.ServiceCategoryResponse.builder()
+    public List<ServiceCategoryResponse> getAllActiveCategories() {
+        return categoryRepository.findAll().stream()
+                .filter(ServiceCategorie::getActive)
+                .map(cat -> ServiceCategoryResponse.builder()
                         .id(cat.getId())
                         .name(cat.getName())
                         .build())

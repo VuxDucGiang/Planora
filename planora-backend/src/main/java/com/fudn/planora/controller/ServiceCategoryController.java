@@ -1,6 +1,6 @@
 package com.fudn.planora.controller;
 
-import com.fudn.planora.dto.vendor.VendorDTO;
+import com.fudn.planora.dto.response.ServiceCategoryResponse;
 import com.fudn.planora.service.ServiceCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +16,7 @@ public class ServiceCategoryController {
     private final ServiceCategoryService categoryService;
 
     @GetMapping
-    public List<VendorDTO.ServiceCategoryResponse> getCategories() {
+    public List<ServiceCategoryResponse> getCategories() {
         return categoryService.getAllActiveCategories();
     }
 }
