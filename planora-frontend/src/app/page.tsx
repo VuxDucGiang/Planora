@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { getActivePlan } from '@/services/weddingPlan';
+import { getActivePlan, deleteActivePlan } from '@/services/weddingPlan';
 import { getShortlist } from '@/services/vendor';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import type { VendorResponse } from '@/types/vendor';
@@ -19,6 +19,7 @@ import {
   Heart,
   ListTodo,
   Edit3,
+  Trash2,
   Star,
   MessageCircle,
   Mail,
@@ -30,6 +31,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import Link from 'next/link';
+import SavedVendorsCarousel from '@/components/dashboard/SavedVendorsCarousel';
 
 // ─── Circular Progress Ring Component ────────────────────────────
 function CircularProgress({
@@ -108,6 +110,33 @@ export default function Home() {
   const [savedVendors, setSavedVendors] = useState<VendorResponse[]>([]);
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
+
+  // Delete Plan Modal & Status States
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
+
+  // Handle Delete Active Plan
+  const handleDeletePlan = async () => {
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      await deleteActivePlan();
+      setPlan(null);
+      setSavedVendors([]);
+      setShowDeleteModal(false);
+      setNotificationMessage('Kế hoạch cưới hiện tại đã được xóa thành công. Bạn có thể bắt đầu tạo kế hoạch mới!');
+      setTimeout(() => {
+        setNotificationMessage(null);
+      }, 6000);
+    } catch (err) {
+      console.error('Lỗi khi xóa kế hoạch cưới:', err);
+      setDeleteError(err instanceof Error ? err.message : 'Xóa kế hoạch cưới thất bại. Vui lòng thử lại!');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Auth Redirection
   useEffect(() => {
@@ -223,15 +252,38 @@ export default function Home() {
               <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-10 py-8">
                 {/* ── Greeting Section ───────────────────────── */}
                 <div className="mb-8 animate-fade-in">
-                  <h1 className="text-2xl sm:text-3xl font-script text-primary mb-1" style={{ fontFamily: 'Great Vibes, cursive' }}>
+                  <h1
+                    className="text-xl sm:text-2xl text-primary mb-1 font-normal"
+                    style={{ fontFamily: '"IM Fell French Canon", serif' }}
+                  >
                     {getGreeting()}, {displayName}!
                   </h1>
-                  <p className="text-xs text-muted-text">
+                  <p
+                    className="text-sm sm:text-base text-primary font-normal"
+                    style={{ fontFamily: '"IM Fell French Canon", serif' }}
+                  >
                     {plan
                       ? 'Here is your wedding checklist overview for today.'
                       : 'Chào mừng bạn đến với Planora. Hãy bắt đầu lập kế hoạch đám cưới!'}
                   </p>
                 </div>
+
+                {/* Notification Banner */}
+                {notificationMessage && (
+                  <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-xs shadow-xs animate-fade-in">
+                    <div className="flex items-center gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span className="font-medium">{notificationMessage}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNotificationMessage(null)}
+                      className="text-emerald-600 hover:text-emerald-900 text-xs font-bold px-2 py-0.5 cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
 
                 {!plan ? (
                   /* ══════════════════════════════════════════════
@@ -285,22 +337,39 @@ export default function Home() {
 
                     {/* ── Wedding Summary Card ─────────────────── */}
                     <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-1">
-                      <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
-                          <Heart className="w-4 h-4 text-primary" />
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <h2
+                          className="text-xl sm:text-2xl font-medium text-ink uppercase tracking-wider flex items-center gap-2"
+                          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                        >
+                          <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                           WEDDING SUMMARY CARD
                         </h2>
-                        <Link
-                          href="/onboarding"
-                          className="flex items-center gap-1 text-[11px] font-semibold text-primary border border-primary/20 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-md transition-colors"
-                        >
-                          <Edit3 className="w-3 h-3" />
-                          EDIT
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href="/onboarding"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/20 bg-primary/5 hover:bg-primary/10 px-3.5 py-1.5 rounded-md transition-colors"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            CHỈNH SỬA
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeleteError(null);
+                              setShowDeleteModal(true);
+                            }}
+                            className="flex items-center gap-1.5 text-xs font-semibold text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 hover:border-rose-300 px-3.5 py-1.5 rounded-md transition-all shadow-xs cursor-pointer"
+                            title="Xóa kế hoạch cưới hiện tại"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                            XÓA KẾ HOẠCH
+                          </button>
+                        </div>
                       </div>
 
                       {/* Info Row */}
-                      <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-body-text mb-5 pb-4 border-b border-hairline">
+                      <div className="flex flex-wrap gap-x-8 gap-y-2.5 text-sm text-body-text mb-5 pb-4 border-b border-hairline">
                         <div>
                           <span className="text-muted-text">Style: </span>
                           <span className="font-semibold text-ink">
@@ -322,15 +391,15 @@ export default function Home() {
                       {/* Countdown Bar */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[11px] font-semibold text-ink flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-muted-text" />
+                          <span className="text-xs sm:text-sm font-semibold text-ink flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-muted-text" />
                             Countdown
                           </span>
-                          <span className="text-xs font-bold text-primary">
+                          <span className="text-sm font-bold text-primary">
                             {timeLeft.days} Days Remaining
                           </span>
                         </div>
-                        <div className="w-full h-3 bg-lace rounded-full overflow-hidden border border-lace-dark/30">
+                        <div className="w-full h-[18px] bg-lace rounded-full overflow-hidden border border-lace-dark/30">
                           <div
                             className="h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-all duration-1000 ease-out animate-pulse-glow"
                             style={{
@@ -349,34 +418,37 @@ export default function Home() {
 
                       {/* Progress Tracker */}
                       <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-2">
-                        <h3 className="text-xs font-bold text-ink uppercase tracking-wider mb-5 flex items-center gap-2">
-                          <ListTodo className="w-4 h-4 text-primary" />
+                        <h3
+                          className="text-xl sm:text-2xl font-medium text-ink uppercase tracking-wider mb-5 flex items-center gap-2"
+                          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                        >
+                          <ListTodo className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                           PROGRESS TRACKER
                         </h3>
 
                         <div className="space-y-4">
                           {/* Checklist Tasks */}
                           <div>
-                            <div className="flex justify-between text-[11px] mb-1.5">
+                            <div className="flex justify-between text-xs sm:text-sm mb-1.5">
                               <span className="font-semibold text-ink">Checklist Tasks ({checklistPercent}% Completed)</span>
                             </div>
-                            <div className="w-full h-2.5 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
+                            <div className="w-full h-3 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
                               <div
                                 className="h-full bg-primary rounded-full transition-all duration-700"
                                 style={{ width: `${checklistPercent}%` }}
                               />
                             </div>
-                            <p className="text-[10px] text-muted-text mt-1 italic">
+                            <p className="text-xs text-muted-text mt-1.5 italic">
                               ✓ {completedTasks} of {totalTasks} tasks completed
                             </p>
                           </div>
 
                           {/* Timeline Milestones */}
                           <div>
-                            <div className="flex justify-between text-[11px] mb-1.5">
+                            <div className="flex justify-between text-xs sm:text-sm mb-1.5">
                               <span className="font-semibold text-ink">Timeline Milestones ({timelinePercent}% On Track)</span>
                             </div>
-                            <div className="w-full h-2.5 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
+                            <div className="w-full h-3 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
                               <div
                                 className="h-full bg-gold rounded-full transition-all duration-700"
                                 style={{ width: `${timelinePercent}%` }}
@@ -388,8 +460,11 @@ export default function Home() {
 
                       {/* Budget & Spending */}
                       <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-2">
-                        <h3 className="text-xs font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
-                          <DollarSign className="w-4 h-4 text-primary" />
+                        <h3
+                          className="text-xl sm:text-2xl font-medium text-ink uppercase tracking-wider mb-4 flex items-center gap-2"
+                          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                        >
+                          <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                           BUDGET & SPENDING
                         </h3>
 
@@ -397,41 +472,41 @@ export default function Home() {
                           {/* Circular Progress */}
                           <CircularProgress
                             percent={plan.budget > 0 ? Math.round((totalSpent / plan.budget) * 100) : 0}
-                            size={100}
+                            size={105}
                             stroke={7}
                             color="var(--color-primary)"
                           >
                             <div className="text-center">
-                              <span className="text-xs font-bold text-ink block">Total</span>
-                              <span className="text-[10px] font-bold text-primary font-mono">
+                              <span className="text-sm font-bold text-ink block">Total</span>
+                              <span className="text-xs font-bold text-primary font-mono">
                                 {plan.budget.toLocaleString('vi-VN')} ₫
                               </span>
                             </div>
                           </CircularProgress>
 
                           {/* Legend */}
-                          <div className="space-y-2.5 flex-1">
-                            <div className="flex items-center justify-between text-xs">
+                          <div className="space-y-3 flex-1">
+                            <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                                <div className="w-3 h-3 rounded-full bg-primary" />
                                 <span className="text-body-text">Spent</span>
                               </div>
                               <span className="font-bold text-ink font-mono">
                                 {totalSpent.toLocaleString('vi-VN')} ₫
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-gold" />
+                                <div className="w-3 h-3 rounded-full bg-gold" />
                                 <span className="text-body-text">Booked</span>
                               </div>
                               <span className="font-bold text-ink font-mono">
                                 {totalAllocated.toLocaleString('vi-VN')} ₫
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-hairline" />
+                                <div className="w-3 h-3 rounded-full bg-hairline" />
                                 <span className="text-body-text">Remaining</span>
                               </div>
                               <span className="font-bold text-ink font-mono">
@@ -450,60 +525,7 @@ export default function Home() {
 
                     {/* ── Saved Vendors Section ────────────────── */}
                     <div className="animate-fade-in-delay-3">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
-                          <Heart className="w-4 h-4 text-primary" />
-                          SAVED VENDORS
-                        </h3>
-                        <span className="text-[10px] text-muted-text">{savedVendors.length} vendor(s) saved</span>
-                      </div>
-
-                      {savedVendors.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {savedVendors.slice(0, 3).map((vendor) => (
-                            <div key={vendor.id} className="bg-lace/50 border border-lace-dark/30 rounded-xl p-5 text-center vendor-card-hover shadow-sm">
-                              {/* Vendor Avatar */}
-                              <div className="w-14 h-14 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mx-auto mb-3">
-                                <span className="text-lg font-bold text-primary font-display">
-                                  {vendor.businessName.charAt(0)}
-                                </span>
-                              </div>
-                              <h4 className="text-xs font-bold text-primary italic font-serif">
-                                {vendor.businessName}
-                              </h4>
-                              <div className="flex justify-center mt-1.5">
-                                <StarRating rating={vendor.ratingAverage} />
-                              </div>
-                              <p className="text-[10px] text-muted-text mt-1">
-                                {vendor.city} • {vendor.totalReviews} reviews
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="bg-lace/30 border border-lace-dark/20 rounded-xl p-8 text-center">
-                          <AlertCircle className="w-6 h-6 text-muted-text mx-auto mb-2" />
-                          <p className="text-xs text-muted-text">Chưa có vendor nào được lưu.</p>
-                          <Link
-                            href="/marketplace"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary mt-2 hover:underline"
-                          >
-                            Khám phá Marketplace <ChevronRight className="w-3 h-3" />
-                          </Link>
-                        </div>
-                      )}
-
-                      {savedVendors.length > 0 && (
-                        <div className="text-center mt-4">
-                          <Link
-                            href="/marketplace"
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary border border-primary/20 bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-md transition-colors"
-                          >
-                            <Plus className="w-3 h-3" />
-                            BROWSE MORE VENDORS
-                          </Link>
-                        </div>
-                      )}
+                      <SavedVendorsCarousel vendors={savedVendors} />
                     </div>
 
                     {/* ── Inquiry Status Section ───────────────── */}
@@ -547,6 +569,63 @@ export default function Home() {
                   </div>
                 )}
               </main>
+
+              {/* Delete Plan Confirmation Modal */}
+              {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+                  <div className="bg-white rounded-2xl border border-hairline p-6 max-w-md w-full shadow-2xl space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+                        <Trash2 className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-ink">Xác nhận xóa kế hoạch cưới?</h3>
+                        <p className="text-xs text-muted-text mt-0.5">Thao tác này sẽ xóa vĩnh viễn dữ liệu hiện tại.</p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-body-text leading-relaxed bg-rose-50/60 p-3.5 rounded-xl border border-rose-100">
+                      Toàn bộ dữ liệu kế hoạch cưới bao gồm <strong>dự toán 10 hạng mục ngân sách, lộ trình công việc checklist, kịch bản ngày cưới và danh sách vendor đã lưu</strong> sẽ bị xóa khỏi tài khoản của bạn.
+                    </p>
+
+                    {deleteError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                        <span>{deleteError}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-hairline">
+                      <button
+                        type="button"
+                        disabled={isDeleting}
+                        onClick={() => setShowDeleteModal(false)}
+                        className="px-4 py-2 text-xs font-semibold text-body-text hover:bg-canvas rounded-lg border border-hairline transition-all cursor-pointer"
+                      >
+                        Hủy bỏ
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isDeleting}
+                        onClick={handleDeletePlan}
+                        className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Đang xóa...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Xác nhận xóa
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>

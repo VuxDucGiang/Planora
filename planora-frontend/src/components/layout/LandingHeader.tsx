@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function LandingHeader() {
   return (
@@ -27,9 +28,13 @@ export default function LandingHeader() {
 
         {/* Right: CTA Button */}
         <div className="flex items-center">
-          <button className="px-5 py-2 rounded-sm text-sm font-semibold text-cream bg-sage-green hover:bg-sage-active transition-editorial cursor-pointer">
+          <Link
+            href="/login"
+            className="px-5 py-2 rounded-sm text-sm font-semibold !text-cream bg-sage-green hover:bg-sage-active transition-editorial cursor-pointer inline-block text-center"
+            style={{ color: '#FFFBF5' }}
+          >
             Book Now
-          </button>
+          </Link>
         </div>
       </nav>
     </header>

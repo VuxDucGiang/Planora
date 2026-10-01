@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Link from 'next/link';
 import { Heart, Sparkles, Users, Palette, Compass } from 'lucide-react';
 import LandingHeader from '@/components/layout/LandingHeader';
 import LandingFooter from '@/components/layout/LandingFooter';
@@ -224,26 +225,41 @@ export default function WeddingLanding() {
               <div className="space-y-4">
                 <h1 className="flex flex-col space-y-1">
                   <span
-                    className="text-8xl lg:text-9xl font-normal leading-none"
-                    style={{ fontFamily: '"Burgues Script W00 Regular", cursive', color: '#FFEEB5' }}
+                    className="text-8xl lg:text-9xl font-normal leading-none text-[#5D0F12] select-none"
+                    style={{
+                      fontFamily: '"Burgues Script W00 Regular", cursive',
+                      color: '#4b0c0eff',
+
+                    }}
                   >
                     Planora
                   </span>
                   <span
-                    className="text-xl lg:text-2xl font-normal italic tracking-wide pl-12"
-                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#FFEEB5' }}
+                    className="text-xl lg:text-2xl font-semibold italic tracking-wide pl-12 text-black"
+                    style={{
+                      fontFamily: '"ITC Garamond Std", "EB Garamond", serif',
+                      color: '#000000',
+                      fontWeight: 600,
+                    }}
                   >
                     Crafting unforgettable wedding.
                   </span>
                 </h1>
-                <p className="text-lg text-cream/90 leading-relaxed max-w-md">
+                <p
+                  className="text-lg text-black font-semibold leading-relaxed max-w-md"
+                  style={{ color: '#000000', fontWeight: 600 }}
+                >
                   Looking to spice up your eggs beyond just a drizzle of TRUFF® Hot Sauce? Visit our recipe page to get crackin&apos;. Hot Sauce is the perfect way to elevate your morning.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button className="px-8 py-3.5 rounded-full text-cream bg-sage-green hover:bg-sage-active transition-editorial font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer shadow-md">
+                <Link
+                  href="/login"
+                  className="px-8 py-3.5 rounded-full !text-cream bg-sage-green hover:bg-sage-active transition-editorial font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  style={{ color: '#FFFBF5' }}
+                >
                   START NOW!
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -740,11 +756,13 @@ export default function WeddingLanding() {
         <div className="max-w-4xl mx-auto px-6 sm:px-10 flex flex-col items-center text-center">
           {/* PLANORA label */}
           <p
-            className="mb-7"
+            className="mb-7 select-none"
             style={{
               fontFamily: '"Burgues Script W00 Regular", BurguesScriptW00-Regular, cursive',
               letterSpacing: '7%',
-              color: '#000000ff',
+              color: '#5D0F12',
+              WebkitTextStroke: '0.8px #5D0F12',
+              paintOrder: 'stroke fill',
               fontWeight: 400,
               fontSize: '75px',
               lineHeight: 0.9,
