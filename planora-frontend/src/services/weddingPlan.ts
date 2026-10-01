@@ -85,3 +85,29 @@ export async function getActivePlan(): Promise<ActivePlanResponse | null> {
 
   return response.json();
 }
+
+export async function deleteActivePlan(): Promise<void> {
+  let response = await fetch('/api/wedding-plans/active', {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (response.status === 405) {
+    // If DELETE is not supported by the current environment/proxy, fallback to POST
+    response = await fetch('/api/wedding-plans/active/delete', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+  }
+
+  if (!response.ok) {
+    let errorMessage = 'Xóa kế hoạch cưới thất bại. Vui lòng thử lại!';
+    try {
+      const errorData = await response.json();
+      if (errorData && typeof errorData.message === 'string') {
+        errorMessage = errorData.message;
+      }
+    } catch {}
+    throw new Error(errorMessage);
+  }
+}

@@ -63,12 +63,18 @@ export default function DashboardSidebar({ hasPlan }: DashboardSidebarProps) {
   ];
 
   return (
-    <aside className="w-[230px] bg-white border-r border-hairline flex flex-col py-5 px-3 gap-1 shrink-0 sticky top-[52px] h-[calc(100vh-52px)] overflow-y-auto dashboard-scroll z-20">
+    <aside 
+      className="w-[230px] bg-white border-r border-hairline flex flex-col py-5 px-3 gap-1 shrink-0 sticky top-[52px] h-[calc(100vh-52px)] overflow-y-auto dashboard-scroll z-20"
+      style={{ fontFamily: "'IM Fell French Canon', serif" }}
+    >
       {sections.map((section, sIdx) => (
         <div key={sIdx} className={sIdx > 0 ? 'mt-3' : ''}>
           {/* Section Title */}
           {section.title && (
-            <p className="text-[10px] font-bold text-muted-text uppercase tracking-[0.15em] px-3 mb-1.5">
+            <p 
+              className="text-xs font-bold text-muted-text uppercase tracking-[0.15em] px-3 mb-1.5"
+              style={{ fontFamily: "'IM Fell French Canon', serif" }}
+            >
               {section.title}
             </p>
           )}
@@ -86,7 +92,12 @@ export default function DashboardSidebar({ hasPlan }: DashboardSidebarProps) {
                   title={`${item.label} (chưa khả dụng)`}
                 >
                   <span className="text-muted-text">{item.icon}</span>
-                  <span className="text-[13px] font-medium text-muted-text">{item.label}</span>
+                  <span 
+                    className="text-[15px] font-normal text-muted-text"
+                    style={{ fontFamily: "'IM Fell French Canon', serif" }}
+                  >
+                    {item.label}
+                  </span>
                 </div>
               );
             }
@@ -107,7 +118,10 @@ export default function DashboardSidebar({ hasPlan }: DashboardSidebarProps) {
                 <span className={`transition-colors ${isActive ? 'text-primary' : 'text-muted-text group-hover:text-ink'}`}>
                   {item.icon}
                 </span>
-                <span className={`text-[13px] font-medium ${isActive ? 'text-primary font-semibold' : ''}`}>
+                <span 
+                  className={`text-[15px] font-normal ${isActive ? 'text-primary font-bold' : ''}`}
+                  style={{ fontFamily: "'IM Fell French Canon', serif" }}
+                >
                   {item.label}
                 </span>
               </Link>

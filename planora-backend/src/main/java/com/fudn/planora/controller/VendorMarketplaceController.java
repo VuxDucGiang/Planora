@@ -1,9 +1,11 @@
 package com.fudn.planora.controller;
 
+import com.fudn.planora.dto.request.CreateReviewRequest;
 import com.fudn.planora.dto.response.*;
 import com.fudn.planora.entity.User;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.service.VendorMarketplaceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -27,8 +30,8 @@ public class VendorMarketplaceController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) Long styleId,
-            @RequestParam(required = false) Double priceFrom,
-            @RequestParam(required = false) Double priceTo,
+            @RequestParam(required = false) BigDecimal priceFrom,
+            @RequestParam(required = false) BigDecimal priceTo,
             Pageable pageable
     ) {
         Page<VendorResponse> response = marketplaceService.getVendors(
@@ -37,10 +40,39 @@ public class VendorMarketplaceController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/vendors/featured")
+    public ResponseEntity<List<VendorResponse>> getFeaturedVendors() {
+        return ResponseEntity.ok(marketplaceService.getFeaturedVendors());
+    }
+
+    @GetMapping("/vendors/compare")
+    public ResponseEntity<VendorCompareResponse> compareVendors(@RequestParam List<Long> ids) {
+        return ResponseEntity.ok(marketplaceService.compareVendors(ids));
+    }
+
     @GetMapping("/vendors/{vendorId}")
     public ResponseEntity<VendorDetailResponse> getVendorDetail(@PathVariable Long vendorId) {
         VendorDetailResponse response = marketplaceService.getVendorDetail(vendorId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/vendors/{vendorId}/reviews")
+    public ResponseEntity<Page<ReviewResponse>> getVendorReviews(
+            @PathVariable Long vendorId,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(marketplaceService.getVendorReviews(vendorId, pageable));
+    }
+
+    @PostMapping("/vendors/{vendorId}/reviews")
+    public ResponseEntity<Void> addVendorReview(
+            @PathVariable Long vendorId,
+            @Valid @RequestBody CreateReviewRequest request,
+            @AuthenticationPrincipal String email
+    ) {
+        Long userId = getUserIdByEmail(email);
+        marketplaceService.addVendorReview(vendorId, request, userId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/wedding-plans/{planId}/shortlist")

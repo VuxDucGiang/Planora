@@ -66,6 +66,9 @@ public class Vendor {
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<VendorPortfolio> portfolios;
 
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Review> reviews;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

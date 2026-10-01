@@ -70,6 +70,18 @@ public class WeddingPlan {
     @Builder.Default
     private List<TimelineEvent> timelineEvents = new ArrayList<>();
 
+    @OneToMany(mappedBy = "weddingPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ConceptSuggestion> conceptSuggestions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "weddingPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<VendorShortlist> vendorShortlists = new ArrayList<>();
+
+    @OneToMany(mappedBy = "weddingPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<VendorMatches> vendorMatches = new ArrayList<>();
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

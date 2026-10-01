@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { MapPin, Calendar, Clock, Sparkles, LogOut } from 'lucide-react';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 
@@ -24,12 +25,14 @@ export default function DashboardHeader({ logout, plan, daysLeft = 0 }: Dashboar
     <header className="h-[52px] bg-primary text-cream flex items-center justify-between px-4 shrink-0 z-50 shadow-md">
       {/* Left: Logo */}
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full bg-cream/15 border border-cream/30 flex items-center justify-center">
-          <Sparkles className="w-3.5 h-3.5 text-gold-light" />
-        </div>
-        <span className="text-sm font-semibold tracking-[0.2em] text-cream font-display hidden sm:block">
-          PLANORA
-        </span>
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-7 h-7 rounded-full bg-cream/15 border border-cream/30 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-gold-light" />
+          </div>
+          <span className="text-sm font-semibold tracking-[0.2em] text-cream font-display hidden sm:block">
+            PLANORA
+          </span>
+        </Link>
       </div>
 
       {/* Center: Wedding Info (chỉ hiện khi có plan) */}

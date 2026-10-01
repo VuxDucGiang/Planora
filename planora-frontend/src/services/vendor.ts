@@ -2,7 +2,10 @@ import type {
   VendorResponse, 
   VendorDetailResponse, 
   VendorMatchResponse, 
-  VendorFilters 
+  VendorFilters,
+  VendorCompareResponse,
+  ReviewResponse,
+  CreateReviewRequest
 } from '@/types/vendor';
 
 function getAuthHeaders(): HeadersInit {
@@ -43,6 +46,33 @@ export async function getVendors(filters: VendorFilters): Promise<{ content: Ven
   return response.json();
 }
 
+export async function getFeaturedVendors(): Promise<VendorResponse[]> {
+  const response = await fetch('/api/vendors/featured', {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể tải danh sách nhà cung cấp nổi bật');
+  }
+
+  return response.json();
+}
+
+export async function compareVendors(vendorIds: number[]): Promise<VendorCompareResponse> {
+  const query = vendorIds.join(',');
+  const response = await fetch(`/api/vendors/compare?ids=${query}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể so sánh nhà cung cấp');
+  }
+
+  return response.json();
+}
+
 export async function getVendorDetail(vendorId: number): Promise<VendorDetailResponse> {
   const response = await fetch(`/api/vendors/${vendorId}`, {
     method: 'GET',
@@ -54,6 +84,31 @@ export async function getVendorDetail(vendorId: number): Promise<VendorDetailRes
   }
 
   return response.json();
+}
+
+export async function getVendorReviews(vendorId: number, page: number = 0, size: number = 10): Promise<{ content: ReviewResponse[]; totalPages: number; totalElements: number }> {
+  const response = await fetch(`/api/vendors/${vendorId}/reviews?page=${page}&size=${size}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể tải danh sách đánh giá');
+  }
+
+  return response.json();
+}
+
+export async function addVendorReview(vendorId: number, data: CreateReviewRequest): Promise<void> {
+  const response = await fetch(`/api/vendors/${vendorId}/reviews`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể gửi đánh giá');
+  }
 }
 
 export async function getShortlist(planId: number): Promise<VendorResponse[]> {
