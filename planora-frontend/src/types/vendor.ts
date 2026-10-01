@@ -9,6 +9,10 @@ export interface VendorResponse {
   ratingAverage: number;
   totalReviews: number;
   styles: string[];
+  primaryCategoryName?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  imageUrl?: string;
 }
 
 export interface PortfolioResponse {
@@ -25,6 +29,21 @@ export interface PackageResponse {
   price: number;
 }
 
+export interface ReviewResponse {
+  id: number;
+  customerId?: number;
+  customerName: string;
+  customerAvatar?: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+export interface CreateReviewRequest {
+  rating: number;
+  comment: string;
+}
+
 export interface VendorDetailResponse {
   id: number;
   businessName: string;
@@ -36,8 +55,20 @@ export interface VendorDetailResponse {
   ratingAverage: number;
   totalReviews: number;
   styles: string[];
+  primaryCategoryName?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  phone?: string;
+  email?: string;
+  avatarUrl?: string;
   portfolios: PortfolioResponse[];
   packages: PackageResponse[];
+  reviews?: ReviewResponse[];
+}
+
+export interface VendorCompareResponse {
+  vendors: VendorDetailResponse[];
+  totalCompared: number;
 }
 
 export interface VendorMatchResponse {

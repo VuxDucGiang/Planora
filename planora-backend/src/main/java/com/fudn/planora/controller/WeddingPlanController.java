@@ -6,9 +6,12 @@ import com.fudn.planora.dto.response.WeddingPlanResponse;
 import com.fudn.planora.service.WeddingPlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/wedding-plans")
@@ -27,6 +30,20 @@ public class WeddingPlanController {
     public ActivePlanResponse getActivePlan() {
         String email = getLoggedInUserEmail();
         return planService.getActivePlan(email);
+    }
+
+    @DeleteMapping("/active")
+    public ResponseEntity<?> deleteActivePlan() {
+        String email = getLoggedInUserEmail();
+        planService.deleteActivePlan(email);
+        return ResponseEntity.ok(Map.of("message", "Đã xóa kế hoạch cưới thành công"));
+    }
+
+    @PostMapping("/active/delete")
+    public ResponseEntity<?> deleteActivePlanPost() {
+        String email = getLoggedInUserEmail();
+        planService.deleteActivePlan(email);
+        return ResponseEntity.ok(Map.of("message", "Đã xóa kế hoạch cưới thành công"));
     }
 
     private String getLoggedInUserEmail() {

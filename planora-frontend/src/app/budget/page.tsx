@@ -28,12 +28,18 @@ import {
   Sparkles
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
+import type { ActivePlanResponse } from '@/types/weddingPlan';
 import Link from 'next/link';
 
 export default function Budget() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+
+  // Plan & Countdown States
+  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
+  const [daysLeft, setDaysLeft] = useState(0);
 
   // Data Loading States
   const [budgetData, setBudgetData] = useState<BudgetResponse | null>(null);
@@ -82,6 +88,11 @@ export default function Budget() {
         setIsLoading(true);
         const activePlan = await getActivePlan();
         if (activePlan) {
+          setPlan(activePlan);
+          if (activePlan.weddingDate) {
+            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
+            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
+          }
           const data = await getBudget(activePlan.id);
           setBudgetData(data);
         } else {
@@ -420,17 +431,21 @@ export default function Budget() {
   const isOverBudget = remainingBalance < 0;
 
   return (
-    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-hidden">
-      <DashboardHeader logout={logout} />
+    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full">
+      {/* Top Info Bar */}
+      <div className="sticky top-0 z-50">
+        <DashboardHeader logout={logout} plan={plan} daysLeft={daysLeft} />
+      </div>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 sm:px-10 py-12 flex flex-col justify-start">
+      {/* Main Layout: Sidebar + Content */}
+      <div className="flex flex-1 w-full relative">
+        {/* Left Sidebar */}
+        <DashboardSidebar hasPlan={!!plan} />
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
+          <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-10 py-8 flex flex-col justify-start">
         
-        {/* Header Breadcrumbs */}
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline uppercase tracking-wider">
-            <ArrowLeft className="w-3.5 h-3.5" /> Quay lại Dashboard
-          </Link>
-        </div>
 
         {/* Page Title */}
         <div className="flex flex-col md:flex-row justify-between md:items-end border-b border-hairline pb-6 mb-8 gap-4">
@@ -804,7 +819,9 @@ export default function Budget() {
           </div>
         )}
 
-      </main>
+          </main>
+        </div>
+      </div>
 
       {/* Edit Budget Item Modal */}
       {isModalOpen && editingItem && (
