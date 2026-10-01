@@ -39,6 +39,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/google").permitAll()
                         .requestMatchers("/api/auth/register").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/vendors/**").permitAll()
+                        .requestMatchers("/api/service-categories/**").permitAll()
+                        .requestMatchers("/api/wedding-styles/**").permitAll()
                         .requestMatchers("/api/*").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

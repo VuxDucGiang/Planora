@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -23,10 +23,27 @@ import {
   Loader2,
   Heart,
   Info,
-  ListTodo
+  ListTodo,
+  PieChart,
+  Clock,
+  Palette,
+  ShieldAlert,
+  UtensilsCrossed,
+  CheckCircle2,
+  CalendarDays,
+  Gem,
+  Camera,
+  Shirt,
+  Sparkle,
+  Eye,
+  X,
+  Images,
+  Grid
 } from 'lucide-react';
+import { WEDDING_STYLES_CATALOG, WeddingStyleDetail } from '@/constants/weddingStyles';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
+import { formatVND, calculateLiveInsights, generateSmartBlueprint } from '@/utils/weddingBlueprint';
 
 export default function Onboarding() {
   const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -39,6 +56,9 @@ export default function Onboarding() {
   const [generationPhase, setGenerationPhase] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Step 5 Tab State
+  const [blueprintTab, setBlueprintTab] = useState<'budget' | 'checklist' | 'timeline' | 'concept'>('budget');
+
   // Dynamic Data from Backend
   const [availableStyles, setAvailableStyles] = useState<WeddingStyle[]>([]);
   const [availableCategories, setAvailableCategories] = useState<ServiceCategory[]>([]);
@@ -48,10 +68,75 @@ export default function Onboarding() {
   const [weddingDate, setWeddingDate] = useState('');
   const [location, setLocation] = useState('');
   const [guestCount, setGuestCount] = useState<number>(50);
-    const [budget, setBudget] = useState<number>(200000000); // 200,000,000 VND default
+  const [budget, setBudget] = useState<number>(200000000); // 200,000,000 VND default
   const [selectedStyles, setSelectedStyles] = useState<number[]>([]);
   const [generatedPlan, setGeneratedPlan] = useState<ActivePlanResponse | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+
+  // Step 3 Wedding Style Gallery Lightbox States
+  const [galleryStyle, setGalleryStyle] = useState<WeddingStyleDetail | null>(null);
+  const [galleryPhotoIndex, setGalleryPhotoIndex] = useState<number>(0);
+
+  // Keyboard navigation for style photo gallery
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setGalleryStyle(null);
+      } else if (galleryStyle) {
+        if (e.key === 'ArrowRight') {
+          setGalleryPhotoIndex(prev => (prev + 1) % galleryStyle.gallery.length);
+        } else if (e.key === 'ArrowLeft') {
+          setGalleryPhotoIndex(prev => (prev - 1 + galleryStyle.gallery.length) % galleryStyle.gallery.length);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [galleryStyle]);
+
+  // Merge backend availableStyles with rich catalog details
+  const displayStyles: WeddingStyleDetail[] = WEDDING_STYLES_CATALOG.map(catalogItem => {
+    const backendMatch = availableStyles.find(
+      s => s.id === catalogItem.id || s.name.toLowerCase().includes(catalogItem.matchKey)
+    );
+    return {
+      ...catalogItem,
+      id: backendMatch ? backendMatch.id : catalogItem.id,
+      name: backendMatch ? backendMatch.name : catalogItem.name,
+      description: backendMatch?.description || catalogItem.description
+    };
+  });
+
+  // Live Logistics and Budget Insights
+  const liveInsights = calculateLiveInsights(guestCount, budget);
+
+  // Helper to handle formatted numeric inputs with commas
+  const handleFormattedNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (val: number) => void
+  ) => {
+    const input = e.target;
+    const cursorPosition = input.selectionStart || 0;
+    const rawBeforeCursor = input.value.slice(0, cursorPosition).replace(/\D/g, '');
+    const rawAll = input.value.replace(/\D/g, '');
+    const val = rawAll ? parseInt(rawAll, 10) : 0;
+    setter(val);
+    setErrorMessage(null);
+
+    requestAnimationFrame(() => {
+      if (!input) return;
+      const formatted = val ? val.toLocaleString('en-US') : '';
+      let targetDigits = rawBeforeCursor.length;
+      let newCursor = 0;
+      while (newCursor < formatted.length && targetDigits > 0) {
+        if (/\d/.test(formatted[newCursor])) {
+          targetDigits--;
+        }
+        newCursor++;
+      }
+      input.setSelectionRange(newCursor, newCursor);
+    });
+  };
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -189,6 +274,16 @@ export default function Onboarding() {
     setGenerationPhase(0);
     setErrorMessage(null);
 
+    // Generate immediate client-side smart blueprint fallback
+    const fallbackBlueprint = generateSmartBlueprint({
+      totalBudget: budget,
+      guestCount,
+      weddingDate,
+      location,
+      priorityCategoryIds: selectedCategories,
+      selectedStyles: availableStyles.filter(s => selectedStyles.includes(s.id)),
+    });
+
     try {
       await createOnboardingPlan({
         title,
@@ -201,8 +296,33 @@ export default function Onboarding() {
       });
 
       // Fetch active plan details for Step 5 summary
-      const activePlan = await getActivePlan();
-      setGeneratedPlan(activePlan);
+      try {
+        const activePlan = await getActivePlan();
+        if (activePlan) {
+          setGeneratedPlan({
+            ...fallbackBlueprint,
+            ...activePlan,
+            budgetItems: (activePlan.budgetItems && activePlan.budgetItems.length > 0) 
+              ? activePlan.budgetItems 
+              : fallbackBlueprint.budgetItems,
+            checklistTasks: (activePlan.checklistTasks && activePlan.checklistTasks.length > 0) 
+              ? activePlan.checklistTasks 
+              : fallbackBlueprint.checklistTasks,
+            timelineEvents: (activePlan.timelineEvents && activePlan.timelineEvents.length > 0) 
+              ? activePlan.timelineEvents 
+              : fallbackBlueprint.timelineEvents,
+            budgetAnalytics: activePlan.budgetAnalytics || fallbackBlueprint.budgetAnalytics,
+            conceptSuggestions: (activePlan.conceptSuggestions && activePlan.conceptSuggestions.length > 0) 
+              ? activePlan.conceptSuggestions 
+              : fallbackBlueprint.conceptSuggestions,
+          });
+        } else {
+          setGeneratedPlan(fallbackBlueprint);
+        }
+      } catch (fetchErr) {
+        console.warn('Could not fetch active plan from server, using smart blueprint fallback:', fetchErr);
+        setGeneratedPlan(fallbackBlueprint);
+      }
 
       // Show final phase briefly before displaying Step 5
       setGenerationPhase(4);
@@ -213,8 +333,13 @@ export default function Onboarding() {
 
     } catch (err) {
       console.error('Lỗi tạo kế hoạch:', err);
-      setIsGenerating(false);
-      setErrorMessage(err instanceof Error ? err.message : 'Tạo kế hoạch thất bại. Vui lòng thử lại!');
+      // Even if network or API has a temporary glitch, allow user to inspect the generated smart blueprint
+      setGeneratedPlan(fallbackBlueprint);
+      setGenerationPhase(4);
+      setTimeout(() => {
+        setIsGenerating(false);
+        setCurrentStep(5);
+      }, 1000);
     }
   };
 
@@ -240,7 +365,9 @@ export default function Onboarding() {
       <DashboardHeader logout={logout} />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-6 py-12 flex flex-col justify-center relative">
+      <main className={`flex-1 w-full mx-auto px-4 sm:px-8 py-8 sm:py-12 flex flex-col justify-center relative transition-all duration-500 ${
+        currentStep === 3 ? 'max-w-[1280px]' : currentStep === 5 ? 'max-w-[880px]' : 'max-w-3xl'
+      }`}>
         {isLoadingData ? (
           <div className="flex flex-col items-center py-20 gap-3 bg-white/80 backdrop-blur-sm rounded-xl border border-hairline p-8 shadow-sm">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -357,7 +484,9 @@ export default function Onboarding() {
             )}
 
                         {/* Form Steps Rendering - centered card */}
-            <div className={`bg-[#FFFBF5] rounded-2xl border border-primary/10 p-6 sm:p-8 shadow-md w-full mx-auto z-10 transition-all duration-500 ${currentStep === 5 ? 'max-w-[680px]' : 'max-w-[500px]'}`}>
+            <div className={`bg-[#FFFBF5] rounded-2xl border border-primary/10 p-5 sm:p-8 shadow-md w-full mx-auto z-10 transition-all duration-500 ${
+              currentStep === 3 ? 'max-w-[1240px]' : currentStep === 5 ? 'max-w-[840px]' : 'max-w-[520px]'
+            }`}>
               
               {/* STEP 1: Basic Information */}
               {currentStep === 1 && (
@@ -454,15 +583,11 @@ export default function Onboarding() {
                         </label>
                         <div className="w-full h-14 rounded-full border border-primary/30 bg-transparent flex items-center justify-between px-6 transition-all focus-within:border-primary/80">
                           <input
-                            type="number"
-                            min="1"
-                            value={guestCount || ''}
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              setGuestCount(val);
-                              setErrorMessage(null);
-                            }}
-                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            type="text"
+                            inputMode="numeric"
+                            value={guestCount ? guestCount.toLocaleString('en-US') : ''}
+                            onChange={e => handleFormattedNumberChange(e, setGuestCount)}
+                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none"
                             placeholder="Ví dụ: 150"
                           />
                           <span className="text-xs sm:text-sm font-sans text-muted-text italic ml-2">
@@ -489,9 +614,22 @@ export default function Onboarding() {
                           {/* Labels container */}
                           <div className="relative w-full h-4 mt-0.5">
                             <span className="absolute left-0 text-[11px] font-sans text-primary/60">50</span>
-                            <span className="absolute left-[22.2%] -translate-x-1/2 text-[11px] font-sans text-primary/60">150</span>
                             <span className="absolute right-0 text-[11px] font-sans text-primary/60">500+</span>
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Live Logistics Analysis Pill */}
+                      <div className="p-3 bg-primary/5 rounded-xl border border-primary/15 flex items-center justify-between text-xs mt-2 transition-all">
+                        <div className="flex items-center gap-2">
+                          <UtensilsCrossed className="w-4 h-4 text-primary flex-shrink-0" />
+                          <span className="text-ink font-medium">Ước tính quy mô bàn tiệc:</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2.5 py-0.5 bg-white rounded-full font-bold text-primary shadow-xs border border-primary/20 text-xs">
+                            ~{liveInsights.tables} bàn
+                          </span>
+                          <span className="text-[10px] text-muted-text hidden sm:inline">(10 khách/bàn + 1 dự phòng)</span>
                         </div>
                       </div>
                     </div>
@@ -542,16 +680,13 @@ export default function Onboarding() {
                         <div className="flex items-center w-full">
                           <span className="text-xs sm:text-sm font-sans text-muted-text mr-1.5">₫</span>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             id="budget"
-                            min="1"
-                            value={budget || ''}
-                            onChange={e => {
-                              setBudget(parseInt(e.target.value) || 0);
-                              setErrorMessage(null);
-                            }}
-                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            placeholder="Ví dụ: 200000000"
+                            value={budget ? budget.toLocaleString('en-US') : ''}
+                            onChange={e => handleFormattedNumberChange(e, setBudget)}
+                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none"
+                            placeholder="Ví dụ: 200,000,000"
                           />
                         </div>
                         <span className="text-xs sm:text-sm font-sans text-muted-text italic ml-2">
@@ -559,7 +694,7 @@ export default function Onboarding() {
                         </span>
                       </div>
                       <p className="text-[11px] text-muted-text italic pl-1">
-                        Mức phân bổ đề xuất: {(budget || 0).toLocaleString('vi-VN')} VND
+                        Mức phân bổ đề xuất: {(budget || 0).toLocaleString('en-US')} VND
                       </p>
                     </div>
 
@@ -581,9 +716,28 @@ export default function Onboarding() {
                         {/* Labels container */}
                         <div className="relative w-full h-4 mt-0.5">
                           <span className="absolute left-0 text-[10px] sm:text-[11px] font-sans text-primary/60">50 Triệu</span>
-                          <span className="absolute left-[15.8%] -translate-x-1/2 text-[10px] sm:text-[11px] font-sans text-primary/60">200 Triệu</span>
                           <span className="absolute right-0 text-[10px] sm:text-[11px] font-sans text-primary/60">1 Tỷ+</span>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Live Smart Budget Insights */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                      <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col gap-1 shadow-xs">
+                        <div className="flex items-center gap-1.5 text-primary text-xs font-semibold">
+                          <UtensilsCrossed className="w-3.5 h-3.5" />
+                          <span>Chi phí Tiệc cưới & Đồ uống (~50%)</span>
+                        </div>
+                        <span className="text-sm font-bold text-ink">{formatVND(liveInsights.banquetEstimated)}</span>
+                        <span className="text-[10px] text-muted-text">~{formatVND(liveInsights.costPerTable)} / bàn ({liveInsights.venueTier})</span>
+                      </div>
+                      <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/60 flex flex-col gap-1 shadow-xs">
+                        <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-semibold">
+                          <ShieldAlert className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Quỹ dự phòng an toàn (4%)</span>
+                        </div>
+                        <span className="text-sm font-bold text-emerald-700">{formatVND(liveInsights.contingencyFund)}</span>
+                        <span className="text-[10px] text-emerald-600/80">Phòng ngừa chi phí phát sinh ngày lễ</span>
                       </div>
                     </div>
 
@@ -591,57 +745,187 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* STEP 3: Wedding Style Selection */}
+              {/* STEP 3: Wedding Style Selection with Wide Panoramic Layout */}
               {currentStep === 3 && (
-                <div className="space-y-4">
-                  <div className="border-b border-hairline pb-3 mb-1">
-                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      Phong cách thiết kế
-                    </h2>
-                    <p className="text-[11px] text-muted-text mt-0.5">
-                      Chọn phong cách đám cưới bạn mong muốn (Có thể chọn nhiều phong cách).
-                    </p>
+                <div className="space-y-6 py-2 animate-fade-in">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-hairline/70 pb-4">
+                    <div className="space-y-1 text-center sm:text-left">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-primary/5 border border-primary/15 text-primary text-[11px] font-medium">
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                        <span>Step 3 of 4 • Wedding Style</span>
+                      </div>
+                      <h2 
+                        className="text-[26px] sm:text-[30px] italic leading-tight"
+                        style={{ 
+                          fontFamily: "'IM Fell French Canon', serif", 
+                          fontWeight: 400, 
+                          color: '#2C0600'
+                        }}
+                      >
+                        Pick your dream wedding style
+                      </h2>
+                      <p className="text-xs text-muted-text max-w-lg font-sans">
+                        Khám phá không gian thực tế và chọn phong cách bạn yêu thích (có thể chọn nhiều phong cách).
+                      </p>
+                    </div>
+
+                    {/* Status Pill on the Right */}
+                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-primary/20 shadow-xs">
+                      <span className="text-xs text-body-text font-medium">
+                        {selectedStyles.length > 0 ? (
+                          <>
+                            Đã chọn: <strong className="text-primary">{selectedStyles.length}</strong> phong cách
+                          </>
+                        ) : (
+                          <span className="text-muted-text italic">Chưa chọn phong cách nào</span>
+                        )}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1 dashboard-scroll">
-                    {availableStyles.map(style => {
+                  {/* Ribbon Banner: NOW CHOOSE YOUR STYLE */}
+                  <div className="flex items-center justify-between px-5 py-2.5 rounded-full bg-primary text-white shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-gold animate-pulse" />
+                      <span className="text-xs sm:text-sm font-bold tracking-wider uppercase font-display">
+                        NOW CHOOSE YOUR STYLE
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-white/85 italic hidden sm:inline">
+                      Bấm vào từng thẻ để chọn phong cách • Bấm &quot;Xem ảnh&quot; để ngắm không gian chi tiết
+                    </span>
+                  </div>
+
+                  {/* 5-Column Wide Panoramic Cards (Rộng sang 2 bên) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                    {displayStyles.map((style) => {
                       const isSelected = selectedStyles.includes(style.id);
                       return (
-                        <button
+                        <div
                           key={style.id}
-                          type="button"
                           onClick={() => {
                             toggleStyle(style.id);
                             setErrorMessage(null);
                           }}
-                          className={`p-3 border rounded-lg text-left transition-all flex flex-col justify-between relative group ${
+                          className={`group relative rounded-2xl overflow-hidden border cursor-pointer transition-all duration-300 flex flex-col justify-between ${
                             isSelected
-                              ? 'bg-primary/5 border-primary text-primary ring-1 ring-primary/25 shadow-sm'
-                              : 'bg-white border-hairline text-body-text hover:border-border-strong hover:bg-canvas/50'
+                              ? 'border-primary ring-2 ring-primary shadow-md bg-primary/5 transform -translate-y-1'
+                              : 'border-primary/20 bg-white hover:border-primary/50 shadow-2xs hover:shadow-sm'
                           }`}
                         >
-                          <div className="space-y-1 pr-4">
-                            <h3 className={`text-xs font-semibold transition-colors ${
-                              isSelected ? 'text-primary' : 'text-ink group-hover:text-primary'
+                          {/* Card Image (Portrait aspect 3:4 theo chiều dọc) */}
+                          <div className="relative aspect-[3/4] w-full overflow-hidden bg-primary/10">
+                            <img
+                              src={style.coverImage}
+                              alt={style.name}
+                              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                              loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+
+                            {/* Tag Badge (Top-Left) */}
+                            <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-md shadow-2xs border border-white/50">
+                              <span className="text-[10px] font-bold text-primary tracking-wider uppercase font-sans">
+                                {style.tag}
+                              </span>
+                            </div>
+
+                            {/* Select Checkbox (Top-Right) */}
+                            <div 
+                              className={`absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                                isSelected
+                                  ? 'bg-primary text-white ring-2 ring-white shadow-xs'
+                                  : 'bg-black/35 backdrop-blur-xs text-white/80 group-hover:bg-white group-hover:text-primary'
+                              }`}
+                            >
+                              {isSelected ? (
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              ) : (
+                                <div className="w-2 h-2 rounded-full border border-white/70" />
+                              )}
+                            </div>
+
+                            {/* "Xem 4 ảnh" Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setGalleryStyle(style);
+                                setGalleryPhotoIndex(0);
+                              }}
+                              className="absolute bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-white/95 hover:bg-white text-primary text-[10px] font-bold tracking-wide shadow-xs flex items-center gap-1 transition-all hover:scale-105"
+                            >
+                              <Eye className="w-3 h-3" />
+                              <span>Xem {style.gallery.length} ảnh</span>
+                            </button>
+                          </div>
+
+                          {/* Card Body */}
+                          <div className="p-3 bg-white flex-1 flex flex-col justify-between text-center border-t border-hairline/60">
+                            <div>
+                              <h3 
+                                className="text-sm font-bold text-ink"
+                                style={{ fontFamily: "'IM Fell French Canon', serif" }}
+                              >
+                                {style.tag}
+                              </h3>
+                              <p className="text-[10px] text-muted-text truncate mt-0.5">
+                                {style.vietnameseTitle}
+                              </p>
+                            </div>
+
+                            {/* Mini Color Palette Dots */}
+                            <div className="flex items-center justify-center gap-1 my-2">
+                              {style.palette.slice(0, 4).map((c, i) => (
+                                <span 
+                                  key={i} 
+                                  className="w-2.5 h-2.5 rounded-full border border-black/10" 
+                                  style={{ backgroundColor: c.hex }}
+                                  title={c.name}
+                                />
+                              ))}
+                            </div>
+
+                            {/* Selection Action Button */}
+                            <span className={`text-[10px] font-semibold py-1 px-2 rounded-full transition-all block ${
+                              isSelected 
+                                ? 'bg-primary text-white' 
+                                : 'bg-primary/5 text-primary group-hover:bg-primary/10'
                             }`}>
-                              {style.name}
-                            </h3>
-                            <p className="text-[10px] text-muted-text leading-relaxed font-normal line-clamp-2">
-                              {style.description || 'Không có mô tả thêm.'}
-                            </p>
+                              {isSelected ? '✓ Đã chọn' : '+ Chọn phong cách'}
+                            </span>
                           </div>
-                          
-                          <div className={`absolute top-3 right-3 w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                            isSelected 
-                              ? 'bg-primary border-primary text-white' 
-                              : 'border-hairline bg-white'
-                          }`}>
-                            {isSelected && <Check className="w-2.5 h-2.5" />}
-                          </div>
-                        </button>
+                        </div>
                       );
                     })}
+                  </div>
+
+                  {/* Summary Footer */}
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="text-body-text">
+                        {selectedStyles.length > 0 ? (
+                          <>
+                            Đã chọn <strong>{selectedStyles.length} phong cách</strong>:{' '}
+                            <span className="text-primary font-semibold">
+                              {displayStyles
+                                .filter(s => selectedStyles.includes(s.id))
+                                .map(s => s.tag)
+                                .join(', ')}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-text italic">
+                            Chưa chọn phong cách nào. Bấm vào thẻ phía trên để lựa chọn phong cách bạn yêu thích.
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-muted-text italic">
+                      Planora AI sẽ phối hợp các phong cách bạn đã chọn để tạo bản thiết kế độc bản
+                    </span>
                   </div>
                 </div>
               )}
@@ -684,121 +968,387 @@ export default function Onboarding() {
                       })}
                     </div>
 
-                                        {/* AI Notice Card */}
-                    <div className="p-3 bg-primary/5 rounded-sm border border-primary/20 flex gap-2 text-[10px] text-primary leading-relaxed items-start mt-2">
-                      <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <span className="font-semibold block mb-0.5">Về thuật toán phân bổ thông minh</span>
-                        Hệ thống sẽ chia nhỏ ngân sách cưới dựa theo bộ lọc ưu tiên và các mốc thời gian chuẩn bị 12 tháng. Danh sách Checklist và Dòng thời gian sẽ được tự động tạo sẵn.
+                    {/* Priority Impact Notification */}
+                    {selectedCategories.length > 0 ? (
+                      <div className="p-3 bg-primary/10 rounded-xl border border-primary/25 flex gap-2.5 text-[11px] text-primary leading-relaxed items-center animate-fade-in">
+                        <Sparkles className="w-4 h-4 flex-shrink-0 text-gold" />
+                        <div>
+                          <span className="font-bold block text-primary">Đã chọn {selectedCategories.length} dịch vụ ưu tiên:</span>
+                          <span className="text-body-text">Các hạng mục này sẽ được tự động tăng <strong>+25% ngân sách</strong> để bạn có thể chọn các nhà cung cấp chất lượng cao nhất.</span>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 flex gap-2.5 text-[11px] text-amber-800 leading-relaxed items-center">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
+                        <span>Hãy chọn ít nhất 1 dịch vụ bạn mong muốn đầu tư nhiều nhất để thuật toán tối ưu phân bổ.</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* STEP 5: Wedding Plan Result Summary */}
+              {/* STEP 5: Master Wedding Blueprint Result */}
               {currentStep === 5 && (
                 <div className="space-y-6 py-2 animate-fade-in">
                   {/* Header */}
                   <div className="text-center space-y-1 mb-6">
                     <h2 
-                      className="text-[28px] md:text-[32px] italic text-[#2C0600]"
-                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '40px' }}
+                      className="text-[26px] md:text-[32px] italic text-[#2C0600]"
+                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '38px' }}
                     >
-                      Your Wedding Plan is Ready!
+                      Master Wedding Blueprint
                     </h2>
                     <p 
-                      className="text-xs sm:text-sm font-normal text-[#2C0600]"
-                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '24px' }}
+                      className="text-xs sm:text-sm font-normal text-muted-text max-w-lg mx-auto"
+                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '22px' }}
                     >
-                      Dưới đây là dự toán chi tiết và kế hoạch được thiết kế riêng cho ngày trọng đại của bạn.
+                      Bản kế hoạch cưới chi tiết được cá nhân hóa tự động theo ngân sách, quy mô bàn tiệc và phong cách của hai bạn.
                     </p>
                   </div>
 
-                  {/* Summary Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {/* Left: General info & Styles */}
-                    <div className="space-y-4">
-                      {/* Overview details */}
-                      <div className="p-4 rounded-xl border border-primary/10 bg-white/40 space-y-3">
-                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider pl-1">Thông tin ngày cưới</h3>
-                        <div className="grid grid-cols-2 gap-3 text-[11px] font-sans text-ink">
-                          <div>
-                            <span className="text-muted-text block">Ngày cưới:</span>
-                            <span className="font-semibold">{weddingDate ? new Date(weddingDate).toLocaleDateString('vi-VN') : 'Chưa chọn'}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-text block">Địa điểm:</span>
-                            <span className="font-semibold truncate block">{location}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-text block">Số lượng khách:</span>
-                            <span className="font-semibold">{guestCount} guests</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-text block">Tổng ngân sách:</span>
-                            <span className="font-semibold text-primary">{(budget || 0).toLocaleString('vi-VN')} ₫</span>
-                          </div>
+                  {/* 4 Core KPI Summary Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Tổng dự toán</span>
+                      <div className="mt-1">
+                        <span className="text-sm sm:text-base font-bold text-primary block leading-tight">
+                          {formatVND(budget)}
+                        </span>
+                        <span className="text-[10px] text-muted-text mt-0.5 block truncate">
+                          {liveInsights.venueTier}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Quy mô tiệc</span>
+                      <div className="mt-1">
+                        <span className="text-sm sm:text-base font-bold text-ink block leading-tight">
+                          {guestCount.toLocaleString('en-US')} khách
+                        </span>
+                        <span className="text-[10px] text-primary font-medium mt-0.5 block">
+                          ~{liveInsights.tables} bàn tiệc
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Lộ trình Checklist</span>
+                      <div className="mt-1">
+                        <span className="text-sm sm:text-base font-bold text-ink block leading-tight">
+                          {generatedPlan?.checklistTasks?.length || 24} công việc
+                        </span>
+                        <span className="text-[10px] text-emerald-700 font-medium mt-0.5 block">
+                          6 giai đoạn thích ứng
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Kịch bản ngày cưới</span>
+                      <div className="mt-1">
+                        <span className="text-sm sm:text-base font-bold text-ink block leading-tight">
+                          {generatedPlan?.timelineEvents?.length || 10} sự kiện
+                        </span>
+                        <span className="text-[10px] text-amber-700 font-medium mt-0.5 block">
+                          Gia tiên & Đãi tiệc
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Blueprint Navigation Tabs */}
+                  <div className="flex border-b border-hairline gap-1 overflow-x-auto pb-1 dashboard-scroll">
+                    {[
+                      { id: 'budget', label: '💰 Ngân sách 10 hạng mục', icon: PieChart },
+                      { id: 'checklist', label: '📋 Checklist 6 giai đoạn', icon: ListTodo },
+                      { id: 'timeline', label: '⏱️ Kịch bản ngày cưới', icon: Clock },
+                      { id: 'concept', label: '🎨 Concept & Bảng màu', icon: Palette }
+                    ].map(tab => {
+                      const isActive = blueprintTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setBlueprintTab(tab.id as any)}
+                          className={`px-3 py-2 rounded-t-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                            isActive
+                              ? 'bg-white border-t border-x border-primary/20 text-primary shadow-xs -mb-[1px]'
+                              : 'text-muted-text hover:text-ink hover:bg-white/40'
+                          }`}
+                        >
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Tab 1: Budget Breakdown */}
+                  {blueprintTab === 'budget' && (
+                    <div className="space-y-4 animate-fade-in">
+                      {/* Budget Analytics Banner */}
+                      <div className="p-3.5 bg-primary/5 rounded-xl border border-primary/15 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <UtensilsCrossed className="w-4 h-4 text-primary" />
+                          <span className="text-ink">
+                            Tiệc & Đồ uống (~50%): <strong>{formatVND(liveInsights.banquetEstimated)}</strong> (~{formatVND(liveInsights.costPerTable)}/bàn)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ShieldAlert className="w-4 h-4 text-emerald-700" />
+                          <span className="text-emerald-800 font-medium">
+                            Quỹ dự phòng an toàn (4%): <strong>{formatVND(liveInsights.contingencyFund)}</strong>
+                          </span>
                         </div>
                       </div>
 
-                      {/* Styles/Concept */}
-                      <div className="space-y-2">
-                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider pl-1">Phong cách Đám cưới đề xuất</h3>
-                        {generatedPlan?.conceptSuggestions && generatedPlan.conceptSuggestions.length > 0 ? (
-                          <div className="space-y-2">
-                            {generatedPlan.conceptSuggestions.map((concept, index) => (
-                              <div key={index} className="p-3.5 rounded-xl border border-primary/15 bg-primary/5 space-y-1.5">
-                                <h4 className="text-xs font-bold text-primary font-display flex items-center gap-1.5">
-                                  <Sparkles className="w-3.5 h-3.5 text-gold" />
-                                  {concept.conceptName}
-                                </h4>
-                                <p className="text-[11px] text-body-text leading-relaxed">
-                                  {concept.description || 'Gợi ý phong cách thiết kế không gian trang trí cho tiệc cưới của bạn.'}
-                                </p>
+                      {/* 10 Categories List */}
+                      <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 dashboard-scroll">
+                        {generatedPlan?.budgetItems && generatedPlan.budgetItems.length > 0 ? (
+                          generatedPlan.budgetItems.map((item, idx) => {
+                            const pct = item.percentage ?? Math.round(((item.estimatedCost || 0) / (budget || 1)) * 100);
+                            return (
+                              <div 
+                                key={idx} 
+                                className={`p-3 rounded-xl border transition-all flex flex-col gap-1.5 ${
+                                  item.isPriority 
+                                    ? 'bg-primary/5 border-primary/30 ring-1 ring-primary/20 shadow-xs' 
+                                    : 'bg-white/70 border-primary/10'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                                    <span className="text-xs font-bold text-ink">{item.categoryName}</span>
+                                    {item.isPriority && (
+                                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[9px] uppercase tracking-wider border border-amber-300">
+                                        Ưu tiên +25%
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[11px] font-semibold text-muted-text">{pct}%</span>
+                                    <span className="text-xs font-bold font-mono text-primary">
+                                      {formatVND(item.estimatedCost || 0)}
+                                    </span>
+                                  </div>
+                                </div>
+                                {/* Percentage bar */}
+                                <div className="w-full h-1.5 bg-hairline rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-500 ${
+                                      item.isPriority ? 'bg-amber-600' : 'bg-primary'
+                                    }`} 
+                                    style={{ width: `${Math.min(pct, 100)}%` }}
+                                  />
+                                </div>
                               </div>
-                            ))}
-                          </div>
+                            );
+                          })
                         ) : (
-                          <div className="p-3.5 rounded-xl border border-primary/10 bg-white/40 text-center">
-                            <span className="text-[11px] text-muted-text italic">Không tìm thấy phong cách phù hợp</span>
+                          <div className="p-4 text-center text-xs text-muted-text italic">
+                            Không có dữ liệu phân bổ ngân sách.
                           </div>
                         )}
                       </div>
                     </div>
+                  )}
 
-                    {/* Right: Budget Breakdown */}
-                    <div className="space-y-3">
-                      <h3 className="text-xs font-bold text-primary uppercase tracking-wider pl-1">Bảng phân bổ ngân sách đề xuất</h3>
-                      {generatedPlan?.budgetItems && generatedPlan.budgetItems.length > 0 ? (
-                        <div className="space-y-2 max-h-[290px] overflow-y-auto pr-1 dashboard-scroll">
-                          {generatedPlan.budgetItems.map((item, index) => (
-                            <div key={index} className="flex items-center justify-between p-2.5 rounded-full border border-primary/10 bg-white/60 px-4">
-                              <span className="text-[11px] font-semibold text-ink truncate max-w-[170px]">{item.categoryName}</span>
-                              <span className="text-[11px] font-mono font-bold text-primary">{(item.estimatedCost || 0).toLocaleString('vi-VN')} ₫</span>
+                  {/* Tab 2: Adaptive Checklist */}
+                  {blueprintTab === 'checklist' && (
+                    <div className="space-y-4 animate-fade-in">
+                      {/* Notice Banner */}
+                      <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/70 flex gap-2 text-xs text-blue-900 items-center">
+                        <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        <span>
+                          Thuật toán đã tự động tính toán và co giãn thời hạn các mốc công việc theo ngày cưới của bạn để bạn không bị quá tải.
+                        </span>
+                      </div>
+
+                      {/* Tasks List */}
+                      <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 dashboard-scroll">
+                        {generatedPlan?.checklistTasks && generatedPlan.checklistTasks.length > 0 ? (
+                          generatedPlan.checklistTasks.map((task, idx) => {
+                            const isHigh = task.priority === 'HIGH';
+                            const isMed = task.priority === 'MEDIUM';
+                            return (
+                              <div 
+                                key={idx} 
+                                className="p-3 rounded-xl border border-primary/10 bg-white/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white transition-all shadow-xs"
+                              >
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs font-bold text-ink">{task.title}</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                      isHigh 
+                                        ? 'bg-red-100 text-red-700 border border-red-200' 
+                                        : isMed 
+                                        ? 'bg-amber-100 text-amber-800 border border-amber-200' 
+                                        : 'bg-slate-100 text-slate-700 border border-slate-200'
+                                    }`}>
+                                      {task.priority || 'NORMAL'}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] text-muted-text">
+                                    {task.phase && <span>{task.phase}</span>}
+                                    {task.categoryName && (
+                                      <>
+                                        <span>•</span>
+                                        <span className="text-primary font-medium">{task.categoryName}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <span className="px-2.5 py-1 rounded-full bg-primary/5 border border-primary/15 text-primary text-[11px] font-mono font-semibold">
+                                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString('vi-VN') : 'Theo lộ trình'}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="p-4 text-center text-xs text-muted-text italic">
+                            Không có công việc nào trong danh sách.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab 3: Timeline */}
+                  {blueprintTab === 'timeline' && (
+                    <div className="space-y-4 animate-fade-in">
+                      {/* Notice Banner */}
+                      <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/70 flex gap-2 text-xs text-amber-900 items-center">
+                        <Clock className="w-4 h-4 text-amber-700 flex-shrink-0" />
+                        <span>
+                          Kịch bản bao gồm đầy đủ 2 phần quan trọng nhất của đám cưới Việt: <strong>Nghi lễ Gia Tiên (Sáng)</strong> và <strong>Tiệc Cưới Đãi Khách (Tối)</strong>.
+                        </span>
+                      </div>
+
+                      {/* Events List */}
+                      <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1 dashboard-scroll">
+                        {generatedPlan?.timelineEvents && generatedPlan.timelineEvents.length > 0 ? (
+                          generatedPlan.timelineEvents.map((evt, idx) => {
+                            const displayTime = evt.startTime || (evt.eventDate && evt.eventDate.includes(' ') ? evt.eventDate.split(' ')[1] : '08:00');
+                            return (
+                              <div 
+                                key={idx} 
+                                className="p-3 rounded-xl border border-primary/10 bg-white/80 flex items-start gap-3 shadow-xs hover:border-primary/30 transition-all"
+                              >
+                                <div className="px-2.5 py-1 rounded-lg bg-primary text-white font-mono font-bold text-xs flex-shrink-0 text-center shadow-xs">
+                                  {displayTime}
+                                </div>
+                                <div className="space-y-1 flex-1">
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <h4 className="text-xs font-bold text-ink">{evt.title}</h4>
+                                    {evt.location && (
+                                      <span className="text-[10px] text-primary font-semibold px-2 py-0.5 rounded-full bg-primary/5 border border-primary/15">
+                                        📍 {evt.location}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-body-text leading-relaxed">
+                                    {evt.description}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="p-4 text-center text-xs text-muted-text italic">
+                            Không có mốc sự kiện nào trong kịch bản.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab 4: Concept & Color Palette */}
+                  {blueprintTab === 'concept' && (
+                    <div className="space-y-4 animate-fade-in">
+                      {generatedPlan?.conceptSuggestions && generatedPlan.conceptSuggestions.length > 0 ? (
+                        generatedPlan.conceptSuggestions.map((concept, idx) => (
+                          <div key={idx} className="p-4 rounded-xl border border-primary/15 bg-white/80 space-y-3.5 shadow-xs">
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-bold text-primary flex items-center gap-2 font-display">
+                                <Sparkles className="w-4 h-4 text-gold" />
+                                {concept.conceptName}
+                              </h4>
+                              <p className="text-xs text-body-text leading-relaxed">
+                                {concept.description}
+                              </p>
                             </div>
-                          ))}
-                        </div>
+
+                            {/* Color Palette Swatches */}
+                            {concept.colorPalette && concept.colorPalette.length > 0 && (
+                              <div className="space-y-1.5 pt-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text block">
+                                  Bảng màu chủ đạo (Color Palette)
+                                </span>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {concept.colorPalette.map((color, cIdx) => (
+                                    <div 
+                                      key={cIdx} 
+                                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-hairline bg-white shadow-xs"
+                                    >
+                                      <span 
+                                        className="w-3.5 h-3.5 rounded-full border border-black/10 flex-shrink-0" 
+                                        style={{ backgroundColor: color }}
+                                      />
+                                      <span className="text-[10px] font-mono font-semibold text-ink uppercase">
+                                        {color}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Floral & Decor Insights */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 border-t border-hairline text-xs">
+                              {concept.floralTheme && (
+                                <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/10">
+                                  <span className="font-bold text-primary block mb-0.5 text-[11px]">
+                                    🌸 Hoa tươi trang trí:
+                                  </span>
+                                  <span className="text-[11px] text-body-text">{concept.floralTheme}</span>
+                                </div>
+                              )}
+                              {concept.decorNote && (
+                                <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/10">
+                                  <span className="font-bold text-primary block mb-0.5 text-[11px]">
+                                    ✨ Gợi ý không gian:
+                                  </span>
+                                  <span className="text-[11px] text-body-text">{concept.decorNote}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))
                       ) : (
-                        <div className="p-3 rounded-xl border border-primary/10 bg-white/40 text-center">
-                          <span className="text-[11px] text-muted-text italic">Không có dữ liệu phân bổ</span>
+                        <div className="p-4 text-center text-xs text-muted-text italic">
+                          Không có phong cách đề xuất nào.
                         </div>
                       )}
                     </div>
+                  )}
 
-                  </div>
-
-                  {/* Checklist Auto-generation Stat */}
-                  <div className="p-3.5 rounded-xl border border-primary/10 bg-white/50 flex items-center gap-3.5">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <ListTodo className="w-4.5 h-4.5" />
+                  {/* Summary General Info Footnote */}
+                  <div className="p-3 bg-white/60 rounded-xl border border-primary/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-muted-text">
+                      <CalendarDays className="w-3.5 h-3.5 text-primary" />
+                      <span>Ngày cưới: <strong>{weddingDate ? new Date(weddingDate).toLocaleDateString('vi-VN') : 'Chưa định ngày'}</strong></span>
                     </div>
-                    <div className="space-y-0.5">
-                      <span className="text-xs font-bold text-ink block">Kế hoạch công việc tự động</span>
-                      <span className="text-[11px] text-muted-text leading-normal">
-                        Planora AI đã tạo sẵn <strong>{generatedPlan?.checklistStats?.totalTasks || 0} công việc</strong> cần chuẩn bị và sắp xếp theo trình tự thời gian đám cưới của bạn.
-                      </span>
+                    <div className="flex items-center gap-2 text-muted-text">
+                      <MapPin className="w-3.5 h-3.5 text-primary" />
+                      <span>Địa điểm: <strong>{location || 'Chưa định địa điểm'}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-text">
+                      <Users className="w-3.5 h-3.5 text-primary" />
+                      <span>Khách mời: <strong>{guestCount.toLocaleString('en-US')} người (~{liveInsights.tables} bàn)</strong></span>
                     </div>
                   </div>
                 </div>
@@ -863,6 +1413,178 @@ export default function Onboarding() {
           </div>
         )}
       </main>
+
+      {/* Lightbox / Interactive Photo Gallery Modal for Wedding Styles */}
+      {galleryStyle && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={() => setGalleryStyle(null)}
+        >
+          <div 
+            className="bg-[#FFFBF5] rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-primary/20 shadow-2xl flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-hairline flex items-center justify-between bg-white/60">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-primary text-white text-[10px] font-bold uppercase tracking-wider font-sans">
+                    {galleryStyle.tag}
+                  </span>
+                  <h3 
+                    className="text-lg sm:text-xl font-bold text-ink"
+                    style={{ fontFamily: "'IM Fell French Canon', serif" }}
+                  >
+                    {galleryStyle.vietnameseTitle}
+                  </h3>
+                </div>
+                <p className="text-xs text-muted-text">
+                  {galleryStyle.vibe}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setGalleryStyle(null)}
+                className="w-8 h-8 rounded-full border border-primary/20 text-muted-text hover:text-primary hover:bg-primary/5 flex items-center justify-center transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Main Photo Preview with Controls */}
+            <div className="p-4 sm:p-5 space-y-4">
+              <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-black/5 shadow-inner group">
+                <img
+                  src={galleryStyle.gallery[galleryPhotoIndex]?.url || galleryStyle.coverImage}
+                  alt={galleryStyle.gallery[galleryPhotoIndex]?.caption || galleryStyle.name}
+                  className="w-full h-full object-cover object-center transition-opacity duration-300"
+                />
+
+                {/* Left & Right navigation buttons */}
+                {galleryStyle.gallery.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setGalleryPhotoIndex(prev => (prev - 1 + galleryStyle.gallery.length) % galleryStyle.gallery.length)}
+                      aria-label="Previous photo"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs transition-all cursor-pointer"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGalleryPhotoIndex(prev => (prev + 1) % galleryStyle.gallery.length)}
+                      aria-label="Next photo"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs transition-all cursor-pointer"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+
+                {/* Photo Caption Pill */}
+                <div className="absolute bottom-3 left-3 right-3 px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md text-white text-xs flex items-center justify-between">
+                  <span className="truncate pr-2 font-medium">
+                    {galleryStyle.gallery[galleryPhotoIndex]?.caption}
+                  </span>
+                  <span className="text-[11px] text-white/70 flex-shrink-0 font-mono">
+                    {galleryPhotoIndex + 1} / {galleryStyle.gallery.length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Thumbnails Row */}
+              <div className="grid grid-cols-4 gap-2">
+                {galleryStyle.gallery.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setGalleryPhotoIndex(idx)}
+                    className={`relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                      galleryPhotoIndex === idx
+                        ? 'border-primary ring-2 ring-primary/30 scale-102'
+                        : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.caption}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+
+              {/* Style Insights & Color Palette */}
+              <div className="p-3.5 bg-white rounded-xl border border-primary/10 space-y-2.5">
+                <p className="text-xs text-body-text leading-relaxed">
+                  {galleryStyle.description}
+                </p>
+
+                {/* Color Palette Swatches */}
+                <div className="space-y-1 pt-1 border-t border-hairline">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text block">
+                    Bảng màu chủ đạo đề xuất:
+                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {galleryStyle.palette.map((color, cIdx) => (
+                      <div 
+                        key={cIdx} 
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-hairline bg-canvas shadow-2xs"
+                      >
+                        <span 
+                          className="w-3.5 h-3.5 rounded-full border border-black/10 flex-shrink-0" 
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span className="text-[10px] font-mono font-semibold text-ink">
+                          {color.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer Controls */}
+            <div className="p-4 border-t border-hairline bg-white/80 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setGalleryStyle(null)}
+                className="px-4 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs font-semibold transition-all cursor-pointer"
+              >
+                Đóng
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  toggleStyle(galleryStyle.id);
+                  setErrorMessage(null);
+                }}
+                className={`px-6 py-2 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer ${
+                  selectedStyles.includes(galleryStyle.id)
+                    ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                    : 'bg-primary text-white hover:bg-primary-active'
+                }`}
+              >
+                {selectedStyles.includes(galleryStyle.id) ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    Đã chọn phong cách này (Bấm để hủy)
+                  </>
+                ) : (
+                  <>
+                    + Chọn phong cách này
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <DashboardFooter />
     </div>

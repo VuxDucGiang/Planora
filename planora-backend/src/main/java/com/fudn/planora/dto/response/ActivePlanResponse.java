@@ -21,12 +21,17 @@ public class ActivePlanResponse {
     private List<BudgetItemSummary> budgetItems;
     private List<ConceptSummary> conceptSuggestions;
     private ChecklistStats checklistStats;
+    private List<TaskResponse> checklistTasks;
+    private List<EventResponse> timelineEvents;
+    private BudgetAnalytics budgetAnalytics;
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class BudgetItemSummary {
         private String categoryName;
         private BigDecimal estimatedCost;
         private BigDecimal actualCost;
+        private Double percentage;
+        private Boolean isPriority;
         private String note;
     }
 
@@ -35,11 +40,24 @@ public class ActivePlanResponse {
         private String conceptName;
         private String description;
         private BigDecimal estimatedBudget;
+        private List<String> colorPalette;
+        private String floralTheme;
+        private String vibe;
+        private String decorNote;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class ChecklistStats {
         private long totalTasks;
         private long completedTasks;
+    }
+
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    public static class BudgetAnalytics {
+        private BigDecimal costPerGuest;
+        private Integer estimatedTables;
+        private BigDecimal tableCostEstimated;
+        private BigDecimal contingencyBuffer;
+        private BigDecimal totalAllocated;
     }
 }

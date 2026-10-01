@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface WeddingPlanRepository extends JpaRepository<WeddingPlan, Long> {
     Optional<WeddingPlan> findFirstByUserIdAndStatusOrderByCreatedAtDesc(Long userId, com.fudn.planora.enums.EWeddingPlanStatus status);
+    Optional<WeddingPlan> findFirstByUserIdOrderByCreatedAtDesc(Long userId);
 }

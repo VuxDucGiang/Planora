@@ -1,6 +1,8 @@
 package com.fudn.planora.dto.response;
 
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.util.Set;
 
 @Getter
@@ -19,4 +21,8 @@ public class VendorResponse {
     private Double ratingAverage;
     private Integer totalReviews;
     private Set<String> styles;
+    private String primaryCategoryName;
+    private BigDecimal priceFrom;
+    private BigDecimal priceTo;
+    private String imageUrl;
 }

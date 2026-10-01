@@ -7,4 +7,5 @@ import com.fudn.planora.dto.response.WeddingPlanResponse;
 public interface WeddingPlanService {
     WeddingPlanResponse createOnboardingPlan(String userEmail, OnboardingRequest request);
     ActivePlanResponse getActivePlan(String userEmail);
+    void deleteActivePlan(String userEmail);
 }

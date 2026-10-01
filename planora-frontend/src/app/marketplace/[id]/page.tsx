@@ -141,8 +141,12 @@ export default function VendorDetail(props: PageProps) {
   }
 
   // Get consistent category and mock data
-  const { category, imageUrls } = getVendorMeta(vendor.id);
-  const { min, max } = getMockPriceRange(vendor.id);
+  const fallbackMeta = getVendorMeta(vendor.id);
+  const fallbackPrice = getMockPriceRange(vendor.id);
+  const category = vendor.primaryCategoryName || fallbackMeta.category;
+  const min = (vendor.priceFrom !== undefined && vendor.priceFrom !== null) ? vendor.priceFrom : fallbackPrice.min;
+  const max = (vendor.priceTo !== undefined && vendor.priceTo !== null) ? vendor.priceTo : fallbackPrice.max;
+  const imageUrls = fallbackMeta.imageUrls;
   const formatCurrency = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫';
 
   // Portfolio carousel images
