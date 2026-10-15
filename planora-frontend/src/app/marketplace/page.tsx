@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { getActivePlan } from '@/services/weddingPlan';
+import { usePlan } from '@/contexts/PlanContext';
 import { 
   getVendors, 
   getVendorDetail, 
@@ -16,7 +16,6 @@ import type {
   VendorResponse, 
   VendorDetailResponse 
 } from '@/types/vendor';
-import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { 
   Search, 
   Heart, 
@@ -255,6 +254,8 @@ function MarketplaceVendorCard({
           <img
             src={imageUrl}
             alt={vendor.businessName}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {/* Category Pill Tag */}
@@ -344,13 +345,9 @@ function MarketplaceVendorCard({
 
 export default function Marketplace() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { plan, planId, daysLeft } = usePlan();
   const { language, t } = useLanguage();
   const router = useRouter();
-
-  // Authentication & Plan State
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
-  const [planId, setPlanId] = useState<number | null>(null);
-  const [daysLeft, setDaysLeft] = useState(0);
 
   // Data States
   const [vendors, setVendors] = useState<VendorResponse[]>([]);
@@ -389,34 +386,21 @@ export default function Marketplace() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Load Initial Metadata and Active Plan
+  // Load Shortlist when authenticated and planId is available
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !planId) return;
 
-    async function loadInitialData() {
+    async function loadShortlist() {
       try {
-        setIsLoading(true);
-        const activePlan = await getActivePlan();
-        setPlan(activePlan);
-
-        if (activePlan) {
-          setPlanId(activePlan.id);
-          if (activePlan.weddingDate) {
-            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
-            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-          }
-          const savedList = await getShortlist(activePlan.id);
-          setShortlistIds(new Set(savedList.map(v => v.id)));
-        }
+        const savedList = await getShortlist(planId);
+        setShortlistIds(new Set(savedList.map(v => v.id)));
       } catch (err) {
-        console.error('Lỗi tải dữ liệu ban đầu:', err);
-      } finally {
-        setIsLoading(false);
+        console.error('Lỗi tải danh sách yêu thích:', err);
       }
     }
 
-    loadInitialData();
-  }, [isAuthenticated]);
+    loadShortlist();
+  }, [isAuthenticated, planId]);
 
   // Core loading trigger depending on Filter changes
   useEffect(() => {

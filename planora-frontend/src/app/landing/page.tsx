@@ -247,6 +247,8 @@ export default function WeddingLanding() {
           <img
             src="/landing/landing-1.png"
             alt="Wedding Background"
+            fetchPriority="high"
+            decoding="async"
             className="w-full h-full object-cover"
           />
           {/* Gradients to guarantee text contrast and smooth page transition */}
@@ -310,6 +312,8 @@ export default function WeddingLanding() {
                   <img
                     src="/landing/landing-2.png"
                     alt="Wedding Couple"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -317,6 +321,8 @@ export default function WeddingLanding() {
                   <img
                     src="/landing/landing-3.png"
                     alt="Bridesmaids"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -324,6 +330,8 @@ export default function WeddingLanding() {
                   <img
                     src="/landing/landing-4.png"
                     alt="Wedding Bouquet"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -336,6 +344,8 @@ export default function WeddingLanding() {
                   <img
                     src="/landing/landing-2.png"
                     alt="Wedding Couple"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-center"
                   />
                 </div>
@@ -344,6 +354,8 @@ export default function WeddingLanding() {
                   <img
                     src="/landing/landing-3.png"
                     alt="Bridesmaids"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-center"
                   />
                 </div>
@@ -352,6 +364,8 @@ export default function WeddingLanding() {
                   <img
                     src="/landing/landing-4.png"
                     alt="Wedding Bouquet"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-center"
                   />
                 </div>
@@ -381,6 +395,8 @@ export default function WeddingLanding() {
               <img
                 src="/wedding-our-collection.jpg"
                 alt="Wedding Collection Showcase"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover group-hover:scale-105 transition-editorial duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
@@ -584,6 +600,8 @@ export default function WeddingLanding() {
                   <img
                     src={item.image}
                     alt={item.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
@@ -636,6 +654,8 @@ export default function WeddingLanding() {
               <img
                 src="/landing/landing-2.png"
                 alt="Behind every perfect wedding"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>

@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getActivePlan } from '@/services/weddingPlan';
+import { usePlan } from '@/contexts/PlanContext';
 import { getVendorDetail, getShortlist, addToShortlist, removeFromShortlist } from '@/services/vendor';
 import type { VendorDetailResponse } from '@/types/vendor';
-import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { 
   Heart, 
   Star, 
@@ -35,11 +34,11 @@ export default function VendorDetail(props: PageProps) {
   const vendorId = parseInt(params.id);
 
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { plan, daysLeft } = usePlan();
   const { language, t, formatCurrency } = useLanguage();
 
   // Data States
   const [vendor, setVendor] = useState<VendorDetailResponse | null>(null);
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
   const [isSaved, setIsSaved] = useState(false);
 
   // Loading States
@@ -55,26 +54,15 @@ export default function VendorDetail(props: PageProps) {
   // Carousel State
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // Load Vendor Detail and Active Plan
+  // Load Vendor Detail
   useEffect(() => {
     if (!isAuthenticated) return;
 
     async function loadData() {
       try {
         setIsLoading(true);
-        const [detail, activePlan] = await Promise.all([
-          getVendorDetail(vendorId),
-          getActivePlan()
-        ]);
-
+        const detail = await getVendorDetail(vendorId);
         setVendor(detail);
-        setPlan(activePlan);
-
-        if (activePlan) {
-          const savedList = await getShortlist(activePlan.id);
-          const ids = new Set(savedList.map(v => v.id));
-          setIsSaved(ids.has(vendorId));
-        }
       } catch (err) {
         console.error('Lỗi khi tải chi tiết nhà cung cấp:', err);
       } finally {
@@ -84,6 +72,23 @@ export default function VendorDetail(props: PageProps) {
 
     loadData();
   }, [isAuthenticated, vendorId]);
+
+  // Sync Shortlist state when plan is available
+  useEffect(() => {
+    if (!isAuthenticated || !plan?.id) return;
+
+    async function checkShortlist() {
+      try {
+        const savedList = await getShortlist(plan.id);
+        const ids = new Set(savedList.map(v => v.id));
+        setIsSaved(ids.has(vendorId));
+      } catch (err) {
+        console.error('Lỗi kiểm tra danh sách yêu thích:', err);
+      }
+    }
+
+    checkShortlist();
+  }, [isAuthenticated, plan?.id, vendorId]);
 
   // Handle Save / Toggle Shortlist
   const handleToggleShortlist = async () => {
@@ -163,7 +168,7 @@ export default function VendorDetail(props: PageProps) {
 
   return (
     <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-x-hidden">
-      <DashboardHeader logout={logout} plan={plan} />
+      <DashboardHeader logout={logout} plan={plan} daysLeft={daysLeft} />
 
       {/* Main Container */}
       <div className="flex-1 w-full flex flex-col">
@@ -173,6 +178,8 @@ export default function VendorDetail(props: PageProps) {
           <img 
             src={carouselImages[activeImageIndex % carouselImages.length]} 
             alt="Wedding Banner" 
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover opacity-60 filter blur-xs scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
@@ -305,6 +312,8 @@ export default function VendorDetail(props: PageProps) {
                       <img 
                         src={carouselImages[activeImageIndex % carouselImages.length]} 
                         alt="Portfolio Slide" 
+                        loading="lazy"
+                        decoding="async"
                         className="object-cover w-full h-full transition-all duration-700 ease-in-out hover:scale-105"
                       />
                       

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getActivePlan } from '@/services/weddingPlan';
+import { usePlan } from '@/contexts/PlanContext';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
@@ -25,10 +25,9 @@ import Link from 'next/link';
 export default function SettingsPage() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const { plan, daysLeft } = usePlan();
   const router = useRouter();
 
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
-  const [daysLeft, setDaysLeft] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Redirect to login if not authenticated
@@ -37,28 +36,6 @@ export default function SettingsPage() {
       router.replace('/login');
     }
   }, [authLoading, isAuthenticated, router]);
-
-  // Load active plan for header info
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    async function loadPlan() {
-      try {
-        const activePlan = await getActivePlan();
-        if (activePlan) {
-          setPlan(activePlan);
-          if (activePlan.weddingDate) {
-            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
-            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-          }
-        }
-      } catch (err) {
-        console.error('Error loading active plan in settings:', err);
-      }
-    }
-
-    loadPlan();
-  }, [isAuthenticated]);
 
   const handleLanguageChange = (newLang: 'vi' | 'en') => {
     if (newLang === language) return;
