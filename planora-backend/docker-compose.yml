@@ -6,8 +6,8 @@ services:
     container_name: planora-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: planora_secure_password_123
-      MYSQL_DATABASE: planora_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-planora_dev_password_123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-planora_db}
     ports:
       - "127.0.0.1:3306:3306"
     volumes:
@@ -37,18 +37,18 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/planora_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: planora_secure_password_123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: none
-      SPRING_JPA_SHOW_SQL: "false"
-      SPRING_FLYWAY_ENABLED: "true"
-      SPRING_FLYWAY_LOCATIONS: classpath:db/migration
-      SPRING_FLYWAY_AIVEN_ENABLED: "false"
-      GOOGLE_CLIENT_ID: 443335959927-ejvb4p4q0df0dditgthual10gihvlmt4.apps.googleusercontent.com
-      APP_JWT_SECRET: 9a4f2c8d3b7a1e5f8g0h2i4j6k8l0m2n4o6p8q0r2s4t6u8v0w2x4y6z8A0B2C4D
-      APP_JWT_EXPIRATION: "86400000"
-      JAVA_OPTS: "-Xms128m -Xmx512m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/planora_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-planora_dev_password_123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-none}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
+      SPRING_FLYWAY_LOCATIONS: ${SPRING_FLYWAY_LOCATIONS:-classpath:db/migration}
+      SPRING_FLYWAY_AIVEN_ENABLED: ${SPRING_FLYWAY_AIVEN_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRATION: ${APP_JWT_EXPIRATION:-86400000}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms128m -Xmx512m -XX:+UseSerialGC -XX:TieredStopAtLevel=1}
 
 volumes:
   mysql_data:
