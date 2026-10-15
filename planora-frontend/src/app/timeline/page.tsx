@@ -21,17 +21,17 @@ import {
   CheckCircle2, 
   Loader2, 
   Clock,
-  Sparkles,
   Heart
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
-import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Timeline() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   // Plan & Countdown States
@@ -90,21 +90,21 @@ export default function Timeline() {
         }
       } catch (err) {
         console.error('Lỗi khi tải dữ liệu timeline:', err);
-        setErrorMessage('Không thể tải dòng thời gian sự kiện. Vui lòng thử lại!');
+        setErrorMessage(t.timeline.errorLoading);
       } finally {
         setIsLoading(false);
       }
     }
 
     loadData();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, t.timeline.errorLoading]);
 
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-slate-400">Đang tải dữ liệu phiên làm việc...</span>
+          <span className="text-sm text-slate-400">{t.dashboard.loadingSession}</span>
         </div>
       </div>
     );
@@ -114,11 +114,11 @@ export default function Timeline() {
   const handleSubmitEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventTitle.trim()) {
-      setErrorMessage('Tiêu đề sự kiện không được để trống!');
+      setErrorMessage(t.timeline.titleRequired);
       return;
     }
     if (!eventDateTime) {
-      setErrorMessage('Vui lòng chọn thời gian diễn ra!');
+      setErrorMessage(t.timeline.dateTimeRequired);
       return;
     }
     if (!planId) return;
@@ -139,7 +139,7 @@ export default function Timeline() {
           eventDate: formattedDateTime
         });
         setEvents(prev => prev.map(ev => ev.id === editingEventId ? updated : ev));
-        setSuccessMessage('Cập nhật mốc sự kiện thành công!');
+        setSuccessMessage(t.timeline.eventUpdatedSuccess);
       } else {
         // Add flow
         const created = await createEvent(planId, {
@@ -148,7 +148,7 @@ export default function Timeline() {
           eventDate: formattedDateTime
         });
         setEvents(prev => [...prev, created]);
-        setSuccessMessage('Thêm mốc sự kiện thành công!');
+        setSuccessMessage(t.timeline.eventAddedSuccess);
       }
 
       // Close modal and reset form
@@ -158,7 +158,7 @@ export default function Timeline() {
 
     } catch (err) {
       console.error('Lỗi khi lưu mốc sự kiện:', err);
-      setErrorMessage(err instanceof Error ? err.message : 'Lưu mốc sự kiện thất bại');
+      setErrorMessage(err instanceof Error ? err.message : t.common.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -166,16 +166,16 @@ export default function Timeline() {
 
   // Delete flow
   const handleDeleteEvent = async (id: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa mốc thời gian này?')) return;
+    if (!confirm(t.timeline.confirmDeleteEvent)) return;
 
     try {
       await deleteEvent(id);
       setEvents(prev => prev.filter(ev => ev.id !== id));
-      setSuccessMessage('Xóa mốc thời gian thành công!');
+      setSuccessMessage(t.timeline.eventDeletedSuccess);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error('Lỗi khi xóa mốc sự kiện:', err);
-      setErrorMessage('Không thể xóa mốc thời gian này');
+      setErrorMessage(t.common.error);
     }
   };
 
@@ -229,7 +229,7 @@ export default function Timeline() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
-          <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-10 py-8 flex flex-col justify-start">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 flex flex-col justify-start">
         
 
 
@@ -238,19 +238,19 @@ export default function Timeline() {
           <div className="space-y-1">
             <h1 className="text-3xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
               <Calendar className="w-7 h-7 text-primary" />
-              Dòng Thời Gian Lễ Cưới
+              {t.timeline.timelineEvents}
             </h1>
-            <p className="text-xs text-muted-text">
-              Lập lịch trình sự kiện chi tiết diễn ra trước và trong ngày cưới của bạn.
+            <p className="text-sm text-muted-text">
+              {t.timeline.timelineSubtitle}
             </p>
           </div>
 
           <button
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-all shadow-sm font-display uppercase tracking-wider self-start md:self-auto"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-white rounded-full text-sm font-semibold hover:bg-primary-active transition-all shadow-sm font-display uppercase tracking-wider self-start md:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4 text-cream" />
-            Thêm mốc sự kiện
+            {t.timeline.addEventBtn}
           </button>
         </div>
 
@@ -271,14 +271,14 @@ export default function Timeline() {
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="text-sm text-muted-text font-display">Đang tải dòng thời gian...</span>
+            <span className="text-sm text-muted-text font-display">{t.timeline.loadingEvents}</span>
           </div>
         ) : (
           /* Vertical Timeline visualization */
-          <div className="relative py-8 pl-6 sm:pl-8 border-l border-border-strong space-y-8 max-w-xl mx-auto w-full">
+          <div className="relative py-8 pl-6 sm:pl-8 border-l border-border-strong space-y-8 max-w-3xl mx-auto w-full">
             
             {sortedEvents.length > 0 ? (
-              sortedEvents.map((ev, idx) => {
+              sortedEvents.map((ev) => {
                 const dateObj = new Date(ev.eventDate);
                 const isPassed = now > 0 && dateObj.getTime() < now;
 
@@ -299,21 +299,21 @@ export default function Timeline() {
                     </div>
 
                     {/* Timeline Event Card */}
-                    <div className="p-5 bg-white border border-hairline rounded-lg shadow-sm space-y-3 relative hover:border-border-strong transition-all">
+                    <div className="p-5 bg-white border border-hairline rounded-xl shadow-sm space-y-3 relative hover:border-border-strong transition-all">
                       
                       {/* Title & DateTime */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-hairline">
-                        <h3 className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                        <h3 className="text-base sm:text-lg font-semibold text-ink flex items-center gap-1.5">
                           {ev.title}
                         </h3>
-                        <span className="flex items-center gap-1 text-[10px] font-semibold font-mono text-primary bg-primary/5 px-2 py-0.5 border border-primary/10 rounded-sm self-start sm:self-auto">
-                          <Clock className="w-3 h-3 text-primary" /> {formatDateTime(ev.eventDate)}
+                        <span className="flex items-center gap-1.5 text-xs font-semibold font-mono text-primary bg-primary/5 px-2.5 py-1 border border-primary/10 rounded-md self-start sm:self-auto">
+                          <Clock className="w-3.5 h-3.5 text-primary" /> {formatDateTime(ev.eventDate)}
                         </span>
                       </div>
 
                       {/* Description */}
                       {ev.description && (
-                        <p className="text-xs text-body-text leading-relaxed">
+                        <p className="text-sm sm:text-base text-body-text leading-relaxed">
                           {ev.description}
                         </p>
                       )}
@@ -322,17 +322,17 @@ export default function Timeline() {
                       <div className="flex justify-end gap-2 pt-1 border-t border-hairline border-dashed">
                         <button
                           onClick={() => handleOpenEdit(ev)}
-                          className="text-[10px] font-semibold text-muted-text hover:text-primary px-2.5 py-1 hover:bg-canvas rounded-sm transition-colors flex items-center gap-1"
-                          title="Sửa mốc sự kiện"
+                          className="text-xs font-semibold text-muted-text hover:text-primary px-2.5 py-1 hover:bg-canvas rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                          title={t.timeline.editEventTooltip}
                         >
-                          <Edit3 className="w-3 h-3" /> Sửa
+                          <Edit3 className="w-3.5 h-3.5" /> {t.common.edit}
                         </button>
                         <button
                           onClick={() => handleDeleteEvent(ev.id)}
-                          className="text-[10px] font-semibold text-muted-text hover:text-red-500 px-2.5 py-1 hover:bg-red-50 rounded-sm transition-colors flex items-center gap-1"
-                          title="Xóa mốc sự kiện"
+                          className="text-xs font-semibold text-muted-text hover:text-red-500 px-2.5 py-1 hover:bg-red-50 rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                          title={t.timeline.deleteEventTooltip}
                         >
-                          <Trash2 className="w-3 h-3" /> Xóa
+                          <Trash2 className="w-3.5 h-3.5" /> {t.common.delete}
                         </button>
                       </div>
 
@@ -343,7 +343,7 @@ export default function Timeline() {
             ) : (
               <div className="py-16 text-center bg-white border border-hairline rounded-lg shadow-sm text-muted-text flex flex-col items-center gap-2 pl-0 -ml-6 sm:-ml-8 w-full">
                 <Calendar className="w-10 h-10 text-hairline" />
-                <span className="text-xs font-semibold">Dòng thời gian đang trống. Nhấp &quot;Thêm mốc sự kiện&quot; để bắt đầu!</span>
+                <span className="text-sm font-semibold">{t.timeline.emptyTimelineMsg}</span>
               </div>
             )}
           </div>
@@ -358,12 +358,12 @@ export default function Timeline() {
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-hairline rounded-lg w-full max-w-md p-6 shadow-xl animate-scale-up space-y-5">
             <div className="flex justify-between items-center border-b border-hairline pb-3">
-              <h3 className="text-md font-semibold text-ink font-display">
-                {editingEventId !== null ? 'Cập nhật mốc thời gian' : 'Thêm mốc thời gian mới'}
+              <h3 className="text-lg font-bold text-ink font-display">
+                {editingEventId !== null ? t.timeline.editMilestone : t.timeline.addMilestone}
               </h3>
               <button 
                 onClick={handleCloseModal}
-                className="text-muted-text hover:text-ink text-sm font-semibold p-1 hover:bg-canvas rounded-sm"
+                className="text-muted-text hover:text-ink text-base font-semibold p-1 hover:bg-canvas rounded-sm cursor-pointer"
               >
                 ✕
               </button>
@@ -386,15 +386,15 @@ export default function Timeline() {
             <form onSubmit={handleSubmitEvent} className="space-y-4">
               {/* Title */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-title" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Tiêu đề sự kiện
+                <label htmlFor="modal-title" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.timeline.eventTitleLabel}
                 </label>
                 <input
                   type="text"
                   id="modal-title"
                   required
-                  placeholder="Ví dụ: Đón dâu"
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink"
+                  placeholder={t.timeline.eventTitlePlaceholder}
+                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink"
                   value={eventTitle}
                   onChange={e => setEventTitle(e.target.value)}
                 />
@@ -402,14 +402,14 @@ export default function Timeline() {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-desc" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Mô tả chi tiết
+                <label htmlFor="modal-desc" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.timeline.eventDescLabel}
                 </label>
                 <textarea
                   id="modal-desc"
                   rows={3}
-                  placeholder="Ví dụ: Nhà trai xuất phát lúc 7:30 sáng, chuẩn bị tráp ăn hỏi..."
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink resize-none"
+                  placeholder={t.timeline.eventDescPlaceholder}
+                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink resize-none"
                   value={eventDesc}
                   onChange={e => setEventDesc(e.target.value)}
                 />
@@ -417,14 +417,14 @@ export default function Timeline() {
 
               {/* Event Date-Time (datetime-local picker) */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-datetime" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Thời gian diễn ra
+                <label htmlFor="modal-datetime" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.timeline.eventDateTimeLabel}
                 </label>
                 <input
                   type="datetime-local"
                   id="modal-datetime"
                   required
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink cursor-pointer"
+                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink cursor-pointer"
                   value={eventDateTime}
                   onChange={e => setEventDateTime(e.target.value)}
                 />
@@ -436,21 +436,21 @@ export default function Timeline() {
                   type="button"
                   onClick={handleCloseModal}
                   disabled={isSubmitting}
-                  className="px-4 py-2 border border-border-strong rounded-sm text-xs font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-border-strong rounded-sm text-sm font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  Hủy
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-5 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : editingEventId !== null ? (
-                    'Lưu thay đổi'
+                    t.timeline.saveChanges
                   ) : (
-                    'Thêm mới'
+                    t.timeline.addNew
                   )}
                 </button>
               </div>

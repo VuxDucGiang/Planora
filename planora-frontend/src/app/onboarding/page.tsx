@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -38,15 +38,54 @@ import {
   Eye,
   X,
   Images,
-  Grid
+  Grid,
+  Globe,
+  ChevronDown
 } from 'lucide-react';
 import { WEDDING_STYLES_CATALOG, WeddingStyleDetail } from '@/constants/weddingStyles';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import { formatVND, calculateLiveInsights, generateSmartBlueprint } from '@/utils/weddingBlueprint';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const COUNTRIES_AND_CITIES: Record<string, string[]> = {
+  'Việt Nam': [
+    'TP. Hồ Chí Minh',
+    'Hà Nội',
+    'Đà Nẵng',
+    'Nha Trang (Khánh Hòa)',
+    'Phú Quốc (Kiên Giang)',
+    'Đà Lạt (Lâm Đồng)',
+    'Hội An (Quảng Nam)',
+    'Huế (Thừa Thiên Huế)',
+    'Hải Phòng',
+    'Cần Thơ',
+    'Vũng Tàu (Bà Rịa - Vũng Tàu)',
+    'Phan Thiết - Mũi Né (Bình Thuận)',
+    'Hạ Long (Quảng Ninh)',
+    'Sa Pa (Lào Cai)',
+    'Ninh Bình',
+    'Quy Nhơn (Bình Định)',
+    'Buôn Ma Thuột (Đắk Lắk)',
+    'Bình Dương',
+    'Đồng Nai',
+    'Khác (Nhập tùy chỉnh)',
+  ],
+  'Thái Lan': ['Bangkok', 'Phuket', 'Chiang Mai', 'Koh Samui', 'Krabi', 'Pattaya', 'Khác (Nhập tùy chỉnh)'],
+  'Nhật Bản': ['Tokyo', 'Kyoto', 'Osaka', 'Hokkaido', 'Okinawa', 'Yokohama', 'Khác (Nhập tùy chỉnh)'],
+  'Hàn Quốc': ['Seoul', 'Đảo Jeju', 'Busan', 'Incheon', 'Gangwon', 'Khác (Nhập tùy chỉnh)'],
+  'Singapore': ['Singapore City', 'Đảo Sentosa', 'Marina Bay', 'Khác (Nhập tùy chỉnh)'],
+  'Indonesia': ['Bali (Ubud / Seminyak / Uluwatu)', 'Jakarta', 'Lombok', 'Khác (Nhập tùy chỉnh)'],
+  'Pháp': ['Paris', 'Nice - Côte d’Azur', 'Provence', 'Bordeaux', 'Lyon', 'Khác (Nhập tùy chỉnh)'],
+  'Ý (Italy)': ['Rome', 'Florence / Tuscany', 'Venice', 'Amalfi Coast', 'Lake Como', 'Khác (Nhập tùy chỉnh)'],
+  'Hoa Kỳ (USA)': ['Hawaii', 'California', 'New York', 'Las Vegas', 'Florida', 'Khác (Nhập tùy chỉnh)'],
+  'Úc (Australia)': ['Sydney', 'Melbourne', 'Gold Coast', 'Khác (Nhập tùy chỉnh)'],
+  'Quốc gia khác': ['Nhập tùy chỉnh'],
+};
 
 export default function Onboarding() {
-  const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { language } = useLanguage();
   const router = useRouter();
 
   // Onboarding Step State
@@ -64,14 +103,149 @@ export default function Onboarding() {
   const [availableCategories, setAvailableCategories] = useState<ServiceCategory[]>([]);
 
   // Form States
-  const [title, setTitle] = useState('Kế hoạch đám cưới của tôi');
   const [weddingDate, setWeddingDate] = useState('');
   const [location, setLocation] = useState('');
   const [guestCount, setGuestCount] = useState<number>(50);
   const [budget, setBudget] = useState<number>(200000000); // 200,000,000 VND default
+
+  // Auto-generate title for the wedding plan based on date, location, and language
+  const title = useMemo(() => {
+    if (weddingDate || location) {
+      const datePart = weddingDate ? new Date(weddingDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US') : '';
+      const locPart = location.trim() ? (language === 'vi' ? ` tại ${location.trim()}` : ` in ${location.trim()}`) : '';
+      return language === 'vi'
+        ? `Kế hoạch đám cưới${datePart ? ' ngày ' + datePart : ''}${locPart}`
+        : `Wedding Plan${datePart ? ' on ' + datePart : ''}${locPart}`;
+    }
+    return language === 'vi' ? 'Kế hoạch đám cưới của tôi' : 'My Dream Wedding Plan';
+  }, [weddingDate, location, language]);
   const [selectedStyles, setSelectedStyles] = useState<number[]>([]);
   const [generatedPlan, setGeneratedPlan] = useState<ActivePlanResponse | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+
+  // Step 1: Detailed Date States (Ngày / Tháng / Năm)
+  const [weddingDay, setWeddingDay] = useState<string>('');
+  const [weddingMonth, setWeddingMonth] = useState<string>('');
+  const [weddingYear, setWeddingYear] = useState<string>('');
+
+  // Step 1: Detailed Location States (Quốc gia / Thành phố)
+  const [selectedCountry, setSelectedCountry] = useState<string>('Việt Nam');
+  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [customCity, setCustomCity] = useState<string>('');
+
+  // Helper: Min wedding date is at least 1 month from current time
+  const getMinWeddingDate = () => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setMonth(d.getMonth() + 1);
+    return d;
+  };
+
+  const minDateObj = getMinWeddingDate();
+  const minDateDisplay = `${String(minDateObj.getDate()).padStart(2, '0')}/${String(minDateObj.getMonth() + 1).padStart(2, '0')}/${minDateObj.getFullYear()}`;
+
+  // Check if chosen day/month/year is less than 1 month away
+  const checkIsDateTooSoon = (d: string, m: string, y: string) => {
+    if (!d || !m || !y) return false;
+    const chosen = new Date(Number(y), Number(m) - 1, Number(d));
+    chosen.setHours(0, 0, 0, 0);
+    return chosen < getMinWeddingDate();
+  };
+
+  const isDateTooSoon = checkIsDateTooSoon(weddingDay, weddingMonth, weddingYear);
+
+  // Sync date parts to ISO weddingDate string
+  const updateWeddingDate = (d: string, m: string, y: string) => {
+    if (d && m && y) {
+      const formatted = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      setWeddingDate(formatted);
+    } else {
+      setWeddingDate('');
+    }
+  };
+
+  const handleDayChange = (d: string) => {
+    setWeddingDay(d);
+    setErrorMessage(null);
+    updateWeddingDate(d, weddingMonth, weddingYear);
+  };
+
+  const handleMonthChange = (m: string) => {
+    setWeddingMonth(m);
+    setErrorMessage(null);
+    let adjustedDay = weddingDay;
+    if (m && weddingYear && weddingDay) {
+      const maxDays = new Date(Number(weddingYear), Number(m), 0).getDate();
+      if (Number(weddingDay) > maxDays) {
+        adjustedDay = String(maxDays);
+        setWeddingDay(adjustedDay);
+      }
+    }
+    updateWeddingDate(adjustedDay, m, weddingYear);
+  };
+
+  const handleYearChange = (y: string) => {
+    setWeddingYear(y);
+    setErrorMessage(null);
+    let adjustedDay = weddingDay;
+    if (weddingMonth && y && weddingDay) {
+      const maxDays = new Date(Number(y), Number(weddingMonth), 0).getDate();
+      if (Number(weddingDay) > maxDays) {
+        adjustedDay = String(maxDays);
+        setWeddingDay(adjustedDay);
+      }
+    }
+    updateWeddingDate(adjustedDay, weddingMonth, y);
+  };
+
+  // Location Handlers
+  const handleCountryChange = (country: string) => {
+    setSelectedCountry(country);
+    setSelectedCity('');
+    setCustomCity('');
+    setLocation('');
+    setErrorMessage(null);
+  };
+
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    setErrorMessage(null);
+    if (city === 'Khác (Nhập tùy chỉnh)' || city === 'Nhập tùy chỉnh') {
+      setLocation(customCity.trim() ? `${customCity.trim()}, ${selectedCountry}` : '');
+    } else if (city) {
+      setLocation(`${city}, ${selectedCountry}`);
+    } else {
+      setLocation('');
+    }
+  };
+
+  const handleCustomCityChange = (custom: string) => {
+    setCustomCity(custom);
+    setErrorMessage(null);
+    if (custom.trim()) {
+      setLocation(`${custom.trim()}, ${selectedCountry}`);
+    } else {
+      setLocation('');
+    }
+  };
+
+  // Days list for date selector
+  const currentYear = new Date().getFullYear();
+  const availableYears = Array.from({ length: 6 }, (_, i) => currentYear + i);
+  const daysInSelectedMonth = (weddingMonth && weddingYear)
+    ? new Date(Number(weddingYear), Number(weddingMonth), 0).getDate()
+    : 31;
+  const availableDays = Array.from({ length: daysInSelectedMonth }, (_, i) => i + 1);
+
+  const daysUntilWedding = (() => {
+    if (!weddingDay || !weddingMonth || !weddingYear) return 0;
+    const chosen = new Date(Number(weddingYear), Number(weddingMonth) - 1, Number(weddingDay));
+    chosen.setHours(0, 0, 0, 0);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const diff = chosen.getTime() - now.getTime();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  })();
 
   // Step 3 Wedding Style Gallery Lightbox States
   const [galleryStyle, setGalleryStyle] = useState<WeddingStyleDetail | null>(null);
@@ -183,17 +357,6 @@ export default function Onboarding() {
     return () => clearInterval(timer);
   }, [isGenerating]);
 
-  // Auto-generate title for the wedding plan based on date and location
-  useEffect(() => {
-    if (weddingDate || location) {
-      const datePart = weddingDate ? new Date(weddingDate).toLocaleDateString('vi-VN') : '';
-      const locPart = location.trim() ? ` tại ${location.trim()}` : '';
-      setTitle(`Kế hoạch đám cưới${datePart ? ' ngày ' + datePart : ''}${locPart}`);
-    } else {
-      setTitle('Kế hoạch đám cưới của tôi');
-    }
-  }, [weddingDate, location]);
-
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
@@ -210,33 +373,43 @@ export default function Onboarding() {
     // Basic validation
     if (currentStep === 1) {
       if (!title.trim()) {
-        setErrorMessage('Vui lòng điền tên kế hoạch đám cưới!');
+        setErrorMessage(language === 'vi' ? 'Vui lòng điền tên kế hoạch đám cưới!' : 'Please enter a wedding plan title!');
         return;
       }
-      if (!weddingDate) {
-        setErrorMessage('Vui lòng chọn ngày tổ chức cưới!');
+      if (!weddingDay || !weddingMonth || !weddingYear || !weddingDate) {
+        setErrorMessage(language === 'vi' ? 'Vui lòng chọn đầy đủ Ngày, Tháng và Năm tổ chức cưới!' : 'Please select Day, Month, and Year for your wedding!');
+        return;
+      }
+      const chosen = new Date(Number(weddingYear), Number(weddingMonth) - 1, Number(weddingDay));
+      chosen.setHours(0, 0, 0, 0);
+      const minDate = getMinWeddingDate();
+
+      if (chosen < minDate) {
+        setErrorMessage(language === 'vi' 
+          ? `Thời gian tổ chức tiệc cưới phải cách thời điểm hiện tại ít nhất 1 tháng (sớm nhất từ ngày ${minDateDisplay})!`
+          : `Wedding date must be at least 1 month from today (earliest is ${minDateDisplay})!`);
         return;
       }
       if (!location.trim()) {
-        setErrorMessage('Vui lòng điền địa điểm cưới!');
+        setErrorMessage(language === 'vi' ? 'Vui lòng chọn Thành phố và Quốc gia tổ chức đám cưới!' : 'Please select wedding city and country!');
         return;
       }
       if (guestCount <= 0) {
-        setErrorMessage('Số lượng khách mời phải lớn hơn 0!');
+        setErrorMessage(language === 'vi' ? 'Số lượng khách mời phải lớn hơn 0!' : 'Guest count must be greater than 0!');
         return;
       }
     }
 
     if (currentStep === 2) {
       if (budget <= 0) {
-        setErrorMessage('Tổng ngân sách dự kiến phải lớn hơn 0!');
+        setErrorMessage(language === 'vi' ? 'Tổng ngân sách dự kiến phải lớn hơn 0!' : 'Estimated budget must be greater than 0!');
         return;
       }
     }
 
     if (currentStep === 3) {
       if (selectedStyles.length === 0) {
-        setErrorMessage('Vui lòng chọn ít nhất một phong cách đám cưới bạn mong muốn!');
+        setErrorMessage(language === 'vi' ? 'Vui lòng chọn ít nhất một phong cách đám cưới bạn mong muốn!' : 'Please select at least one wedding style!');
         return;
       }
     }
@@ -267,7 +440,7 @@ export default function Onboarding() {
     // Submit and Auto Generate Plan
   const handleSubmit = async () => {
     if (selectedCategories.length === 0) {
-      setErrorMessage('Vui lòng chọn ít nhất một dịch vụ bạn muốn ưu tiên đầu tư!');
+      setErrorMessage(language === 'vi' ? 'Vui lòng chọn ít nhất một dịch vụ bạn muốn ưu tiên đầu tư!' : 'Please select at least one priority service!');
       return;
     }
     setIsGenerating(true);
@@ -344,13 +517,21 @@ export default function Onboarding() {
   };
 
   // Loading texts for plan generation
-  const generationTexts = [
+  const generationTextsVi = [
     'Đang phân tích thông tin khảo sát và đề xuất phong cách...',
     'Đang tự động phân bổ ngân sách tối ưu theo hạng mục ưu tiên của bạn...',
     'Đang tự động thiết lập danh sách công việc cần chuẩn bị theo mốc thời gian...',
     'Đang xây dựng dòng thời gian chi tiết cho ngày cưới của bạn...',
     'Kế hoạch của bạn đã sẵn sàng! Đang tải bảng điều khiển...'
   ];
+  const generationTextsEn = [
+    'Analyzing survey details and matching wedding aesthetics...',
+    'Optimizing budget allocation across your priority categories...',
+    'Generating milestone checklist tasks adaptive to your timeline...',
+    'Crafting chronological day-of wedding schedule...',
+    'Your wedding blueprint is ready! Loading your dashboard...'
+  ];
+  const generationTexts = language === 'vi' ? generationTextsVi : generationTextsEn;
 
   return (
     <div 
@@ -371,7 +552,9 @@ export default function Onboarding() {
         {isLoadingData ? (
           <div className="flex flex-col items-center py-20 gap-3 bg-white/80 backdrop-blur-sm rounded-xl border border-hairline p-8 shadow-sm">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="text-sm text-muted-text font-display">Đang chuẩn bị khảo sát thông minh...</span>
+            <span className="text-sm text-muted-text font-display">
+              {language === 'vi' ? 'Đang chuẩn bị khảo sát thông minh...' : 'Preparing smart wedding survey...'}
+            </span>
           </div>
         ) : isGenerating ? (
           /* Premium Loading Screen for Plan Generation (Screen 10) */
@@ -390,10 +573,10 @@ export default function Onboarding() {
 
             <div className="space-y-3 max-w-lg">
               <h2 className="text-xl font-medium tracking-tight text-ink font-display">
-                Đang tạo kế hoạch cưới thông minh của bạn
+                {language === 'vi' ? 'Đang tạo kế hoạch cưới thông minh của bạn' : 'Generating your smart wedding blueprint'}
               </h2>
               <p className="text-xs text-muted-text max-w-sm mx-auto uppercase tracking-widest font-semibold">
-                Độc quyền bởi Planora AI
+                {language === 'vi' ? 'Độc quyền bởi Planora AI' : 'Powered exclusively by Planora AI'}
               </p>
               <div className="h-12 flex items-center justify-center">
                 <p className="text-sm text-body-text font-medium transition-opacity duration-300">
@@ -406,19 +589,19 @@ export default function Onboarding() {
             <div className="text-left max-w-xs mx-auto space-y-2 pt-4 border-t border-hairline w-full">
               <div className={`flex items-center gap-2 text-xs transition-colors duration-300 ${generationPhase >= 0 ? 'text-primary font-medium' : 'text-light-grey'}`}>
                 <Check className={`w-3.5 h-3.5 ${generationPhase >= 0 ? 'opacity-100' : 'opacity-0'}`} />
-                <span>Phân tích phong cách đám cưới</span>
+                <span>{language === 'vi' ? 'Phân tích phong cách đám cưới' : 'Analyzing wedding aesthetic'}</span>
               </div>
               <div className={`flex items-center gap-2 text-xs transition-colors duration-300 ${generationPhase >= 1 ? 'text-primary font-medium' : 'text-light-grey'}`}>
                 <Check className={`w-3.5 h-3.5 ${generationPhase >= 1 ? 'opacity-100' : 'opacity-0'}`} />
-                <span>Thiết lập phân bổ ngân sách</span>
+                <span>{language === 'vi' ? 'Thiết lập phân bổ ngân sách' : 'Setting up budget allocation'}</span>
               </div>
               <div className={`flex items-center gap-2 text-xs transition-colors duration-300 ${generationPhase >= 2 ? 'text-primary font-medium' : 'text-light-grey'}`}>
                 <Check className={`w-3.5 h-3.5 ${generationPhase >= 2 ? 'opacity-100' : 'opacity-0'}`} />
-                <span>Sinh tự động checklist chuẩn bị</span>
+                <span>{language === 'vi' ? 'Sinh tự động checklist chuẩn bị' : 'Generating milestone checklist'}</span>
               </div>
               <div className={`flex items-center gap-2 text-xs transition-colors duration-300 ${generationPhase >= 3 ? 'text-primary font-medium' : 'text-light-grey'}`}>
                 <Check className={`w-3.5 h-3.5 ${generationPhase >= 3 ? 'opacity-100' : 'opacity-0'}`} />
-                <span>Tạo dòng thời gian ngày cưới</span>
+                <span>{language === 'vi' ? 'Tạo dòng thời gian ngày cưới' : 'Building event schedule'}</span>
               </div>
             </div>
           </div>
@@ -435,10 +618,10 @@ export default function Onboarding() {
                 
                 <div className="flex justify-between items-center relative">
                   {[
-                    { number: 1, label: 'Wedding Details' },
-                    { number: 2, label: 'Budget' },
-                    { number: 3, label: 'Wedding Style' },
-                    { number: 4, label: 'Priority Services' }
+                    { number: 1, label: language === 'vi' ? 'Thông tin chung' : 'Wedding Details' },
+                    { number: 2, label: language === 'vi' ? 'Ngân sách' : 'Budget' },
+                    { number: 3, label: language === 'vi' ? 'Phong cách cưới' : 'Wedding Style' },
+                    { number: 4, label: language === 'vi' ? 'Dịch vụ ưu tiên' : 'Priority Services' }
                   ].map((step) => {
                     const isCompleted = step.number < currentStep;
                     const isActive = step.number === currentStep;
@@ -458,7 +641,7 @@ export default function Onboarding() {
                           />
                         </div>
                         <span 
-                          className="text-[10px] sm:text-xs text-center whitespace-nowrap text-white italic mt-2.5 transition-all duration-300"
+                          className="text-xs sm:text-sm text-center whitespace-nowrap text-white italic mt-2.5 transition-all duration-300"
                           style={{ 
                             fontFamily: 'EB Garamond, Georgia, serif',
                             opacity: isActive ? 1 : 0.65,
@@ -502,7 +685,7 @@ export default function Onboarding() {
                         color: '#2C0600'
                       }}
                     >
-                      Let's start with the essentials
+                      {language === 'vi' ? 'Bắt đầu với những thông tin cơ bản' : "Let's start with the essentials"}
                     </h2>
                     <p 
                       className="text-sm sm:text-base font-normal"
@@ -513,73 +696,229 @@ export default function Onboarding() {
                         color: '#2C0600'
                       }}
                     >
-                      Tell us a bit about your upcoming wedding day.
+                      {language === 'vi' ? 'Hãy chia sẻ một chút về ngày trọng đại sắp tới của hai bạn.' : 'Tell us a bit about your upcoming wedding day.'}
                     </p>
                   </div>
 
-                                    <div className="space-y-6">
-                                        {/* Wedding Date Capsule */}
+                  <div className="space-y-6">
+                    {/* Wedding Date Selector (Ngày / Tháng / Năm) */}
                     <div className="space-y-2">
-                      <label 
-                        htmlFor="date" 
-                        className="block text-xs font-bold text-primary tracking-wider pl-1"
-                      >
-                        Wedding Date *
-                      </label>
-                      <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-6 transition-all relative">
-                        <input
-                          type="date"
-                          id="date"
-                          className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans cursor-pointer pr-8 focus:ring-0 focus:outline-none custom-date-input"
-                          value={weddingDate}
-                          onChange={e => {
-                            setWeddingDate(e.target.value);
-                            setErrorMessage(null);
-                          }}
-                          style={{ colorScheme: 'light' }}
-                        />
-                        <Calendar className="w-5 h-5 text-primary absolute right-6 pointer-events-none" />
+                      <div className="flex items-center justify-between pl-1">
+                        <label 
+                          className="block text-xs sm:text-sm font-bold text-primary tracking-wider"
+                        >
+                          {language === 'vi' ? 'Ngày cưới dự kiến *' : 'Estimated Wedding Date *'}
+                        </label>
+                        <span className="text-xs text-muted-text font-sans">
+                          {language === 'vi' ? 'Tối thiểu 1 tháng kể từ hôm nay' : 'At least 1 month from today'}
+                        </span>
                       </div>
-                    </div>
 
-                    {/* Location Capsule */}
-                    <div className="space-y-2">
-                      <label 
-                        htmlFor="location" 
-                        className="block text-xs font-bold text-primary tracking-wider pl-1"
-                      >
-                        Location *
-                      </label>
-                      <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-6 transition-all relative">
-                        <input
-                          type="text"
-                          id="location"
-                          className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans placeholder:text-muted-text/60 focus:ring-0 focus:outline-none"
-                          placeholder="Select city or destination"
-                          value={location}
-                          onChange={e => {
-                            setLocation(e.target.value);
-                            setErrorMessage(null);
-                          }}
-                        />
-                        <div className="absolute right-6 pointer-events-none">
-                          <svg 
-                            className="w-3.5 h-3.5 text-primary fill-none stroke-current stroke-2" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M6 9l6 6 6-6" />
-                          </svg>
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        {/* Ngày (Day) */}
+                        <div className="space-y-1">
+                          <span className="block text-xs font-semibold text-ink/70 pl-2">
+                            {language === 'vi' ? 'Ngày' : 'Day'}
+                          </span>
+                          <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
+                            <select
+                              aria-label={language === 'vi' ? 'Chọn ngày tổ chức' : 'Select wedding day'}
+                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              value={weddingDay}
+                              onChange={e => handleDayChange(e.target.value)}
+                            >
+                              <option value="" className="bg-[#FAF8F5] text-muted-text">
+                                {language === 'vi' ? 'Ngày' : 'Day'}
+                              </option>
+                              {availableDays.map(d => (
+                                <option key={d} value={d} className="bg-[#FAF8F5] text-ink">
+                                  {language === 'vi' ? `Ngày ${d}` : `Day ${d}`}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="w-4 h-4 text-primary absolute right-4 pointer-events-none" />
+                          </div>
+                        </div>
+
+                        {/* Tháng (Month) */}
+                        <div className="space-y-1">
+                          <span className="block text-xs font-semibold text-ink/70 pl-2">
+                            {language === 'vi' ? 'Tháng' : 'Month'}
+                          </span>
+                          <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
+                            <select
+                              aria-label={language === 'vi' ? 'Chọn tháng tổ chức' : 'Select wedding month'}
+                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              value={weddingMonth}
+                              onChange={e => handleMonthChange(e.target.value)}
+                            >
+                              <option value="" className="bg-[#FAF8F5] text-muted-text">
+                                {language === 'vi' ? 'Tháng' : 'Month'}
+                              </option>
+                              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                                <option key={m} value={m} className="bg-[#FAF8F5] text-ink">
+                                  {language === 'vi' ? `Tháng ${m}` : `Month ${m}`}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="w-4 h-4 text-primary absolute right-4 pointer-events-none" />
+                          </div>
+                        </div>
+
+                        {/* Năm (Year) */}
+                        <div className="space-y-1">
+                          <span className="block text-xs font-semibold text-ink/70 pl-2">
+                            {language === 'vi' ? 'Năm' : 'Year'}
+                          </span>
+                          <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
+                            <select
+                              aria-label={language === 'vi' ? 'Chọn năm tổ chức' : 'Select wedding year'}
+                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              value={weddingYear}
+                              onChange={e => handleYearChange(e.target.value)}
+                            >
+                              <option value="" className="bg-[#FAF8F5] text-muted-text">
+                                {language === 'vi' ? 'Năm' : 'Year'}
+                              </option>
+                              {availableYears.map(y => (
+                                <option key={y} value={y} className="bg-[#FAF8F5] text-ink">
+                                  {language === 'vi' ? `Năm ${y}` : `Year ${y}`}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="w-4 h-4 text-primary absolute right-4 pointer-events-none" />
+                          </div>
                         </div>
                       </div>
+
+                      {/* Date Validation Alert / Confirmation Pill */}
+                      {weddingDay && weddingMonth && weddingYear && (
+                        <>
+                          {isDateTooSoon ? (
+                            <div className="p-3.5 bg-amber-50 border border-amber-300/80 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 mt-2.5">
+                              <AlertCircle className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+                              <div className="space-y-0.5">
+                                <p className="font-semibold text-amber-950">
+                                  {language === 'vi' ? 'Ngày cưới phải cách hiện tại ít nhất 1 tháng' : 'Wedding date must be at least 1 month away'}
+                                </p>
+                                <p className="text-amber-800/90 leading-relaxed text-xs">
+                                  {language === 'vi' ? (
+                                    <>Để đảm bảo đủ thời gian chuẩn bị và đặt các nhà cung cấp (vendors), ngày cưới sớm nhất có thể chọn là từ ngày <strong>{minDateDisplay}</strong> trở đi.</>
+                                  ) : (
+                                    <>To ensure sufficient preparation time for booking vendors, the earliest wedding date you can select is from <strong>{minDateDisplay}</strong> onwards.</>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-3 bg-primary/5 border border-primary/15 rounded-2xl flex items-center justify-between text-xs sm:text-sm text-ink mt-2.5">
+                              <div className="flex items-center gap-2">
+                                <CalendarDays className="w-4 h-4 text-primary flex-shrink-0" />
+                                <span className="font-medium text-primary">
+                                  {language === 'vi' ? 'Ngày cưới đã chọn: ' : 'Selected wedding date: '}{String(weddingDay).padStart(2, '0')}/{String(weddingMonth).padStart(2, '0')}/{weddingYear}
+                                </span>
+                              </div>
+                              {daysUntilWedding > 0 && (
+                                <span className="px-2.5 py-0.5 bg-white rounded-full font-bold text-primary border border-primary/20 text-xs shadow-xs">
+                                  {language === 'vi' ? `Còn ~${daysUntilWedding} ngày` : `~${daysUntilWedding} days left`}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Location Selector (Bấm chọn Quốc gia & Thành phố) */}
+                    <div className="space-y-2">
+                      <label 
+                        className="block text-xs sm:text-sm font-bold text-primary tracking-wider pl-1"
+                      >
+                        {language === 'vi' ? 'Địa điểm tổ chức *' : 'Wedding Location *'}
+                      </label>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Quốc gia (Country) */}
+                        <div className="space-y-1">
+                          <span className="block text-xs font-semibold text-ink/70 pl-2">
+                            {language === 'vi' ? 'Quốc gia' : 'Country'}
+                          </span>
+                          <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
+                            <Globe className="w-4 h-4 text-primary absolute left-4 pointer-events-none" />
+                            <select
+                              aria-label={language === 'vi' ? 'Chọn quốc gia' : 'Select country'}
+                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pl-7 pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              value={selectedCountry}
+                              onChange={e => handleCountryChange(e.target.value)}
+                            >
+                              {Object.keys(COUNTRIES_AND_CITIES).map(country => (
+                                <option key={country} value={country} className="bg-[#FAF8F5] text-ink">
+                                  {country}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="w-4 h-4 text-primary absolute right-4 pointer-events-none" />
+                          </div>
+                        </div>
+
+                        {/* Thành phố (City) */}
+                        <div className="space-y-1">
+                          <span className="block text-xs font-semibold text-ink/70 pl-2">
+                            {language === 'vi' ? 'Thành phố / Điểm đến' : 'City / Destination'}
+                          </span>
+                          <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
+                            <MapPin className="w-4 h-4 text-primary absolute left-4 pointer-events-none" />
+                            <select
+                              aria-label={language === 'vi' ? 'Chọn thành phố' : 'Select city'}
+                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pl-7 pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              value={selectedCity}
+                              onChange={e => handleCityChange(e.target.value)}
+                            >
+                              <option value="" className="bg-[#FAF8F5] text-muted-text">
+                                {language === 'vi' ? '-- Chọn thành phố --' : '-- Select city --'}
+                              </option>
+                              {(COUNTRIES_AND_CITIES[selectedCountry] || ['Khác (Nhập tùy chỉnh)']).map(city => (
+                                <option key={city} value={city} className="bg-[#FAF8F5] text-ink">
+                                  {city}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="w-4 h-4 text-primary absolute right-4 pointer-events-none" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Custom City input if "Khác (Nhập tùy chỉnh)" or "Quốc gia khác" is selected */}
+                      {(selectedCity.includes('Khác') || selectedCountry === 'Quốc gia khác') && (
+                        <div className="pt-1.5 pl-1">
+                          <div className="w-full h-12 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-5 transition-all">
+                            <input
+                              type="text"
+                              placeholder={language === 'vi' ? 'Nhập tên thành phố / địa điểm cụ thể...' : 'Enter city or specific destination...'}
+                              value={customCity}
+                              onChange={e => handleCustomCityChange(e.target.value)}
+                              className="w-full bg-transparent border-none outline-none text-sm text-ink font-sans placeholder:text-muted-text/60 focus:ring-0 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pill xác nhận địa điểm đã chọn */}
+                      {location && (
+                        <div className="flex items-center gap-1.5 pl-2 pt-1 text-xs text-primary font-medium">
+                          <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>{language === 'vi' ? 'Địa điểm đã chọn: ' : 'Selected location: '}<strong className="text-primary">{location}</strong></span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Estimated Guest Count Capsule */}
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <label 
-                          className="block text-xs font-bold text-primary tracking-wider pl-1"
+                          className="block text-xs sm:text-sm font-bold text-primary tracking-wider pl-1"
                         >
-                          Estimated Guest Count *
+                          {language === 'vi' ? 'Số lượng khách mời dự kiến *' : 'Estimated Guest Count *'}
                         </label>
                         <div className="w-full h-14 rounded-full border border-primary/30 bg-transparent flex items-center justify-between px-6 transition-all focus-within:border-primary/80">
                           <input
@@ -587,11 +926,11 @@ export default function Onboarding() {
                             inputMode="numeric"
                             value={guestCount ? guestCount.toLocaleString('en-US') : ''}
                             onChange={e => handleFormattedNumberChange(e, setGuestCount)}
-                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none"
-                            placeholder="Ví dụ: 150"
+                            className="w-full bg-transparent border-none outline-none text-sm sm:text-base font-medium text-ink font-sans focus:ring-0 focus:outline-none"
+                            placeholder={language === 'vi' ? 'Ví dụ: 150' : 'e.g., 150'}
                           />
-                          <span className="text-xs sm:text-sm font-sans text-muted-text italic ml-2">
-                            guests
+                          <span className="text-sm font-sans text-muted-text italic ml-2">
+                            {language === 'vi' ? 'khách' : 'guests'}
                           </span>
                         </div>
                       </div>
@@ -613,8 +952,8 @@ export default function Onboarding() {
                           />
                           {/* Labels container */}
                           <div className="relative w-full h-4 mt-0.5">
-                            <span className="absolute left-0 text-[11px] font-sans text-primary/60">50</span>
-                            <span className="absolute right-0 text-[11px] font-sans text-primary/60">500+</span>
+                            <span className="absolute left-0 text-xs font-sans text-primary/60">50</span>
+                            <span className="absolute right-0 text-xs font-sans text-primary/60">500+</span>
                           </div>
                         </div>
                       </div>
@@ -623,13 +962,17 @@ export default function Onboarding() {
                       <div className="p-3 bg-primary/5 rounded-xl border border-primary/15 flex items-center justify-between text-xs mt-2 transition-all">
                         <div className="flex items-center gap-2">
                           <UtensilsCrossed className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-ink font-medium">Ước tính quy mô bàn tiệc:</span>
+                          <span className="text-ink font-medium">
+                            {language === 'vi' ? 'Ước tính quy mô bàn tiệc:' : 'Estimated banquet tables:'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="px-2.5 py-0.5 bg-white rounded-full font-bold text-primary shadow-xs border border-primary/20 text-xs">
-                            ~{liveInsights.tables} bàn
+                            {language === 'vi' ? `~${liveInsights.tables} bàn` : `~${liveInsights.tables} tables`}
                           </span>
-                          <span className="text-[10px] text-muted-text hidden sm:inline">(10 khách/bàn + 1 dự phòng)</span>
+                          <span className="text-[11px] text-muted-text hidden sm:inline">
+                            {language === 'vi' ? '(10 khách/bàn + 1 dự phòng)' : '(10 guests/table + 1 backup)'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -652,7 +995,7 @@ export default function Onboarding() {
                         color: '#2C0600'
                       }}
                     >
-                      What is your estimated budget?
+                      {language === 'vi' ? 'Ngân sách dự kiến của bạn là bao nhiêu?' : 'What is your estimated budget?'}
                     </h2>
                     <p 
                       className="text-sm sm:text-base font-normal"
@@ -663,7 +1006,7 @@ export default function Onboarding() {
                         color: '#2C0600'
                       }}
                     >
-                      Planora AI will automatically allocate it for you.
+                      {language === 'vi' ? 'Planora AI sẽ tự động phân bổ ngân sách chi tiết cho bạn.' : 'Planora AI will automatically allocate it for you.'}
                     </p>
                   </div>
 
@@ -672,29 +1015,31 @@ export default function Onboarding() {
                     <div className="space-y-2">
                       <label 
                         htmlFor="budget" 
-                        className="block text-xs font-bold text-primary tracking-wider pl-1"
+                        className="block text-xs sm:text-sm font-bold text-primary tracking-wider pl-1"
                       >
-                        Total Budget *
+                        {language === 'vi' ? 'Tổng ngân sách dự toán *' : 'Total Budget *'}
                       </label>
                       <div className="w-full h-14 rounded-full border border-primary/30 bg-transparent flex items-center justify-between px-6 transition-all focus-within:border-primary/80">
                         <div className="flex items-center w-full">
-                          <span className="text-xs sm:text-sm font-sans text-muted-text mr-1.5">₫</span>
+                          <span className="text-sm font-sans text-muted-text mr-1.5">₫</span>
                           <input
                             type="text"
                             inputMode="numeric"
                             id="budget"
                             value={budget ? budget.toLocaleString('en-US') : ''}
                             onChange={e => handleFormattedNumberChange(e, setBudget)}
-                            className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-ink font-sans focus:ring-0 focus:outline-none"
-                            placeholder="Ví dụ: 200,000,000"
+                            className="w-full bg-transparent border-none outline-none text-sm sm:text-base font-bold font-mono text-ink font-sans focus:ring-0 focus:outline-none"
+                            placeholder={language === 'vi' ? 'Ví dụ: 200,000,000' : 'e.g., 200,000,000'}
                           />
                         </div>
-                        <span className="text-xs sm:text-sm font-sans text-muted-text italic ml-2">
+                        <span className="text-sm font-sans text-muted-text italic ml-2">
                           VND
                         </span>
                       </div>
-                      <p className="text-[11px] text-muted-text italic pl-1">
-                        Mức phân bổ đề xuất: {(budget || 0).toLocaleString('en-US')} VND
+                      <p className="text-xs text-muted-text italic pl-1">
+                        {language === 'vi' 
+                          ? `Mức phân bổ đề xuất: ${(budget || 0).toLocaleString('en-US')} VND`
+                          : `Suggested budget allocation: ${(budget || 0).toLocaleString('en-US')} VND`}
                       </p>
                     </div>
 
@@ -715,8 +1060,12 @@ export default function Onboarding() {
                         />
                         {/* Labels container */}
                         <div className="relative w-full h-4 mt-0.5">
-                          <span className="absolute left-0 text-[10px] sm:text-[11px] font-sans text-primary/60">50 Triệu</span>
-                          <span className="absolute right-0 text-[10px] sm:text-[11px] font-sans text-primary/60">1 Tỷ+</span>
+                          <span className="absolute left-0 text-[10px] sm:text-[11px] font-sans text-primary/60">
+                            {language === 'vi' ? '50 Triệu' : '50M VND'}
+                          </span>
+                          <span className="absolute right-0 text-[10px] sm:text-[11px] font-sans text-primary/60">
+                            {language === 'vi' ? '1 Tỷ+' : '1B+ VND'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -726,18 +1075,22 @@ export default function Onboarding() {
                       <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col gap-1 shadow-xs">
                         <div className="flex items-center gap-1.5 text-primary text-xs font-semibold">
                           <UtensilsCrossed className="w-3.5 h-3.5" />
-                          <span>Chi phí Tiệc cưới & Đồ uống (~50%)</span>
+                          <span>{language === 'vi' ? 'Chi phí Tiệc cưới & Đồ uống (~50%)' : 'Banquet & Beverage (~50%)'}</span>
                         </div>
                         <span className="text-sm font-bold text-ink">{formatVND(liveInsights.banquetEstimated)}</span>
-                        <span className="text-[10px] text-muted-text">~{formatVND(liveInsights.costPerTable)} / bàn ({liveInsights.venueTier})</span>
+                        <span className="text-[10px] text-muted-text">
+                          ~{formatVND(liveInsights.costPerTable)} / {language === 'vi' ? 'bàn' : 'table'} ({liveInsights.venueTier})
+                        </span>
                       </div>
                       <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/60 flex flex-col gap-1 shadow-xs">
                         <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-semibold">
                           <ShieldAlert className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Quỹ dự phòng an toàn (4%)</span>
+                          <span>{language === 'vi' ? 'Quỹ dự phòng an toàn (4%)' : 'Contingency Fund (4%)'}</span>
                         </div>
                         <span className="text-sm font-bold text-emerald-700">{formatVND(liveInsights.contingencyFund)}</span>
-                        <span className="text-[10px] text-emerald-600/80">Phòng ngừa chi phí phát sinh ngày lễ</span>
+                        <span className="text-[10px] text-emerald-600/80">
+                          {language === 'vi' ? 'Phòng ngừa chi phí phát sinh ngày lễ' : 'Buffer for unforeseen day-of expenses'}
+                        </span>
                       </div>
                     </div>
 
@@ -753,7 +1106,7 @@ export default function Onboarding() {
                     <div className="space-y-1 text-center sm:text-left">
                       <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-primary/5 border border-primary/15 text-primary text-[11px] font-medium">
                         <Sparkles className="w-3.5 h-3.5 text-primary" />
-                        <span>Step 3 of 4 • Wedding Style</span>
+                        <span>{language === 'vi' ? 'Bước 3 / 4 • Phong cách tiệc cưới' : 'Step 3 of 4 • Wedding Style'}</span>
                       </div>
                       <h2 
                         className="text-[26px] sm:text-[30px] italic leading-tight"
@@ -763,10 +1116,12 @@ export default function Onboarding() {
                           color: '#2C0600'
                         }}
                       >
-                        Pick your dream wedding style
+                        {language === 'vi' ? 'Chọn phong cách cưới mơ ước' : 'Pick your dream wedding style'}
                       </h2>
                       <p className="text-xs text-muted-text max-w-lg font-sans">
-                        Khám phá không gian thực tế và chọn phong cách bạn yêu thích (có thể chọn nhiều phong cách).
+                        {language === 'vi' 
+                          ? 'Khám phá không gian thực tế và chọn phong cách bạn yêu thích (có thể chọn nhiều phong cách).' 
+                          : 'Explore real aesthetics and select styles you love (multiple selections allowed).'}
                       </p>
                     </div>
 
@@ -775,10 +1130,14 @@ export default function Onboarding() {
                       <span className="text-xs text-body-text font-medium">
                         {selectedStyles.length > 0 ? (
                           <>
-                            Đã chọn: <strong className="text-primary">{selectedStyles.length}</strong> phong cách
+                            {language === 'vi' ? 'Đã chọn: ' : 'Selected: '}
+                            <strong className="text-primary">{selectedStyles.length}</strong>{' '}
+                            {language === 'vi' ? 'phong cách' : 'styles'}
                           </>
                         ) : (
-                          <span className="text-muted-text italic">Chưa chọn phong cách nào</span>
+                          <span className="text-muted-text italic">
+                            {language === 'vi' ? 'Chưa chọn phong cách nào' : 'No style selected'}
+                          </span>
                         )}
                       </span>
                     </div>
@@ -789,11 +1148,13 @@ export default function Onboarding() {
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-gold animate-pulse" />
                       <span className="text-xs sm:text-sm font-bold tracking-wider uppercase font-display">
-                        NOW CHOOSE YOUR STYLE
+                        {language === 'vi' ? 'CHỌN PHONG CÁCH TIỆC CƯỚI' : 'NOW CHOOSE YOUR STYLE'}
                       </span>
                     </div>
                     <span className="text-[11px] text-white/85 italic hidden sm:inline">
-                      Bấm vào từng thẻ để chọn phong cách • Bấm &quot;Xem ảnh&quot; để ngắm không gian chi tiết
+                      {language === 'vi' 
+                        ? 'Bấm vào từng thẻ để chọn phong cách • Bấm "Xem ảnh" để ngắm không gian chi tiết' 
+                        : 'Click any card to select • Click "View photos" to inspect aesthetic galleries'}
                     </span>
                   </div>
 
@@ -857,7 +1218,7 @@ export default function Onboarding() {
                               className="absolute bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-white/95 hover:bg-white text-primary text-[10px] font-bold tracking-wide shadow-xs flex items-center gap-1 transition-all hover:scale-105"
                             >
                               <Eye className="w-3 h-3" />
-                              <span>Xem {style.gallery.length} ảnh</span>
+                              <span>{language === 'vi' ? `Xem ${style.gallery.length} ảnh` : `View ${style.gallery.length} photos`}</span>
                             </button>
                           </div>
 
@@ -871,7 +1232,7 @@ export default function Onboarding() {
                                 {style.tag}
                               </h3>
                               <p className="text-[10px] text-muted-text truncate mt-0.5">
-                                {style.vietnameseTitle}
+                                {language === 'vi' ? style.vietnameseTitle : style.name}
                               </p>
                             </div>
 
@@ -893,7 +1254,9 @@ export default function Onboarding() {
                                 ? 'bg-primary text-white' 
                                 : 'bg-primary/5 text-primary group-hover:bg-primary/10'
                             }`}>
-                              {isSelected ? '✓ Đã chọn' : '+ Chọn phong cách'}
+                              {isSelected 
+                                ? (language === 'vi' ? '✓ Đã chọn' : '✓ Selected') 
+                                : (language === 'vi' ? '+ Chọn phong cách' : '+ Select style')}
                             </span>
                           </div>
                         </div>
@@ -908,7 +1271,8 @@ export default function Onboarding() {
                       <span className="text-body-text">
                         {selectedStyles.length > 0 ? (
                           <>
-                            Đã chọn <strong>{selectedStyles.length} phong cách</strong>:{' '}
+                            {language === 'vi' ? 'Đã chọn ' : 'Selected '}
+                            <strong>{selectedStyles.length} {language === 'vi' ? 'phong cách' : 'styles'}</strong>:{' '}
                             <span className="text-primary font-semibold">
                               {displayStyles
                                 .filter(s => selectedStyles.includes(s.id))
@@ -918,13 +1282,17 @@ export default function Onboarding() {
                           </>
                         ) : (
                           <span className="text-muted-text italic">
-                            Chưa chọn phong cách nào. Bấm vào thẻ phía trên để lựa chọn phong cách bạn yêu thích.
+                            {language === 'vi' 
+                              ? 'Chưa chọn phong cách nào. Bấm vào thẻ phía trên để lựa chọn phong cách bạn yêu thích.' 
+                              : 'No styles selected yet. Click the cards above to choose your favorite styles.'}
                           </span>
                         )}
                       </span>
                     </div>
                     <span className="text-[11px] text-muted-text italic">
-                      Planora AI sẽ phối hợp các phong cách bạn đã chọn để tạo bản thiết kế độc bản
+                      {language === 'vi' 
+                        ? 'Planora AI sẽ phối hợp các phong cách bạn đã chọn để tạo bản thiết kế độc bản' 
+                        : 'Planora AI will blend your selected aesthetics into a bespoke concept'}
                     </span>
                   </div>
                 </div>
@@ -936,10 +1304,12 @@ export default function Onboarding() {
                   <div className="border-b border-hairline pb-3 mb-1">
                     <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-primary" />
-                      Dịch vụ Ưu tiên (Priority Services)
+                      {language === 'vi' ? 'Dịch vụ Ưu tiên' : 'Priority Services'}
                     </h2>
                     <p className="text-[11px] text-muted-text mt-0.5">
-                      Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Chúng tôi sẽ phân bổ ngân sách tối ưu cho các hạng mục này.
+                      {language === 'vi' 
+                        ? 'Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Chúng tôi sẽ phân bổ ngân sách tối ưu cho các hạng mục này.' 
+                        : 'Select services you wish to prioritize. We will boost budget allocation for these essential categories.'}
                     </p>
                   </div>
 
@@ -973,14 +1343,26 @@ export default function Onboarding() {
                       <div className="p-3 bg-primary/10 rounded-xl border border-primary/25 flex gap-2.5 text-[11px] text-primary leading-relaxed items-center animate-fade-in">
                         <Sparkles className="w-4 h-4 flex-shrink-0 text-gold" />
                         <div>
-                          <span className="font-bold block text-primary">Đã chọn {selectedCategories.length} dịch vụ ưu tiên:</span>
-                          <span className="text-body-text">Các hạng mục này sẽ được tự động tăng <strong>+25% ngân sách</strong> để bạn có thể chọn các nhà cung cấp chất lượng cao nhất.</span>
+                          <span className="font-bold block text-primary">
+                            {language === 'vi' ? `Đã chọn ${selectedCategories.length} dịch vụ ưu tiên:` : `Selected ${selectedCategories.length} priority services:`}
+                          </span>
+                          <span className="text-body-text">
+                            {language === 'vi' ? (
+                              <>Các hạng mục này sẽ được tự động tăng <strong>+25% ngân sách</strong> để bạn có thể chọn các nhà cung cấp chất lượng cao nhất.</>
+                            ) : (
+                              <>These categories will automatically receive a <strong>+25% budget boost</strong> so you can hire top-tier vendors.</>
+                            )}
+                          </span>
                         </div>
                       </div>
                     ) : (
                       <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 flex gap-2.5 text-[11px] text-amber-800 leading-relaxed items-center">
                         <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
-                        <span>Hãy chọn ít nhất 1 dịch vụ bạn mong muốn đầu tư nhiều nhất để thuật toán tối ưu phân bổ.</span>
+                        <span>
+                          {language === 'vi' 
+                            ? 'Hãy chọn ít nhất 1 dịch vụ bạn mong muốn đầu tư nhiều nhất để thuật toán tối ưu phân bổ.' 
+                            : 'Please select at least 1 priority service to help the algorithm optimize your allocation.'}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -996,20 +1378,24 @@ export default function Onboarding() {
                       className="text-[26px] md:text-[32px] italic text-[#2C0600]"
                       style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '38px' }}
                     >
-                      Master Wedding Blueprint
+                      {language === 'vi' ? 'Bản Kế Hoạch Cưới Chuẩn Mực' : 'Master Wedding Blueprint'}
                     </h2>
                     <p 
                       className="text-xs sm:text-sm font-normal text-muted-text max-w-lg mx-auto"
                       style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '22px' }}
                     >
-                      Bản kế hoạch cưới chi tiết được cá nhân hóa tự động theo ngân sách, quy mô bàn tiệc và phong cách của hai bạn.
+                      {language === 'vi' 
+                        ? 'Bản kế hoạch cưới chi tiết được cá nhân hóa tự động theo ngân sách, quy mô bàn tiệc và phong cách của hai bạn.' 
+                        : 'Your personalized master plan generated automatically according to your budget, guest count, and styles.'}
                     </p>
                   </div>
 
                   {/* 4 Core KPI Summary Cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Tổng dự toán</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">
+                        {language === 'vi' ? 'Tổng dự toán' : 'Total Budget'}
+                      </span>
                       <div className="mt-1">
                         <span className="text-sm sm:text-base font-bold text-primary block leading-tight">
                           {formatVND(budget)}
@@ -1021,37 +1407,43 @@ export default function Onboarding() {
                     </div>
 
                     <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Quy mô tiệc</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">
+                        {language === 'vi' ? 'Quy mô tiệc' : 'Guest Count'}
+                      </span>
                       <div className="mt-1">
                         <span className="text-sm sm:text-base font-bold text-ink block leading-tight">
-                          {guestCount.toLocaleString('en-US')} khách
+                          {guestCount.toLocaleString('en-US')} {language === 'vi' ? 'khách' : 'guests'}
                         </span>
                         <span className="text-[10px] text-primary font-medium mt-0.5 block">
-                          ~{liveInsights.tables} bàn tiệc
+                          ~{liveInsights.tables} {language === 'vi' ? 'bàn tiệc' : 'tables'}
                         </span>
                       </div>
                     </div>
 
                     <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Lộ trình Checklist</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">
+                        {language === 'vi' ? 'Lộ trình Checklist' : 'Checklist Tasks'}
+                      </span>
                       <div className="mt-1">
                         <span className="text-sm sm:text-base font-bold text-ink block leading-tight">
-                          {generatedPlan?.checklistTasks?.length || 24} công việc
+                          {generatedPlan?.checklistTasks?.length || 24} {language === 'vi' ? 'công việc' : 'tasks'}
                         </span>
                         <span className="text-[10px] text-emerald-700 font-medium mt-0.5 block">
-                          6 giai đoạn thích ứng
+                          {language === 'vi' ? '6 giai đoạn thích ứng' : '6 adaptive phases'}
                         </span>
                       </div>
                     </div>
 
                     <div className="p-3 bg-white/80 rounded-xl border border-primary/15 flex flex-col justify-between shadow-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Kịch bản ngày cưới</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text">
+                        {language === 'vi' ? 'Kịch bản ngày cưới' : 'Day-of Timeline'}
+                      </span>
                       <div className="mt-1">
                         <span className="text-sm sm:text-base font-bold text-ink block leading-tight">
-                          {generatedPlan?.timelineEvents?.length || 10} sự kiện
+                          {generatedPlan?.timelineEvents?.length || 10} {language === 'vi' ? 'sự kiện' : 'events'}
                         </span>
                         <span className="text-[10px] text-amber-700 font-medium mt-0.5 block">
-                          Gia tiên & Đãi tiệc
+                          {language === 'vi' ? 'Gia tiên & Đãi tiệc' : 'Ceremony & Banquet'}
                         </span>
                       </div>
                     </div>
@@ -1059,18 +1451,20 @@ export default function Onboarding() {
 
                   {/* Blueprint Navigation Tabs */}
                   <div className="flex border-b border-hairline gap-1 overflow-x-auto pb-1 dashboard-scroll">
-                    {[
-                      { id: 'budget', label: '💰 Ngân sách 10 hạng mục', icon: PieChart },
-                      { id: 'checklist', label: '📋 Checklist 6 giai đoạn', icon: ListTodo },
-                      { id: 'timeline', label: '⏱️ Kịch bản ngày cưới', icon: Clock },
-                      { id: 'concept', label: '🎨 Concept & Bảng màu', icon: Palette }
-                    ].map(tab => {
+                    {(
+                      [
+                        { id: 'budget', label: language === 'vi' ? '💰 Ngân sách 10 hạng mục' : '💰 Budget Breakdown', icon: PieChart },
+                        { id: 'checklist', label: language === 'vi' ? '📋 Checklist 6 giai đoạn' : '📋 Adaptive Checklist', icon: ListTodo },
+                        { id: 'timeline', label: language === 'vi' ? '⏱️ Kịch bản ngày cưới' : '⏱️ Day-of Timeline', icon: Clock },
+                        { id: 'concept', label: language === 'vi' ? '🎨 Concept & Bảng màu' : '🎨 Concept & Palette', icon: Palette }
+                      ] as const
+                    ).map(tab => {
                       const isActive = blueprintTab === tab.id;
                       return (
                         <button
                           key={tab.id}
                           type="button"
-                          onClick={() => setBlueprintTab(tab.id as any)}
+                          onClick={() => setBlueprintTab(tab.id)}
                           className={`px-3 py-2 rounded-t-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                             isActive
                               ? 'bg-white border-t border-x border-primary/20 text-primary shadow-xs -mb-[1px]'
@@ -1091,13 +1485,13 @@ export default function Onboarding() {
                         <div className="flex items-center gap-2">
                           <UtensilsCrossed className="w-4 h-4 text-primary" />
                           <span className="text-ink">
-                            Tiệc & Đồ uống (~50%): <strong>{formatVND(liveInsights.banquetEstimated)}</strong> (~{formatVND(liveInsights.costPerTable)}/bàn)
+                            {language === 'vi' ? 'Tiệc & Đồ uống (~50%):' : 'Banquet & Drinks (~50%):'} <strong>{formatVND(liveInsights.banquetEstimated)}</strong> (~{formatVND(liveInsights.costPerTable)}/{language === 'vi' ? 'bàn' : 'table'})
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <ShieldAlert className="w-4 h-4 text-emerald-700" />
                           <span className="text-emerald-800 font-medium">
-                            Quỹ dự phòng an toàn (4%): <strong>{formatVND(liveInsights.contingencyFund)}</strong>
+                            {language === 'vi' ? 'Quỹ dự phòng an toàn (4%):' : 'Contingency Fund (4%):'} <strong>{formatVND(liveInsights.contingencyFund)}</strong>
                           </span>
                         </div>
                       </div>
@@ -1122,7 +1516,7 @@ export default function Onboarding() {
                                     <span className="text-xs font-bold text-ink">{item.categoryName}</span>
                                     {item.isPriority && (
                                       <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[9px] uppercase tracking-wider border border-amber-300">
-                                        Ưu tiên +25%
+                                        {language === 'vi' ? 'Ưu tiên +25%' : 'Priority +25%'}
                                       </span>
                                     )}
                                   </div>
@@ -1147,7 +1541,7 @@ export default function Onboarding() {
                           })
                         ) : (
                           <div className="p-4 text-center text-xs text-muted-text italic">
-                            Không có dữ liệu phân bổ ngân sách.
+                            {language === 'vi' ? 'Không có dữ liệu phân bổ ngân sách.' : 'No budget data available.'}
                           </div>
                         )}
                       </div>
@@ -1161,7 +1555,9 @@ export default function Onboarding() {
                       <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/70 flex gap-2 text-xs text-blue-900 items-center">
                         <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
                         <span>
-                          Thuật toán đã tự động tính toán và co giãn thời hạn các mốc công việc theo ngày cưới của bạn để bạn không bị quá tải.
+                          {language === 'vi' 
+                            ? 'Thuật toán đã tự động tính toán và co giãn thời hạn các mốc công việc theo ngày cưới của bạn để bạn không bị quá tải.' 
+                            : 'The algorithm has automatically scheduled task deadlines relative to your wedding date to keep planning stress-free.'}
                         </span>
                       </div>
 
@@ -1202,7 +1598,7 @@ export default function Onboarding() {
 
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <span className="px-2.5 py-1 rounded-full bg-primary/5 border border-primary/15 text-primary text-[11px] font-mono font-semibold">
-                                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString('vi-VN') : 'Theo lộ trình'}
+                                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US') : (language === 'vi' ? 'Theo lộ trình' : 'On schedule')}
                                   </span>
                                 </div>
                               </div>
@@ -1210,7 +1606,7 @@ export default function Onboarding() {
                           })
                         ) : (
                           <div className="p-4 text-center text-xs text-muted-text italic">
-                            Không có công việc nào trong danh sách.
+                            {language === 'vi' ? 'Không có công việc nào trong danh sách.' : 'No tasks in the checklist.'}
                           </div>
                         )}
                       </div>
@@ -1224,7 +1620,11 @@ export default function Onboarding() {
                       <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/70 flex gap-2 text-xs text-amber-900 items-center">
                         <Clock className="w-4 h-4 text-amber-700 flex-shrink-0" />
                         <span>
-                          Kịch bản bao gồm đầy đủ 2 phần quan trọng nhất của đám cưới Việt: <strong>Nghi lễ Gia Tiên (Sáng)</strong> và <strong>Tiệc Cưới Đãi Khách (Tối)</strong>.
+                          {language === 'vi' ? (
+                            <>Kịch bản bao gồm đầy đủ 2 phần quan trọng nhất của đám cưới Việt: <strong>Nghi lễ Gia Tiên (Sáng)</strong> và <strong>Tiệc Cưới Đãi Khách (Tối)</strong>.</>
+                          ) : (
+                            <>The schedule comprehensively covers both key ceremonies: <strong>Traditional Morning Rituals</strong> and <strong>Evening Wedding Banquet</strong>.</>
+                          )}
                         </span>
                       </div>
 
@@ -1259,7 +1659,7 @@ export default function Onboarding() {
                           })
                         ) : (
                           <div className="p-4 text-center text-xs text-muted-text italic">
-                            Không có mốc sự kiện nào trong kịch bản.
+                            {language === 'vi' ? 'Không có mốc sự kiện nào trong kịch bản.' : 'No events in the schedule.'}
                           </div>
                         )}
                       </div>
@@ -1286,7 +1686,7 @@ export default function Onboarding() {
                             {concept.colorPalette && concept.colorPalette.length > 0 && (
                               <div className="space-y-1.5 pt-1">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text block">
-                                  Bảng màu chủ đạo (Color Palette)
+                                  {language === 'vi' ? 'Bảng màu chủ đạo (Color Palette)' : 'Color Palette'}
                                 </span>
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {concept.colorPalette.map((color, cIdx) => (
@@ -1312,7 +1712,7 @@ export default function Onboarding() {
                               {concept.floralTheme && (
                                 <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/10">
                                   <span className="font-bold text-primary block mb-0.5 text-[11px]">
-                                    🌸 Hoa tươi trang trí:
+                                    {language === 'vi' ? '🌸 Hoa tươi trang trí:' : '🌸 Floral Aesthetic:'}
                                   </span>
                                   <span className="text-[11px] text-body-text">{concept.floralTheme}</span>
                                 </div>
@@ -1320,7 +1720,7 @@ export default function Onboarding() {
                               {concept.decorNote && (
                                 <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/10">
                                   <span className="font-bold text-primary block mb-0.5 text-[11px]">
-                                    ✨ Gợi ý không gian:
+                                    {language === 'vi' ? '✨ Gợi ý không gian:' : '✨ Decor & Ambience:'}
                                   </span>
                                   <span className="text-[11px] text-body-text">{concept.decorNote}</span>
                                 </div>
@@ -1330,7 +1730,7 @@ export default function Onboarding() {
                         ))
                       ) : (
                         <div className="p-4 text-center text-xs text-muted-text italic">
-                          Không có phong cách đề xuất nào.
+                          {language === 'vi' ? 'Không có phong cách đề xuất nào.' : 'No concept suggestions available.'}
                         </div>
                       )}
                     </div>
@@ -1340,15 +1740,15 @@ export default function Onboarding() {
                   <div className="p-3 bg-white/60 rounded-xl border border-primary/10 flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2 text-muted-text">
                       <CalendarDays className="w-3.5 h-3.5 text-primary" />
-                      <span>Ngày cưới: <strong>{weddingDate ? new Date(weddingDate).toLocaleDateString('vi-VN') : 'Chưa định ngày'}</strong></span>
+                      <span>{language === 'vi' ? 'Ngày cưới: ' : 'Wedding Date: '}<strong>{weddingDate ? new Date(weddingDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US') : (language === 'vi' ? 'Chưa định ngày' : 'Not set')}</strong></span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-text">
                       <MapPin className="w-3.5 h-3.5 text-primary" />
-                      <span>Địa điểm: <strong>{location || 'Chưa định địa điểm'}</strong></span>
+                      <span>{language === 'vi' ? 'Địa điểm: ' : 'Location: '}<strong>{location || (language === 'vi' ? 'Chưa định địa điểm' : 'Not set')}</strong></span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-text">
                       <Users className="w-3.5 h-3.5 text-primary" />
-                      <span>Khách mời: <strong>{guestCount.toLocaleString('en-US')} người (~{liveInsights.tables} bàn)</strong></span>
+                      <span>{language === 'vi' ? 'Khách mời: ' : 'Guests: '}<strong>{guestCount.toLocaleString('en-US')} {language === 'vi' ? 'người' : 'guests'} (~{liveInsights.tables} {language === 'vi' ? 'bàn' : 'tables'})</strong></span>
                     </div>
                   </div>
                 </div>
@@ -1360,19 +1760,19 @@ export default function Onboarding() {
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="px-5 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs font-semibold transition-all flex items-center gap-1"
+                    className="px-5 py-2.5 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    Quay lại
+                    <ChevronLeft className="w-4 h-4" />
+                    {language === 'vi' ? 'Quay lại' : 'Back'}
                   </button>
                 ) : currentStep === 5 ? (
                   <button
                     type="button"
                     onClick={() => setCurrentStep(4)}
-                    className="px-5 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs font-semibold transition-all flex items-center gap-1"
+                    className="px-5 py-2.5 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    Tùy chỉnh lại
+                    <ChevronLeft className="w-4 h-4" />
+                    {language === 'vi' ? 'Tùy chỉnh lại' : 'Re-customize'}
                   </button>
                 ) : (
                   <div />
@@ -1382,28 +1782,28 @@ export default function Onboarding() {
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="px-6 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs font-semibold transition-all flex items-center gap-1 shadow-sm"
+                    className="px-7 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                   >
-                    Tiếp tục
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    {language === 'vi' ? 'Tiếp tục' : 'Continue'}
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 ) : currentStep === 4 ? (
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    className="px-6 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm font-display tracking-wide uppercase"
+                    className="px-7 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-sm font-display tracking-wider uppercase cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-cream" />
-                    Tạo kế hoạch tự động
+                    <Sparkles className="w-4 h-4 text-cream" />
+                    {language === 'vi' ? 'Tạo kế hoạch tự động' : 'Generate Blueprint'}
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() => router.replace('/')}
-                    className="px-6 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs font-semibold transition-all flex items-center gap-1 shadow-sm uppercase tracking-wide"
+                    className="px-7 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-sm uppercase tracking-wider cursor-pointer"
                   >
-                    Xác nhận & Vào Dashboard
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    {language === 'vi' ? 'Xác nhận & Vào Dashboard' : 'Confirm & Open Dashboard'}
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -1435,7 +1835,7 @@ export default function Onboarding() {
                     className="text-lg sm:text-xl font-bold text-ink"
                     style={{ fontFamily: "'IM Fell French Canon', serif" }}
                   >
-                    {galleryStyle.vietnameseTitle}
+                    {language === 'vi' ? galleryStyle.vietnameseTitle : galleryStyle.name}
                   </h3>
                 </div>
                 <p className="text-xs text-muted-text">
@@ -1526,7 +1926,7 @@ export default function Onboarding() {
                 {/* Color Palette Swatches */}
                 <div className="space-y-1 pt-1 border-t border-hairline">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-text block">
-                    Bảng màu chủ đạo đề xuất:
+                    {language === 'vi' ? 'Bảng màu chủ đạo đề xuất:' : 'Recommended Color Palette:'}
                   </span>
                   <div className="flex items-center gap-2 flex-wrap">
                     {galleryStyle.palette.map((color, cIdx) => (
@@ -1555,7 +1955,7 @@ export default function Onboarding() {
                 onClick={() => setGalleryStyle(null)}
                 className="px-4 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs font-semibold transition-all cursor-pointer"
               >
-                Đóng
+                {language === 'vi' ? 'Đóng' : 'Close'}
               </button>
 
               <button
@@ -1573,11 +1973,11 @@ export default function Onboarding() {
                 {selectedStyles.includes(galleryStyle.id) ? (
                   <>
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    Đã chọn phong cách này (Bấm để hủy)
+                    {language === 'vi' ? 'Đã chọn phong cách này (Bấm để hủy)' : 'Selected this style (Click to unselect)'}
                   </>
                 ) : (
                   <>
-                    + Chọn phong cách này
+                    {language === 'vi' ? '+ Chọn phong cách này' : '+ Select this style'}
                   </>
                 )}
               </button>

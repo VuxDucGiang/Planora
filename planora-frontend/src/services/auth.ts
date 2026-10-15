@@ -51,7 +51,7 @@ export function parseToken(token: string): User | null {
   }
 }
 
-export async function register(request: RegisterRequest): Promise<any> {
+export async function register(request: RegisterRequest): Promise<LoginResponse> {
   const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: {

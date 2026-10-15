@@ -33,7 +33,7 @@ export function calculateLiveInsights(
   guestCountOrBudget: number, 
   budgetOrGuestCount?: number, 
   selectedCategoryIds: number[] = [], 
-  availableCategories: ServiceCategory[] = []
+  _availableCategories: ServiceCategory[] = []
 ): LiveInsights {
   let budget = 200000000;
   let guests = 100;
@@ -154,7 +154,7 @@ export function generateSmartBlueprint(
   ];
 
   // Calculate adjusted weights based on user priority selections
-  let adjustedWeights = rawCategories.map(cat => {
+  const adjustedWeights = rawCategories.map(cat => {
     const isPriority = priorityCategoryNames.some(p => cat.name.toLowerCase().includes(p) || cat.matchKeyword.includes(p));
     return {
       ...cat,

@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertTriangle, Globe } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ export default function ForgotPassword() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const { language, setLanguage, t } = useLanguage();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,7 +22,7 @@ export default function ForgotPassword() {
     // Simple email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setErrorMessage('Please enter a valid email.');
+      setErrorMessage(t.auth.invalidEmail);
       return;
     }
 
@@ -29,10 +31,10 @@ export default function ForgotPassword() {
     try {
       // Simulate API call to send reset password link
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      setSuccessMessage('An email has been sent! Please check your inbox.');
+      setSuccessMessage(t.auth.resetSentSuccess);
       setEmail('');
-    } catch (err) {
-      setErrorMessage('Something went wrong. Please try again later.');
+    } catch {
+      setErrorMessage(language === 'vi' ? 'Đã có lỗi xảy ra. Vui lòng thử lại sau!' : 'Something went wrong. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -47,6 +49,19 @@ export default function ForgotPassword() {
     >
       {/* Dark Red gradient/overlay to blend curtain background */}
       <div className="absolute inset-0 bg-black/35 z-0" />
+
+      {/* Floating Quick Language Switcher */}
+      <div className="absolute top-4 right-4 z-30">
+        <button
+          type="button"
+          onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white/90 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 transition-all cursor-pointer shadow-sm"
+          title="Đổi ngôn ngữ / Change Language"
+        >
+          <Globe className="w-3.5 h-3.5 text-[#FFEEB5]" />
+          <span className="uppercase font-bold tracking-wider">{language === 'vi' ? 'VI' : 'EN'}</span>
+        </button>
+      </div>
 
       {/* Main Card Container */}
       <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[420px]">
@@ -63,10 +78,10 @@ export default function ForgotPassword() {
                 className="text-2xl md:text-3xl italic font-normal mb-2"
                 style={{ fontFamily: '"IM Fell French Canon", serif' }}
               >
-                Forgot Password?
+                {t.auth.forgotTitle}
               </h1>
-              <p className="text-muted-text text-xs">
-                Enter your email below to receive a password reset link.
+              <p className="text-muted-text text-sm">
+                {t.auth.forgotSubtitle}
               </p>
             </div>
 
@@ -77,10 +92,10 @@ export default function ForgotPassword() {
               <div className="relative">
                 <label
                   htmlFor="email"
-                  className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-[10px] font-bold text-ink uppercase tracking-wider"
+                  className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
                   style={{ fontFamily: '"Istok Web", sans-serif' }}
                 >
-                  Email
+                  {t.auth.emailLabel}
                 </label>
                 <input
                   id="email"
@@ -92,9 +107,9 @@ export default function ForgotPassword() {
                     if (errorMessage) setErrorMessage(null);
                     if (successMessage) setSuccessMessage(null);
                   }}
-                  placeholder="Enter your email"
+                  placeholder={t.auth.emailPlaceholder}
                   disabled={isSubmitting}
-                  className={`block w-full h-[40px] pl-6 ${errorMessage ? 'pr-12 border-red-500' : 'pr-6 border-gray-400/80'} bg-transparent border rounded-full text-xs text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50`}
+                  className={`block w-full h-[44px] pl-6 ${errorMessage ? 'pr-12 border-red-500' : 'pr-6 border-gray-400/80'} bg-transparent border rounded-full text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50`}
                 />
                 
                 {errorMessage && (
@@ -107,14 +122,14 @@ export default function ForgotPassword() {
               {/* Validation Feedback Messages */}
               <div className="space-y-2">
                 {successMessage && (
-                  <div className="text-xs text-green-700 font-medium flex items-center gap-1.5 select-none font-serif">
+                  <div className="text-sm text-green-700 font-medium flex items-center gap-1.5 select-none font-serif">
                     <span>✓</span>
                     <span>{successMessage}</span>
                   </div>
                 )}
 
                 {errorMessage && (
-                  <div className="inline-flex items-center gap-1.5 bg-[#5D0F12] text-white px-4 py-1 rounded-full text-[10px] font-medium shadow-sm select-none">
+                  <div className="inline-flex items-center gap-1.5 bg-[#5D0F12] text-white px-4 py-1 rounded-full text-xs font-medium shadow-sm select-none">
                     <span>✕</span>
                     <span>{errorMessage}</span>
                   </div>
@@ -126,15 +141,15 @@ export default function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full max-w-[200px] h-[38px] rounded-full bg-[#5D0F12] text-white text-[11px] font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                  className="w-full max-w-[240px] h-[42px] rounded-full bg-[#5D0F12] text-white text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Sending...</span>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>{t.auth.sendingResetLink}</span>
                     </>
                   ) : (
-                    <span>SEND RESET LINK</span>
+                    <span>{t.auth.sendResetLinkBtn}</span>
                   )}
                 </button>
               </div>
@@ -148,10 +163,10 @@ export default function ForgotPassword() {
                   e.preventDefault();
                   router.push('/login');
                 }}
-                className="inline-flex items-center gap-1 text-xs text-ink/80 hover:text-[#5D0F12] font-semibold underline transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm text-ink/80 hover:text-[#5D0F12] font-semibold underline transition-colors"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Login</span>
+                <ArrowLeft className="w-4 h-4" />
+                <span>{t.auth.backToLogin}</span>
               </a>
             </div>
 

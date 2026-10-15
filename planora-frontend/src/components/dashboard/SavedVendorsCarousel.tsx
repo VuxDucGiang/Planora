@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Star, Sparkles, AlertCircle, Plus, ChevronRight } from 'lucide-react';
+import { Star, AlertCircle, Plus, ChevronRight } from 'lucide-react';
 import type { VendorResponse } from '@/types/vendor';
 
 const FALLBACK_IMAGES = [
@@ -32,6 +32,8 @@ function StarRating({ rating = 5 }: { rating: number }) {
   );
 }
 
+import { useLanguage } from '@/contexts/LanguageContext';
+
 function VendorCard({
   vendor,
   index,
@@ -45,6 +47,7 @@ function VendorCard({
   isNeighbor?: boolean;
   isCarousel?: boolean;
 }) {
+  const { t, language } = useLanguage();
   const imageUrl = vendor.imageUrl || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
   const rating = vendor.ratingAverage || 4.8;
   const reviewsCount = vendor.totalReviews || 32;
@@ -56,15 +59,15 @@ function VendorCard({
   );
 
   // Format price estimation
-  let priceText = 'Est: $1,500 – $2,000';
+  let priceText = language === 'vi' ? 'Ước tính: 15.0M – 25.0M ₫' : 'Est: $1,500 – $2,000';
   if (vendor.priceFrom && vendor.priceTo) {
     if (vendor.priceFrom >= 100000) {
-      priceText = `Est: ${(vendor.priceFrom / 1000000).toFixed(1)}M – ${(vendor.priceTo / 1000000).toFixed(1)}M ₫`;
+      priceText = `${t.common.estPrice}: ${(vendor.priceFrom / 1000000).toFixed(1)}M – ${(vendor.priceTo / 1000000).toFixed(1)}M ₫`;
     } else {
-      priceText = `Est: $${vendor.priceFrom.toLocaleString()} – $${vendor.priceTo.toLocaleString()}`;
+      priceText = `${t.common.estPrice}: $${vendor.priceFrom.toLocaleString()} – $${vendor.priceTo.toLocaleString()}`;
     }
   } else if (vendor.priceFrom) {
-    priceText = `Est: Từ ${vendor.priceFrom.toLocaleString()} ₫`;
+    priceText = `${t.common.estPrice}: ${vendor.priceFrom.toLocaleString()} ₫`;
   }
 
   return (
@@ -98,7 +101,7 @@ function VendorCard({
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {vendor.primaryCategoryName && (
-            <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/85 text-neutral-800 backdrop-blur-sm shadow-sm uppercase tracking-wider">
+            <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/85 text-neutral-800 backdrop-blur-sm shadow-sm uppercase tracking-wider">
               {vendor.primaryCategoryName}
             </span>
           )}
@@ -108,12 +111,14 @@ function VendorCard({
       {/* Card Body */}
       <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
         {/* Rating row */}
-        <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
+        <div className="flex items-center justify-between text-sm text-neutral-500 mb-2">
           <div className="flex items-center gap-1.5">
             <StarRating rating={rating} />
             <span className="font-semibold text-neutral-700">({rating.toFixed(1)})</span>
           </div>
-          <span className="text-[11px] text-neutral-400">({reviewsCount} reviews)</span>
+          <span className="text-xs text-neutral-400">
+            ({reviewsCount} {t.common.reviews})
+          </span>
         </div>
 
         {/* Vendor Name */}
@@ -126,27 +131,27 @@ function VendorCard({
 
         {/* Match and Price */}
         <div className="space-y-0.5 mb-4">
-          <div className="flex items-center gap-1 text-xs font-semibold text-neutral-800">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
             <span className="text-amber-700 text-xs">✦</span>
-            <span>Match: {matchScore}%</span>
+            <span>{t.common.match}: {matchScore}%</span>
           </div>
-          <p className="text-xs text-neutral-600 font-medium">{priceText}</p>
+          <p className="text-sm text-neutral-600 font-medium">{priceText}</p>
         </div>
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 pt-1">
           <Link
             href={`/marketplace/${vendor.id}?inquire=true`}
-            className="flex-1 py-2 px-3.5 rounded-full text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 shadow-sm hover:opacity-95 active:scale-95 cursor-pointer !text-[#FFFBF5]"
+            className="flex-1 py-2 px-3.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider text-center transition-all duration-200 shadow-sm hover:opacity-95 active:scale-95 cursor-pointer !text-[#FFFBF5]"
             style={{ backgroundColor: '#5D0F12', color: '#FFFBF5' }}
           >
-            Inquire Now
+            {t.common.inquireNow}
           </Link>
           <Link
             href={`/marketplace/${vendor.id}`}
-            className="py-2 px-4 rounded-full text-xs font-semibold text-neutral-800 bg-white border border-neutral-300 hover:bg-neutral-50 text-center transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
+            className="py-2 px-4 rounded-full text-xs sm:text-sm font-semibold text-neutral-800 bg-white border border-neutral-300 hover:bg-neutral-50 text-center transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
           >
-            View
+            {t.common.view}
           </Link>
         </div>
       </div>
@@ -155,6 +160,7 @@ function VendorCard({
 }
 
 export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselProps) {
+  const { t } = useLanguage();
   const isCarousel = vendors.length > 3;
   const n = vendors.length;
 
@@ -163,14 +169,14 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
 
   // Middle set starts at index n
   const [currentIndex, setCurrentIndex] = useState(n);
+  const [prevN, setPrevN] = useState(n);
   const [isTransitionEnabled, setIsTransitionEnabled] = useState(true);
 
-  // Sync currentIndex if vendors change
-  useEffect(() => {
-    if (isCarousel) {
-      setCurrentIndex(n);
-    }
-  }, [n, isCarousel]);
+  // Sync currentIndex if vendors count changes during render
+  if (isCarousel && prevN !== n) {
+    setPrevN(n);
+    setCurrentIndex(n);
+  }
 
   const scrollPrev = () => {
     if (!isTransitionEnabled) return;
@@ -246,7 +252,7 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
 
       {/* When <= 3 vendors: display directly without carousel or arrows */}
       {!isCarousel ? (
-        <div className="flex flex-wrap items-center justify-center gap-6 py-4 max-w-5xl mx-auto">
+        <div className="flex flex-wrap items-center justify-center gap-6 py-4 max-w-7xl w-full mx-auto">
           {vendors.map((vendor, idx) => (
             <VendorCard
               key={`${vendor.id}-${idx}`}
@@ -350,10 +356,10 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
       <div className="text-center mt-6">
         <Link
           href="/marketplace"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5D0F12] border border-[#5D0F12]/20 bg-[#5D0F12]/5 hover:bg-[#5D0F12]/10 px-4 py-2 rounded-full transition-all"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5D0F12] border border-[#5D0F12]/20 bg-[#5D0F12]/5 hover:bg-[#5D0F12]/10 px-4 py-2 rounded-full transition-all uppercase tracking-wider"
         >
           <Plus className="w-3.5 h-3.5" />
-          BROWSE MORE VENDORS
+          {t.dashboard.exploreVendorsBtn}
         </Link>
       </div>
     </div>
