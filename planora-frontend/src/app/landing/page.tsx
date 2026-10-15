@@ -1,16 +1,11 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Heart, Sparkles, Users, Palette, Compass } from 'lucide-react';
 import LandingHeader from '@/components/layout/LandingHeader';
 import LandingFooter from '@/components/layout/LandingFooter';
-
-interface Service {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Testimonial {
   quote: string;
@@ -18,29 +13,6 @@ interface Testimonial {
   location: string;
   tag: string;
 }
-
-const services: Service[] = [
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Venue Curation',
-    description: 'Discover the perfect venue that matches your vision and budget',
-  },
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Guest Management',
-    description: 'Seamless RSVP tracking and invitation management tools',
-  },
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Design & Decoration',
-    description: 'Professional design consultation for your special day',
-  },
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: 'Day Coordination',
-    description: 'Expert coordination to ensure your day flows perfectly',
-  },
-];
 
 const col1Testimonials: Testimonial[] = [
   {
@@ -105,6 +77,69 @@ const col3Testimonials: Testimonial[] = [
   },
 ];
 
+const col1TestimonialsVi: Testimonial[] = [
+  {
+    quote: 'Planora đã thay đổi hoàn toàn cách chúng mình chuẩn bị đám cưới. Mọi thứ ngăn nắp, rõ ràng và không hề áp lực.',
+    name: 'Minh Quân & Thảo Linh',
+    location: 'Hà Nội',
+    tag: 'Trọn gói',
+  },
+  {
+    quote: 'Tính năng định hình concept và dự toán ngân sách thật tuyệt vời. Hai vợ chồng kiểm soát chi phí rất nhẹ nhàng.',
+    name: 'Đức Huy & Quỳnh Nga',
+    location: 'TP. Hồ Chí Minh',
+    tag: 'Thiết kế tiệc cưới',
+  },
+  {
+    quote: 'Chúng mình quản lý hơn 300 khách mời mà không xảy ra sai sót nào. Danh sách khách mời và bàn tiệc rất trực quan.',
+    name: 'Tuấn Anh & Mai Phương',
+    location: 'Đà Nẵng',
+    tag: 'Quản lý khách mời',
+  },
+];
+
+const col2TestimonialsVi: Testimonial[] = [
+  {
+    quote: 'Đội ngũ đối tác trên Planora vô cùng uy tín và tận tâm trong suốt hành trình chuẩn bị ngày vui.',
+    name: 'Hoàng Long & Bích Trâm',
+    location: 'Hải Phòng',
+    tag: 'Điều phối',
+  },
+  {
+    quote: 'Tiết kiệm được vô số thời gian nhờ tính năng nhắc nhở và quản lý checklist theo từng giai đoạn chuẩn bị.',
+    name: 'Hải Đăng & Thu Trang',
+    location: 'Cần Thơ',
+    tag: 'Checklist thông minh',
+  },
+  {
+    quote: 'Dễ dàng tìm kiếm những studio chụp ảnh và nhà hàng tiệc cưới phù hợp nhất với phong cách và ngân sách.',
+    name: 'Trọng Nghĩa & Ngọc Lan',
+    location: 'Hà Nội',
+    tag: 'Mạng lưới đối tác',
+  },
+];
+
+const col3TestimonialsVi: Testimonial[] = [
+  {
+    quote: 'Từ chọn sảnh tiệc cho đến từng chi tiết nhỏ nhất, Planora là người đồng hành đáng tin cậy nhất của chúng mình.',
+    name: 'Quang Dũng & Hương Giang',
+    location: 'Nha Trang',
+    tag: 'Lập kế hoạch',
+  },
+  {
+    quote: 'Lễ cưới diễn ra trơn tru và hoàn hảo từ sáng đến tối nhờ timeline chuẩn xác từng phút của Planora.',
+    name: 'Văn Hùng & Thanh Mai',
+    location: 'TP. Hồ Chí Minh',
+    tag: 'Dòng thời gian',
+  },
+  {
+    quote: 'Giao diện sang trọng, dễ sử dụng, rất phù hợp cho các cặp đôi bận rộn như hai đứa mình.',
+    name: 'Duy Khánh & Ánh Tuyết',
+    location: 'Vũng Tàu',
+    tag: 'Trải nghiệm số',
+  },
+];
+
 const vendorsList = [
   {
     image: "/wedding-landing.jpg",
@@ -147,6 +182,10 @@ const extendedVendorsList = [
 ];
 
 export default function WeddingLanding() {
+  const { language, t } = useLanguage();
+  const activeCol1 = language === 'vi' ? col1TestimonialsVi : col1Testimonials;
+  const activeCol2 = language === 'vi' ? col2TestimonialsVi : col2Testimonials;
+  const activeCol3 = language === 'vi' ? col3TestimonialsVi : col3Testimonials;
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(8); // Start in the middle copy
@@ -242,14 +281,14 @@ export default function WeddingLanding() {
                       fontWeight: 600,
                     }}
                   >
-                    Crafting unforgettable wedding.
+                    {t.landing.heroSubtitle}
                   </span>
                 </h1>
                 <p
                   className="text-lg text-black font-semibold leading-relaxed max-w-md"
                   style={{ color: '#000000', fontWeight: 600 }}
                 >
-                  Looking to spice up your eggs beyond just a drizzle of TRUFF® Hot Sauce? Visit our recipe page to get crackin&apos;. Hot Sauce is the perfect way to elevate your morning.
+                  {t.landing.heroDescription}
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -258,7 +297,7 @@ export default function WeddingLanding() {
                   className="px-8 py-3.5 rounded-full !text-cream bg-sage-green hover:bg-sage-active transition-editorial font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer shadow-md"
                   style={{ color: '#FFFBF5' }}
                 >
-                  START NOW!
+                  {t.landing.heroStartNow}
                 </Link>
               </div>
             </div>
@@ -349,14 +388,14 @@ export default function WeddingLanding() {
 
             {/* Right Column: Collection details & 2x2 grid */}
             <div className="order-first md:order-second flex flex-col justify-center">
-              <p className="text-xs font-bold text-sage-green tracking-widest uppercase mb-4">OUR COLLECTION</p>
+              <p className="text-xs font-bold text-sage-green tracking-widest uppercase mb-4">{t.landing.collectionTag}</p>
               <h2 className="text-5xl lg:text-6xl font-serif text-ink leading-tight" style={{ fontFamily: 'var(--font-serif)', marginBottom: '40px' }}>
-                Moments that
+                {t.landing.collectionTitleLine1}
                 <br />
-                linger.
+                {t.landing.collectionTitleLine2}
               </h2>
               <p className="text-body-text leading-relaxed max-w-lg" style={{ marginBottom: '56px' }}>
-                We believe every wedding should be a gentle ritual, a celebration of love tailored specifically to you. Every detail is crafted with intention, ensuring your special day feels effortless and deeply personal.
+                {t.landing.collectionDesc}
               </p>
 
               {/* 2x2 Card Grid */}
@@ -364,23 +403,23 @@ export default function WeddingLanding() {
                 {[
                   {
                     icon: <Sparkles className="w-5 h-5" />,
-                    title: 'Tailored Planning',
-                    desc: 'Personalized templates and custom checklist.',
+                    title: t.landing.featTailoredPlanning,
+                    desc: t.landing.featTailoredPlanningDesc,
                   },
                   {
                     icon: <Users className="w-5 h-5" />,
-                    title: 'Seamless RSVP',
-                    desc: 'Real-time guest lists and interactive seating chart.',
+                    title: t.landing.featSeamlessRsvp,
+                    desc: t.landing.featSeamlessRsvpDesc,
                   },
                   {
                     icon: <Palette className="w-5 h-5" />,
-                    title: 'Visual Curation',
-                    desc: 'Curate color palettes and layout designs for your venue.',
+                    title: t.landing.featVisualCuration,
+                    desc: t.landing.featVisualCurationDesc,
                   },
                   {
                     icon: <Compass className="w-5 h-5" />,
-                    title: 'Vendor Directory',
-                    desc: 'Connect with handpicked florists and caterers.',
+                    title: t.landing.featVendorDirectory,
+                    desc: t.landing.featVendorDirectoryDesc,
                   },
                 ].map((item, idx) => (
                   <div
@@ -408,20 +447,18 @@ export default function WeddingLanding() {
         {/* Header content constrained to central column */}
         <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-16">
           <div className="mb-16">
-            {/* FIGMA SPEC: font-family: ITC Garamond Std; font-weight: 400; font-size: 40px; line-height: 100%; letter-spacing: 0%; */}
             <h2
               className="text-[41px] lg:text-[51px] font-normal leading-[100%] tracking-normal mb-6"
               style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#FFEEB5' }}
             >
-              How It Works
+              {t.landing.howItWorksTitle}
             </h2>
 
-            {/* FIGMA SPEC: font-family: IM FELL French Canon; font-weight: 400; font-size: 24px; line-height: 38px; */}
             <p
               className="text-[15px] md:text-[20px] font-normal leading-[32px] tracking-normal"
               style={{ fontFamily: '"IM Fell French Canon", serif', color: 'rgba(255, 255, 255, 0.9)' }}
             >
-              Crafting Unforgettable Wedding Experiences.
+              {t.landing.howItWorksSubtitle}
             </p>
           </div>
         </div>
@@ -439,9 +476,8 @@ export default function WeddingLanding() {
               <h4
                 className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
                 style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
-              >
-                Enter Your<br />Wedding Details
-              </h4>
+                dangerouslySetInnerHTML={{ __html: t.landing.step1Title }}
+              />
             </div>
 
             {/* Step 2 */}
@@ -451,9 +487,8 @@ export default function WeddingLanding() {
               <h4
                 className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
                 style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
-              >
-                Receive AI-Curated<br />Plans & Vendors
-              </h4>
+                dangerouslySetInnerHTML={{ __html: t.landing.step2Title }}
+              />
             </div>
 
             {/* Step 3 */}
@@ -463,9 +498,8 @@ export default function WeddingLanding() {
               <h4
                 className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
                 style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
-              >
-                Manage & Update<br />Your Progress
-              </h4>
+                dangerouslySetInnerHTML={{ __html: t.landing.step3Title }}
+              />
             </div>
           </div>
         </div>
@@ -493,7 +527,7 @@ export default function WeddingLanding() {
               className="text-[41px] lg:text-[51px] font-normal leading-[100%] tracking-normal"
               style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#5D0F12' }}
             >
-              FEATURED VENDORS
+              {t.landing.featuredVendorsTitle}
             </h2>
           </div>
         </div>
@@ -587,10 +621,10 @@ export default function WeddingLanding() {
                 className="text-4xl md:text-5xl font-normal tracking-wide uppercase border-b-2 pb-2 inline-block text-left"
                 style={{ fontFamily: '"IM Fell French Canon", serif', color: '#5D0F12', borderColor: '#5D0F12' }}
               >
-                OUR VENDORS
+                {t.landing.ourVendorsTitle}
               </h3>
               <p className="text-sm text-muted-text text-left font-normal" style={{ fontFamily: '"Istok Web", sans-serif', lineHeight: '1.4' }}>
-                Access Hundreds of<br />Trusted Wedding Vendors
+                {t.landing.ourVendorsSubtitle}
               </p>
             </div>
           </div>
@@ -618,14 +652,13 @@ export default function WeddingLanding() {
                 <h4
                   className="text-3xl md:text-4xl font-normal leading-tight uppercase"
                   style={{ fontFamily: '"IM Fell French Canon", serif', color: '#5D0F12' }}
-                >
-                  BEHIND EVERY<br />PERFECT WEDDING
-                </h4>
+                  dangerouslySetInnerHTML={{ __html: t.landing.behindEveryTitle }}
+                />
                 <p
                   className="text-sm mt-4 text-muted-text font-normal"
                   style={{ fontFamily: '"Istok Web", sans-serif' }}
                 >
-                  Behind Every Perfect Wedding: Our Planning Process.
+                  {t.landing.behindEveryDesc}
                 </p>
               </div>
 
@@ -634,7 +667,7 @@ export default function WeddingLanding() {
                   className="px-8 py-3 rounded-full bg-sage-green text-cream font-bold text-sm tracking-wider uppercase hover:bg-sage-active transition-all duration-200 cursor-pointer shadow-md"
                   style={{ fontFamily: '"Istok Web", sans-serif' }}
                 >
-                  Detail &rarr;
+                  {t.landing.detailBtn}
                 </button>
               </div>
             </div>
@@ -648,9 +681,9 @@ export default function WeddingLanding() {
       <section id="testimonials" className="relative pt-20 pb-24 bg-sage-green overflow-visible">
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="text-center mb-20">
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: 'rgba(248,247,245,0.7)' }}>KIND WORDS</p>
+            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: 'rgba(248,247,245,0.7)' }}>{t.landing.testimonialsTag}</p>
             <h2 className="text-5xl lg:text-6xl font-serif" style={{ fontFamily: 'var(--font-serif)', color: '#FFEEB5' }}>
-              Loved by thousands
+              {t.landing.testimonialsTitle}
             </h2>
           </div>
 
@@ -664,7 +697,7 @@ export default function WeddingLanding() {
               {/* Column 1: Moves Up */}
               <div className="flex flex-col gap-6 overflow-hidden relative h-full">
                 <div className="flex flex-col gap-6 animate-marquee-up py-4">
-                  {[...col1Testimonials, ...col1Testimonials].map((item, idx) => (
+                  {[...activeCol1, ...activeCol1].map((item, idx) => (
                     <div
                       key={idx}
                       className="p-8 rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[220px]"
@@ -689,7 +722,7 @@ export default function WeddingLanding() {
               {/* Column 2: Moves Down */}
               <div className="hidden md:flex flex-col gap-6 overflow-hidden relative h-full">
                 <div className="flex flex-col gap-6 animate-marquee-down py-4">
-                  {[...col2Testimonials, ...col2Testimonials].map((item, idx) => (
+                  {[...activeCol2, ...activeCol2].map((item, idx) => (
                     <div
                       key={idx}
                       className="p-8 rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[220px]"
@@ -714,7 +747,7 @@ export default function WeddingLanding() {
               {/* Column 3: Moves Up */}
               <div className="hidden md:flex flex-col gap-6 overflow-hidden relative h-full">
                 <div className="flex flex-col gap-6 animate-marquee-up py-4">
-                  {[...col3Testimonials, ...col3Testimonials].map((item, idx) => (
+                  {[...activeCol3, ...activeCol3].map((item, idx) => (
                     <div
                       key={idx}
                       className="p-8 rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[220px]"
@@ -776,7 +809,7 @@ export default function WeddingLanding() {
             className="text-4xl sm:text-5xl md:text-6xl leading-[110%] uppercase mb-16"
             style={{ fontFamily: '"IM Fell French Canon", serif', fontWeight: 400, color: 'var(--color-ink)' }}
           >
-            Plan Your Perfect Day
+            {t.landing.ctaTitle}
           </h2>
 
           {/* Email form */}
@@ -789,7 +822,7 @@ export default function WeddingLanding() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder={t.landing.emailPlaceholder}
                 className="flex-1 py-4 bg-transparent text-sm text-ink placeholder-muted-text focus:outline-none"
                 style={{ fontFamily: '"Istok Web", sans-serif' }}
                 required
@@ -800,13 +833,13 @@ export default function WeddingLanding() {
               className="px-7 py-4 rounded-r-full bg-sage-green text-cream font-bold text-sm tracking-widest uppercase hover:bg-sage-active transition-all duration-200 cursor-pointer whitespace-nowrap"
               style={{ fontFamily: '"Istok Web", sans-serif' }}
             >
-              SIGN UP
+              {t.landing.signUpBtn}
             </button>
           </form>
 
           {submitted && (
             <p className="text-sm text-sage-green font-medium mt-4">
-              ✓ Check your email to begin your journey
+              {t.landing.emailSuccessMsg}
             </p>
           )}
         </div>
@@ -815,100 +848,7 @@ export default function WeddingLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="relative pt-20 pb-0 bg-sage-green overflow-visible">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-10 pb-16">
-            {/* Brand column */}
-            <div className="md:col-span-1 flex flex-col gap-5">
-              {/* Logo */}
-              <div
-                className="w-16 h-16 flex items-center justify-center border"
-                style={{ backgroundColor: '#f0e6d3', borderColor: '#c9a97a' }}
-              >
-                <span
-                  className="text-3xl"
-                  style={{ fontFamily: '"Burgues Script W00 Regular", cursive', color: '#5D0F12' }}
-                >
-                  P
-                </span>
-              </div>
-              <p
-                className="text-xs uppercase leading-relaxed tracking-wide"
-                style={{ fontFamily: '"Istok Web", sans-serif', fontWeight: 700, color: '#f8f7f5', opacity: 0.8 }}
-              >
-                Crafting Unforgettable<br />Wedding Experiences.
-              </p>
-              {/* Social icons */}
-              <div className="flex gap-3 mt-1">
-                {[
-                  // Facebook
-                  <svg key="fb" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" /></svg>,
-                  // Twitter
-                  <svg key="tw" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" /></svg>,
-                  // Instagram
-                  <svg key="ig" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" /></svg>,
-                ].map((icon, i) => (
-                  <a key={i} href="#" className="w-9 h-9 rounded-full flex items-center justify-center text-cream hover:opacity-80 transition-opacity" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
-                    {icon}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Nav columns */}
-            {[
-              {
-                heading: 'Product',
-                links: ['Features', 'Pricing', 'Case studies', 'Reviews', 'Updates'],
-              },
-              {
-                heading: 'Company',
-                links: ['About', 'Contact us', 'Careers', 'Blog'],
-              },
-              {
-                heading: 'Support',
-                links: ['Getting started', 'Help center', 'Server status', 'Report a bug', 'Chat support'],
-              },
-              {
-                heading: 'Downloads',
-                links: ['iOS', 'Android', 'Mac', 'Windows', 'Chrome'],
-              },
-            ].map((col) => (
-              <div key={col.heading}>
-                <h4
-                  className="text-sm font-bold mb-5 tracking-wide"
-                  style={{ fontFamily: '"Istok Web", sans-serif', color: '#f8f7f5' }}
-                >
-                  {col.heading}
-                </h4>
-                <ul className="space-y-3">
-                  {col.links.map((link) => (
-                    <li key={link}>
-                      <a
-                        href="#"
-                        className="text-sm hover:opacity-100 transition-opacity"
-                        style={{ fontFamily: '"Istok Web", sans-serif', color: 'rgba(248,247,245,0.65)' }}
-                      >
-                        {link}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom bar */}
-          <div className="border-t py-6 flex flex-col sm:flex-row items-center justify-center gap-2 text-xs" style={{ borderColor: 'rgba(248,247,245,0.15)', color: 'rgba(248,247,245,0.5)', fontFamily: '"Istok Web", sans-serif' }}>
-            <span>Copyright © 2023 BRIX Templates | All Rights Reserved |</span>
-            <div className="flex gap-2">
-              <a href="#" className="hover:opacity-100 underline" style={{ color: 'rgba(248,247,245,0.65)' }}>Terms and Conditions</a>
-              <span>|</span>
-              <a href="#" className="hover:opacity-100 underline" style={{ color: 'rgba(248,247,245,0.65)' }}>Privacy Policy</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

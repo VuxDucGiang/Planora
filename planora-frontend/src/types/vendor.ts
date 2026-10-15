@@ -10,6 +10,8 @@ export interface VendorResponse {
   totalReviews: number;
   styles: string[];
   primaryCategoryName?: string;
+  category?: string;
+  priceEst?: string;
   priceFrom?: number;
   priceTo?: number;
   imageUrl?: string;

@@ -21,7 +21,7 @@ export function formatDate(dateStr: string | null | undefined): string {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const y = date.getFullYear();
     return `${d}/${m}/${y}`;
-  } catch (e) {
+  } catch {
     return dateStr;
   }
 }
@@ -40,7 +40,7 @@ export function formatDateTime(dateTimeStr: string | null | undefined): string {
     
     const dateFormatted = formatDate(datePart);
     return timePart ? `${dateFormatted} ${timePart}` : dateFormatted;
-  } catch (e) {
+  } catch {
     return dateTimeStr;
   }
 }
@@ -77,7 +77,7 @@ export function toInputDateFormat(value: string | Date | null | undefined): stri
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
-  } catch (e) {
+  } catch {
     return '';
   }
 }

@@ -9,18 +9,15 @@ import type { ActivePlanResponse } from '@/types/weddingPlan';
 import type { VendorResponse } from '@/types/vendor';
 import {
   Calendar,
-  Users,
   DollarSign,
   Sparkles,
   Clock,
-  ChevronRight,
   Loader2,
   Plus,
   Heart,
   ListTodo,
   Edit3,
   Trash2,
-  Star,
   MessageCircle,
   Mail,
   AlertCircle,
@@ -32,6 +29,7 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import Link from 'next/link';
 import SavedVendorsCarousel from '@/components/dashboard/SavedVendorsCarousel';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ─── Circular Progress Ring Component ────────────────────────────
 function CircularProgress({
@@ -84,26 +82,11 @@ function CircularProgress({
   );
 }
 
-// ─── Star Rating Component ───────────────────────────────────────
-function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: max }, (_, i) => (
-        <Star
-          key={i}
-          className={`w-3 h-3 ${i < Math.round(rating)
-            ? 'text-gold fill-gold'
-            : 'text-hairline'
-            }`}
-        />
-      ))}
-    </div>
-  );
-}
 
 // ─── Main Dashboard Page ─────────────────────────────────────────
 export default function Home() {
   const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { language, t, formatCurrency } = useLanguage();
   const router = useRouter();
 
   const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
@@ -126,22 +109,22 @@ export default function Home() {
       setPlan(null);
       setSavedVendors([]);
       setShowDeleteModal(false);
-      setNotificationMessage('Kế hoạch cưới hiện tại đã được xóa thành công. Bạn có thể bắt đầu tạo kế hoạch mới!');
+      setNotificationMessage(t.dashboard.deleteSuccessMsg);
       setTimeout(() => {
         setNotificationMessage(null);
       }, 6000);
     } catch (err) {
-      console.error('Lỗi khi xóa kế hoạch cưới:', err);
-      setDeleteError(err instanceof Error ? err.message : 'Xóa kế hoạch cưới thất bại. Vui lòng thử lại!');
+      console.error('Error deleting wedding plan:', err);
+      setDeleteError(err instanceof Error ? err.message : t.dashboard.deleteErrorDefault);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Auth Redirection
+  // Auth Redirection: unauthenticated visitors access landing page by default
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.replace('/login');
+      router.replace('/landing');
     }
   }, [authLoading, isAuthenticated, router]);
 
@@ -165,7 +148,7 @@ export default function Home() {
           }
         }
       } catch (err) {
-        console.error('Không tìm thấy kế hoạch cưới hoạt động:', err);
+        console.error('Active plan not found:', err);
         setPlan(null);
       } finally {
         setIsLoadingPlan(false);
@@ -201,9 +184,9 @@ export default function Home() {
   // Greeting based on time
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t.dashboard.greetingMorning;
+    if (hour < 18) return t.dashboard.greetingAfternoon;
+    return t.dashboard.greetingEvening;
   };
 
   const displayName = user?.fullName || user?.email?.split('@')[0] || 'User';
@@ -213,7 +196,7 @@ export default function Home() {
       <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-text">Đang tải dữ liệu phiên làm việc...</span>
+          <span className="text-sm text-muted-text">{t.dashboard.loadingSession}</span>
         </div>
       </div>
     );
@@ -245,11 +228,11 @@ export default function Home() {
           {isLoadingPlan ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <span className="text-sm text-muted-text font-display">Đang tải kế hoạch đám cưới...</span>
+              <span className="text-sm text-muted-text font-display">{t.dashboard.loadingPlan}</span>
             </div>
           ) : (
             <>
-              <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-10 py-8">
+              <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8">
                 {/* ── Greeting Section ───────────────────────── */}
                 <div className="mb-8 animate-fade-in">
                   <h1
@@ -263,8 +246,8 @@ export default function Home() {
                     style={{ fontFamily: '"IM Fell French Canon", serif' }}
                   >
                     {plan
-                      ? 'Here is your wedding checklist overview for today.'
-                      : 'Chào mừng bạn đến với Planora. Hãy bắt đầu lập kế hoạch đám cưới!'}
+                      ? t.dashboard.overviewSubtitle
+                      : t.dashboard.welcomeSubtitle}
                   </p>
                 </div>
 
@@ -296,34 +279,33 @@ export default function Home() {
                         <Heart className="w-8 h-8 text-primary animate-pulse" />
                       </div>
                       <h2 className="text-xl font-display font-medium text-ink">
-                        Thiết kế đám cưới của bạn cùng Planora
+                        {t.dashboard.emptyCardTitle}
                       </h2>
                       <p className="text-sm text-muted-text max-w-md mx-auto leading-relaxed">
-                        Bắt đầu hành trình chuẩn bị cho ngày trọng đại. AI của Planora sẽ phân bổ ngân sách,
-                        lập danh sách công việc và dòng thời gian chỉ trong vài phút.
+                        {t.dashboard.emptyCardDesc}
                       </p>
                       <Link
                         href="/onboarding"
-                        className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-cream rounded-lg text-sm font-semibold hover:bg-primary-active transition-all shadow-md"
+                        className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-cream rounded-lg text-sm font-semibold hover:bg-primary-active transition-all shadow-md uppercase tracking-wider"
                       >
                         <Plus className="w-4 h-4" />
-                        Bắt đầu lập kế hoạch cưới
+                        {t.dashboard.emptyCardBtn}
                       </Link>
                     </div>
 
                     {/* Feature Showcase - Empty State */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {[
-                        { icon: <DollarSign className="w-5 h-5" />, title: 'Phân bổ ngân sách', desc: 'Tự động phân chia chi phí chi tiết' },
-                        { icon: <ListTodo className="w-5 h-5" />, title: 'Checklist nhiệm vụ', desc: 'Danh sách công việc chuẩn bị cưới' },
-                        { icon: <Calendar className="w-5 h-5" />, title: 'Dòng thời gian', desc: 'Mốc lịch trình trước ngày cưới' },
-                        { icon: <Sparkles className="w-5 h-5" />, title: 'Gợi ý Concept', desc: 'Ý tưởng thiết kế phù hợp phong cách' },
+                        { icon: <DollarSign className="w-5 h-5" />, title: t.dashboard.featBudgetTitle, desc: t.dashboard.featBudgetDesc },
+                        { icon: <ListTodo className="w-5 h-5" />, title: t.dashboard.featChecklistTitle, desc: t.dashboard.featChecklistDesc },
+                        { icon: <Calendar className="w-5 h-5" />, title: t.dashboard.featTimelineTitle, desc: t.dashboard.featTimelineDesc },
+                        { icon: <Sparkles className="w-5 h-5" />, title: t.dashboard.featConceptTitle, desc: t.dashboard.featConceptDesc },
                       ].map((feat) => (
                         <div key={feat.title} className="bg-white border border-hairline rounded-lg p-5 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow">
                           <div className="p-2 rounded-md bg-primary/10 text-primary shrink-0">{feat.icon}</div>
                           <div>
-                            <h4 className="text-xs font-bold text-ink">{feat.title}</h4>
-                            <p className="text-[11px] text-muted-text mt-0.5">{feat.desc}</p>
+                            <h4 className="text-sm font-bold text-ink">{feat.title}</h4>
+                            <p className="text-xs text-muted-text mt-0.5">{feat.desc}</p>
                           </div>
                         </div>
                       ))}
@@ -343,15 +325,15 @@ export default function Home() {
                           style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                         >
                           <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
-                          WEDDING SUMMARY CARD
+                          {t.dashboard.summaryCardTitle}
                         </h2>
                         <div className="flex items-center gap-2">
                           <Link
                             href="/onboarding"
-                            className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/20 bg-primary/5 hover:bg-primary/10 px-3.5 py-1.5 rounded-md transition-colors"
+                            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary border border-primary/20 bg-primary/5 hover:bg-primary/10 px-3.5 py-1.5 rounded-full transition-colors uppercase tracking-wider"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
-                            CHỈNH SỬA
+                            {t.dashboard.editPlanBtn}
                           </Link>
                           <button
                             type="button"
@@ -359,31 +341,31 @@ export default function Home() {
                               setDeleteError(null);
                               setShowDeleteModal(true);
                             }}
-                            className="flex items-center gap-1.5 text-xs font-semibold text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 hover:border-rose-300 px-3.5 py-1.5 rounded-md transition-all shadow-xs cursor-pointer"
-                            title="Xóa kế hoạch cưới hiện tại"
+                            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 hover:border-rose-300 px-3.5 py-1.5 rounded-full transition-all shadow-xs cursor-pointer uppercase tracking-wider"
+                            title={t.dashboard.deletePlanBtn}
                           >
                             <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                            XÓA KẾ HOẠCH
+                            {t.dashboard.deletePlanBtn}
                           </button>
                         </div>
                       </div>
 
                       {/* Info Row */}
-                      <div className="flex flex-wrap gap-x-8 gap-y-2.5 text-sm text-body-text mb-5 pb-4 border-b border-hairline">
+                      <div className="flex flex-wrap gap-x-8 gap-y-2.5 text-sm sm:text-base text-body-text mb-5 pb-4 border-b border-hairline">
                         <div>
-                          <span className="text-muted-text">Style: </span>
+                          <span className="text-muted-text">{t.dashboard.styleLabel}: </span>
                           <span className="font-semibold text-ink">
                             {plan.conceptSuggestions?.[0]?.conceptName || 'Modern Rustic'}
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-text">Budget: </span>
+                          <span className="text-muted-text">{t.dashboard.budgetLabel}: </span>
                           <span className="font-semibold text-ink font-mono">
-                            {plan.budget.toLocaleString('vi-VN')} ₫
+                            {formatCurrency(plan.budget)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-text">Guests: </span>
+                          <span className="text-muted-text">{t.dashboard.guestsLabel}: </span>
                           <span className="font-semibold text-ink">{plan.guestCount}</span>
                         </div>
                       </div>
@@ -391,12 +373,12 @@ export default function Home() {
                       {/* Countdown Bar */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs sm:text-sm font-semibold text-ink flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-muted-text" />
-                            Countdown
+                          <span className="text-sm sm:text-base font-semibold text-ink flex items-center gap-1.5">
+                            <Clock className="w-4 h-4 text-muted-text" />
+                            {t.dashboard.countdownLabel}
                           </span>
-                          <span className="text-sm font-bold text-primary">
-                            {timeLeft.days} Days Remaining
+                          <span className="text-base sm:text-lg font-bold text-primary">
+                            {t.dashboard.daysRemainingFormat.replace('{days}', String(timeLeft.days))}
                           </span>
                         </div>
                         <div className="w-full h-[18px] bg-lace rounded-full overflow-hidden border border-lace-dark/30">
@@ -423,14 +405,16 @@ export default function Home() {
                           style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                         >
                           <ListTodo className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
-                          PROGRESS TRACKER
+                          {t.dashboard.progressTrackerTitle}
                         </h3>
 
                         <div className="space-y-4">
                           {/* Checklist Tasks */}
                           <div>
-                            <div className="flex justify-between text-xs sm:text-sm mb-1.5">
-                              <span className="font-semibold text-ink">Checklist Tasks ({checklistPercent}% Completed)</span>
+                            <div className="flex justify-between text-sm sm:text-base mb-1.5">
+                              <span className="font-semibold text-ink">
+                                {t.dashboard.checklistProgressFormat.replace('{percent}', String(checklistPercent))}
+                              </span>
                             </div>
                             <div className="w-full h-3 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
                               <div
@@ -438,15 +422,19 @@ export default function Home() {
                                 style={{ width: `${checklistPercent}%` }}
                               />
                             </div>
-                            <p className="text-xs text-muted-text mt-1.5 italic">
-                              ✓ {completedTasks} of {totalTasks} tasks completed
+                            <p className="text-sm text-muted-text mt-1.5 italic">
+                              {t.dashboard.checklistCompletedFormat
+                                .replace('{completed}', String(completedTasks))
+                                .replace('{total}', String(totalTasks))}
                             </p>
                           </div>
 
                           {/* Timeline Milestones */}
                           <div>
-                            <div className="flex justify-between text-xs sm:text-sm mb-1.5">
-                              <span className="font-semibold text-ink">Timeline Milestones ({timelinePercent}% On Track)</span>
+                            <div className="flex justify-between text-sm sm:text-base mb-1.5">
+                              <span className="font-semibold text-ink">
+                                {t.dashboard.timelineProgressFormat.replace('{percent}', String(timelinePercent))}
+                              </span>
                             </div>
                             <div className="w-full h-3 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
                               <div
@@ -465,7 +453,7 @@ export default function Home() {
                           style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                         >
                           <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
-                          BUDGET & SPENDING
+                          {t.dashboard.budgetOverviewTitle}
                         </h3>
 
                         <div className="flex items-center gap-6">
@@ -477,40 +465,42 @@ export default function Home() {
                             color="var(--color-primary)"
                           >
                             <div className="text-center">
-                              <span className="text-sm font-bold text-ink block">Total</span>
+                              <span className="text-sm font-bold text-ink block">
+                                {language === 'vi' ? 'Tổng' : 'Total'}
+                              </span>
                               <span className="text-xs font-bold text-primary font-mono">
-                                {plan.budget.toLocaleString('vi-VN')} ₫
+                                {formatCurrency(plan.budget)}
                               </span>
                             </div>
                           </CircularProgress>
 
                           {/* Legend */}
                           <div className="space-y-3 flex-1">
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between text-sm sm:text-base">
                               <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-primary" />
-                                <span className="text-body-text">Spent</span>
+                                <span className="text-body-text">{t.dashboard.budgetSpent}</span>
                               </div>
                               <span className="font-bold text-ink font-mono">
-                                {totalSpent.toLocaleString('vi-VN')} ₫
+                                {formatCurrency(totalSpent)}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between text-sm sm:text-base">
                               <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-gold" />
-                                <span className="text-body-text">Booked</span>
+                                <span className="text-body-text">{t.dashboard.budgetAllocated}</span>
                               </div>
                               <span className="font-bold text-ink font-mono">
-                                {totalAllocated.toLocaleString('vi-VN')} ₫
+                                {formatCurrency(totalAllocated)}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between text-sm sm:text-base">
                               <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-hairline" />
-                                <span className="text-body-text">Remaining</span>
+                                <span className="text-body-text">{t.dashboard.budgetRemaining}</span>
                               </div>
                               <span className="font-bold text-ink font-mono">
-                                {Math.max(0, budgetRemaining).toLocaleString('vi-VN')} ₫
+                                {formatCurrency(Math.max(0, budgetRemaining))}
                               </span>
                             </div>
                           </div>
@@ -532,34 +522,42 @@ export default function Home() {
                     <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-4">
                       <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
                         <MessageCircle className="w-4 h-4 text-primary" />
-                        INQUIRY STATUS
+                        {language === 'vi' ? 'TRẠNG THÁI YÊU CẦU' : 'INQUIRY STATUS'}
                       </h3>
 
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
                         {/* Open Message Center Button */}
                         <Link
                           href="#messages"
-                          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-cream rounded-lg text-xs font-semibold hover:bg-primary-active transition-colors shadow-sm"
+                          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-cream rounded-lg text-xs font-semibold hover:bg-primary-active transition-colors shadow-sm uppercase tracking-wider"
                         >
                           <Mail className="w-3.5 h-3.5" />
-                          OPEN MESSAGE CENTER
+                          {language === 'vi' ? 'MỞ TRUNG TÂM TIN NHẮN' : 'OPEN MESSAGE CENTER'}
                         </Link>
 
                         {/* Stats */}
                         <div className="flex gap-6 text-xs">
                           <div className="flex items-center gap-2">
                             <Send className="w-3.5 h-3.5 text-muted-text" />
-                            <span className="text-body-text">Sent Requests</span>
+                            <span className="text-body-text">
+                              {language === 'vi' ? 'Yêu cầu đã gửi' : 'Sent Requests'}
+                            </span>
                             <span className="font-bold text-ink">{savedVendors.length}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-body-text">Vendor Responses</span>
-                            <span className="font-bold text-primary">0 NEW</span>
+                            <span className="text-body-text">
+                              {language === 'vi' ? 'Phản hồi từ đối tác' : 'Vendor Responses'}
+                            </span>
+                            <span className="font-bold text-primary">
+                              {language === 'vi' ? '0 MỚI' : '0 NEW'}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <AlertCircle className="w-3.5 h-3.5 text-gold" />
-                            <span className="text-body-text">No Reply Yet</span>
+                            <span className="text-body-text">
+                              {language === 'vi' ? 'Chưa phản hồi' : 'No Reply Yet'}
+                            </span>
                             <span className="font-bold text-ink">0</span>
                           </div>
                         </div>
@@ -579,13 +577,13 @@ export default function Home() {
                         <Trash2 className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-ink">Xác nhận xóa kế hoạch cưới?</h3>
-                        <p className="text-xs text-muted-text mt-0.5">Thao tác này sẽ xóa vĩnh viễn dữ liệu hiện tại.</p>
+                        <h3 className="text-base font-bold text-ink">{t.dashboard.deleteModalTitle}</h3>
+                        <p className="text-xs text-muted-text mt-0.5">{t.dashboard.deleteModalWarning}</p>
                       </div>
                     </div>
 
                     <p className="text-xs text-body-text leading-relaxed bg-rose-50/60 p-3.5 rounded-xl border border-rose-100">
-                      Toàn bộ dữ liệu kế hoạch cưới bao gồm <strong>dự toán 10 hạng mục ngân sách, lộ trình công việc checklist, kịch bản ngày cưới và danh sách vendor đã lưu</strong> sẽ bị xóa khỏi tài khoản của bạn.
+                      {t.dashboard.deleteModalNotice}
                     </p>
 
                     {deleteError && (
@@ -602,7 +600,7 @@ export default function Home() {
                         onClick={() => setShowDeleteModal(false)}
                         className="px-4 py-2 text-xs font-semibold text-body-text hover:bg-canvas rounded-lg border border-hairline transition-all cursor-pointer"
                       >
-                        Hủy bỏ
+                        {t.dashboard.deleteModalCancel}
                       </button>
                       <button
                         type="button"
@@ -613,12 +611,12 @@ export default function Home() {
                         {isDeleting ? (
                           <>
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            Đang xóa...
+                            {t.common.deleting}
                           </>
                         ) : (
                           <>
                             <Trash2 className="w-3.5 h-3.5" />
-                            Xác nhận xóa
+                            {t.dashboard.deleteModalConfirm}
                           </>
                         )}
                       </button>

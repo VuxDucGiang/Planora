@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getActivePlan } from '@/services/weddingPlan';
 import { getVendorDetail, getShortlist, addToShortlist, removeFromShortlist } from '@/services/vendor';
@@ -25,6 +24,7 @@ import {
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -35,7 +35,7 @@ export default function VendorDetail(props: PageProps) {
   const vendorId = parseInt(params.id);
 
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
-  const router = useRouter();
+  const { language, t, formatCurrency } = useLanguage();
 
   // Data States
   const [vendor, setVendor] = useState<VendorDetailResponse | null>(null);
@@ -123,7 +123,7 @@ export default function VendorDetail(props: PageProps) {
       <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-text">Đang tải dữ liệu phiên làm việc...</span>
+          <span className="text-sm text-muted-text">{t.dashboard.loadingSession}</span>
         </div>
       </div>
     );
@@ -134,7 +134,7 @@ export default function VendorDetail(props: PageProps) {
       <div className="min-h-screen bg-canvas flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-text font-display">Đang tải hồ sơ nhà cung cấp...</span>
+          <span className="text-sm text-muted-text font-display">{t.marketplace.loadingDetail}</span>
         </div>
       </div>
     );
@@ -147,7 +147,6 @@ export default function VendorDetail(props: PageProps) {
   const min = (vendor.priceFrom !== undefined && vendor.priceFrom !== null) ? vendor.priceFrom : fallbackPrice.min;
   const max = (vendor.priceTo !== undefined && vendor.priceTo !== null) ? vendor.priceTo : fallbackPrice.max;
   const imageUrls = fallbackMeta.imageUrls;
-  const formatCurrency = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫';
 
   // Portfolio carousel images
   const carouselImages = vendor.portfolios && vendor.portfolios.length > 0
@@ -215,7 +214,7 @@ export default function VendorDetail(props: PageProps) {
                     {vendor.businessName}
                   </h1>
                   <div className="inline-block bg-gold/15 border border-gold/30 text-primary text-[9px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full">
-                    AI Choice
+                    {t.marketplace.aiChoice}
                   </div>
                 </div>
 
@@ -230,7 +229,7 @@ export default function VendorDetail(props: PageProps) {
                     <span className="text-xs font-bold text-ink">({vendor.ratingAverage})</span>
                   </div>
                   <span className="text-[10px] text-muted-text font-bold uppercase tracking-wide">
-                    [{vendor.totalReviews} Reviews]
+                    [{vendor.totalReviews} {t.marketplace.reviewsText}]
                   </span>
                 </div>
 
@@ -238,11 +237,15 @@ export default function VendorDetail(props: PageProps) {
                 <div className="space-y-3.5 text-left text-xs max-w-xs mx-auto">
                   <div className="flex items-center gap-3.5 text-body-text">
                     <MapPin className="w-4 h-4 text-primary shrink-0" />
-                    <span>{vendor.district}, {vendor.city}, Vietnam</span>
+                    <span>{vendor.district}, {vendor.city}, {language === 'vi' ? 'Việt Nam' : 'Vietnam'}</span>
                   </div>
                   <div className="flex items-center gap-3.5 text-body-text">
                     <Camera className="w-4 h-4 text-primary shrink-0" />
-                    <span className="capitalize">{category} &amp; Videography</span>
+                    <span className="capitalize">
+                      {language === 'vi' 
+                        ? `${category.toLowerCase().includes('ảnh') || category.toLowerCase().includes('photo') ? 'Nhiếp ảnh' : category} & Quay phim`
+                        : `${category} & Videography`}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3.5 text-body-text">
                     <Coins className="w-4 h-4 text-primary shrink-0" />
@@ -257,10 +260,12 @@ export default function VendorDetail(props: PageProps) {
             {/* Right About Info */}
             <div className="lg:col-span-7 pt-4 lg:pt-16 space-y-4">
               <div className="inline-block bg-primary text-cream text-[10px] font-bold uppercase tracking-[0.2em] px-5 py-2 rounded-full">
-                About the Vendor
+                {t.marketplace.aboutVendorTitle}
               </div>
               <p className="text-sm text-body-text leading-relaxed font-serif">
-                {vendor.description || `Với hơn ${vendor.experienceYears} năm kinh nghiệm ghi lại những khoảnh khắc tình yêu đẹp nhất, ${vendor.businessName} tự hào mang đến phong cách dịch vụ cưới chuyên nghiệp, tinh tế hàng đầu tại Việt Nam.`}
+                {vendor.description || (language === 'vi' 
+                  ? `Với hơn ${vendor.experienceYears} năm kinh nghiệm ghi lại những khoảnh khắc tình yêu đẹp nhất, ${vendor.businessName} tự hào mang đến phong cách dịch vụ cưới chuyên nghiệp, tinh tế hàng đầu tại Việt Nam.`
+                  : `With over ${vendor.experienceYears} years of experience capturing the most beautiful love stories, ${vendor.businessName} proudly delivers premier, sophisticated wedding services.`)}
               </p>
             </div>
 
@@ -287,7 +292,7 @@ export default function VendorDetail(props: PageProps) {
               <div className="space-y-6">
                 <div className="flex items-center gap-2 border-b border-hairline pb-3">
                   <Camera className="w-5 h-5 text-primary" />
-                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">Portfolio / Gallery</h3>
+                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">{t.marketplace.portfolioTitle}</h3>
                 </div>
 
                 {/* Arched Framed Carousel */}
@@ -307,7 +312,7 @@ export default function VendorDetail(props: PageProps) {
                       <button 
                         onClick={prevImage}
                         className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors"
-                        aria-label="Previous image"
+                        aria-label={language === 'vi' ? 'Ảnh trước' : 'Previous image'}
                       >
                         <ChevronLeft className="w-5 h-5" />
                       </button>
@@ -316,7 +321,7 @@ export default function VendorDetail(props: PageProps) {
                       <button 
                         onClick={nextImage}
                         className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors"
-                        aria-label="Next image"
+                        aria-label={language === 'vi' ? 'Ảnh tiếp' : 'Next image'}
                       >
                         <ChevronRight className="w-5 h-5" />
                       </button>
@@ -340,7 +345,7 @@ export default function VendorDetail(props: PageProps) {
               <div className="space-y-6">
                 <div className="flex items-center gap-2 border-b border-hairline pb-3">
                   <Coins className="w-5 h-5 text-primary" />
-                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">Services &amp; Pricing</h3>
+                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">{t.marketplace.servicesPricingTitle}</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -348,7 +353,7 @@ export default function VendorDetail(props: PageProps) {
                   {/* Premium Package Card */}
                   <div className="bg-primary text-cream rounded-[24px] p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
                     <div className="absolute top-0 right-0 bg-gold text-primary font-bold text-[8px] uppercase tracking-wider py-1 px-3.5 rounded-bl-lg">
-                      Popular
+                      {t.marketplace.popularTag}
                     </div>
                     <div className="space-y-4">
                       <div className="border-b border-cream/15 pb-4 space-y-1">
@@ -357,21 +362,21 @@ export default function VendorDetail(props: PageProps) {
                           {formatCurrency(max)}
                         </h4>
                         <p className="text-xs text-cream/70 font-display">
-                          Comprehensive Pre-Wedding &amp; Ceremony
+                          {language === 'vi' ? 'Gói trọn gói Ngày cưới & Phóng sự' : 'Comprehensive Pre-Wedding & Ceremony'}
                         </p>
                       </div>
                       <ul className="space-y-2.5 text-xs text-cream/90">
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>1 Lead Photographer + 1 Videographer</span>
+                          <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính + 1 Quay phim' : '1 Lead Photographer + 1 Videographer'}</span>
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>10-hour coverage / All files + Album</span>
+                          <span>{language === 'vi' ? 'Tác nghiệp 10 giờ / Toàn bộ file gốc + Album' : '10-hour coverage / All files + Album'}</span>
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>Premium photo editing &amp; drone footage</span>
+                          <span>{language === 'vi' ? 'Chỉnh màu cao cấp & Quay flycam' : 'Premium photo editing & drone footage'}</span>
                         </li>
                       </ul>
                     </div>
@@ -383,7 +388,7 @@ export default function VendorDetail(props: PageProps) {
                       }}
                       className="w-full mt-6 py-2.5 bg-cream hover:bg-warm-white text-primary text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
                     >
-                      Inquire Now
+                      {t.marketplace.inquireNow}
                     </button>
                   </div>
 
@@ -396,21 +401,21 @@ export default function VendorDetail(props: PageProps) {
                           {formatCurrency(min)}
                         </h4>
                         <p className="text-xs text-muted-text">
-                          Journalistic Wedding Day
+                          {language === 'vi' ? 'Phóng sự cưới ngày chính lễ' : 'Journalistic Wedding Day'}
                         </p>
                       </div>
                       <ul className="space-y-2.5 text-xs text-body-text">
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>1 Lead Photographer</span>
+                          <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính' : '1 Lead Photographer'}</span>
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>4-hour coverage / High-res digital files</span>
+                          <span>{language === 'vi' ? 'Tác nghiệp 4 giờ / File số chất lượng cao' : '4-hour coverage / High-res digital files'}</span>
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>Basic retouching of 150 select photos</span>
+                          <span>{language === 'vi' ? 'Hậu kỳ cơ bản 150 hình ảnh chọn lọc' : 'Basic retouching of 150 select photos'}</span>
                         </li>
                       </ul>
                     </div>
@@ -422,7 +427,7 @@ export default function VendorDetail(props: PageProps) {
                       }}
                       className="w-full mt-6 py-2.5 bg-primary hover:bg-primary-active text-cream text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
                     >
-                      Inquire Now
+                      {t.marketplace.inquireNow}
                     </button>
                   </div>
 
@@ -436,13 +441,13 @@ export default function VendorDetail(props: PageProps) {
               <div className="border-b border-cream/15 pb-4 space-y-1">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gold-light" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-gold-light font-display">Send Inquiry</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gold-light font-display">{t.marketplace.sendInquiryTitle}</h3>
                 </div>
                 <h4 className="text-lg font-semibold tracking-tight text-cream mt-2 font-display">
                   {vendor.businessName}
                 </h4>
                 <p className="text-[10px] text-cream/60">
-                  Starting from: {formatCurrency(min)} / Premium: {formatCurrency(max)}
+                  {t.marketplace.startingFrom}: {formatCurrency(min)} / Premium: {formatCurrency(max)}
                 </p>
               </div>
 
@@ -452,7 +457,7 @@ export default function VendorDetail(props: PageProps) {
                 {/* Date Input */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-cream/70 uppercase tracking-wider block">
-                    Select Wedding Date
+                    {t.marketplace.selectWeddingDate}
                   </label>
                   <div className="relative">
                     <input 
@@ -469,12 +474,12 @@ export default function VendorDetail(props: PageProps) {
                 {/* Guest Count Input */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-cream/70 uppercase tracking-wider block">
-                    Estimated Guests
+                    {t.marketplace.estimatedGuests}
                   </label>
                   <div className="relative">
                     <input 
                       type="number" 
-                      placeholder="e.g. 150"
+                      placeholder={language === 'vi' ? 'VD: 150 khách' : 'e.g. 150'}
                       required
                       value={guestCount}
                       onChange={e => setGuestCount(e.target.value)}
@@ -487,7 +492,7 @@ export default function VendorDetail(props: PageProps) {
                 {/* Form Message States */}
                 {inquirySuccess && (
                   <div className="p-3 bg-green-500/20 border border-green-500/30 text-green-200 text-[11px] rounded-lg animate-fade-in leading-relaxed">
-                    ✓ Gửi yêu cầu tư vấn thành công! Nhà cung cấp sẽ liên hệ với bạn qua email/sđt sớm nhất.
+                    {t.marketplace.inquirySuccessMsg}
                   </div>
                 )}
 
@@ -502,7 +507,7 @@ export default function VendorDetail(props: PageProps) {
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      Gửi yêu cầu tư vấn
+                      {t.marketplace.submitInquiryBtn}
                     </>
                   )}
                 </button>
@@ -516,11 +521,11 @@ export default function VendorDetail(props: PageProps) {
               <div className="space-y-2.5">
                 <button
                   type="button"
-                  onClick={() => alert('Chức năng Chat trực tiếp đang được kết nối với trung tâm tin nhắn...')}
+                  onClick={() => alert(language === 'vi' ? 'Chức năng Chat trực tiếp đang được kết nối với trung tâm tin nhắn...' : 'Live Chat is currently connecting to the messaging center...')}
                   className="w-full py-2 bg-cream/15 border border-cream/20 hover:bg-cream/25 text-cream text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <MessageSquare className="w-3.5 h-3.5 text-gold-light" />
-                  Chat trực tiếp
+                  {t.marketplace.directChatBtn}
                 </button>
                 
                 <button
@@ -530,7 +535,7 @@ export default function VendorDetail(props: PageProps) {
                   className="w-full py-2 bg-cream/15 border border-cream/20 hover:bg-cream/25 text-cream text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   <Heart className={`w-3.5 h-3.5 text-gold-light ${isSaved ? 'fill-gold-light' : ''}`} />
-                  {isSaved ? 'Shortlisted' : 'Add to Shortlist'}
+                  {isSaved ? t.marketplace.shortlistBtnSaved : t.marketplace.shortlistBtnAdd}
                 </button>
               </div>
 
@@ -543,16 +548,18 @@ export default function VendorDetail(props: PageProps) {
         <div className="w-full py-16 bg-primary text-cream relative">
           <div className="max-w-4xl mx-auto px-4 text-center space-y-8">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gold-light uppercase tracking-widest block">Services</span>
+              <span className="text-[10px] font-bold text-gold-light uppercase tracking-widest block">{t.marketplace.servicesTag}</span>
               <h3 className="text-xl sm:text-2xl font-semibold tracking-tight uppercase font-display">
-                Our Client Feedback
+                {t.marketplace.clientFeedbackTitle}
               </h3>
             </div>
 
             {/* Testimonial Card */}
             <div className="bg-white text-body-text rounded-[28px] p-8 max-w-2xl mx-auto shadow-2xl space-y-6 relative border border-hairline/10 animate-fade-in">
               <p className="text-xs sm:text-sm font-serif italic leading-relaxed text-ink/90">
-                "Planning our wedding felt overwhelming at first, but Planora made everything so much easier. The personalized checklist kept us organized, and the vendor recommendations matched our style perfectly. The AI planning features saved us countless hours of research. From budgeting to finding the right photographer and florist, Planora helped us map out every step of the way!"
+                {language === 'vi'
+                  ? '"Lên kế hoạch cưới ban đầu thật sự choáng ngợp, nhưng Planora đã khiến mọi thứ trở nên nhẹ nhàng hơn rất nhiều. Danh sách việc cần làm được cá nhân hóa giúp chúng tôi luôn chuẩn bị đúng hạn, và các gợi ý nhà cung cấp hoàn toàn đúng gu của hai vợ chồng. Tính năng lên kế hoạch thông minh đã tiết kiệm cho chúng tôi vô số thời gian."'
+                  : '"Planning our wedding felt overwhelming at first, but Planora made everything so much easier. The personalized checklist kept us organized, and the vendor recommendations matched our style perfectly. The AI planning features saved us countless hours of research. From budgeting to finding the right photographer and florist, Planora helped us map out every step of the way!"'}
               </p>
               
               <div className="flex flex-col items-center justify-center gap-2">
@@ -591,25 +598,25 @@ export default function VendorDetail(props: PageProps) {
           <div className="space-y-1">
             <span className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] block">Planora</span>
             <h3 className="text-2xl font-serif text-ink tracking-wide">
-              PLAN YOUR PERFECT DAY
+              {t.landing.ctaTitle.toUpperCase()}
             </h3>
             <p className="text-[11px] text-muted-text max-w-xs mx-auto leading-relaxed">
-              Crafting unforgettable wedding experiences.
+              {t.landing.howItWorksSubtitle}
             </p>
           </div>
 
           <div className="max-w-md mx-auto px-4 flex gap-2">
             <input 
               type="email" 
-              placeholder="Enter your email"
+              placeholder={t.landing.emailPlaceholder}
               className="flex-1 bg-white border border-hairline rounded-sm px-4 py-2.5 text-xs text-ink focus:outline-none focus:border-primary shadow-xs"
             />
             <button 
               type="button"
-              onClick={() => alert('Cảm ơn bạn đã đăng ký nhận thông tin từ Planora!')}
+              onClick={() => alert(language === 'vi' ? 'Cảm ơn bạn đã đăng ký nhận thông tin từ Planora!' : 'Thank you for subscribing to Planora updates!')}
               className="px-6 py-2.5 bg-primary hover:bg-primary-active text-cream text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors shadow-sm cursor-pointer"
             >
-              Sign Up
+              {t.landing.signUpBtn}
             </button>
           </div>
         </div>
