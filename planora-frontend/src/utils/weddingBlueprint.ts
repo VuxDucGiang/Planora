@@ -33,7 +33,7 @@ export function calculateLiveInsights(
   guestCountOrBudget: number, 
   budgetOrGuestCount?: number, 
   selectedCategoryIds: number[] = [], 
-  availableCategories: ServiceCategory[] = []
+  _availableCategories: ServiceCategory[] = []
 ): LiveInsights {
   let budget = 200000000;
   let guests = 100;
@@ -58,10 +58,11 @@ export function calculateLiveInsights(
   const safeGuests = Math.max(10, guests || 100);
 
   const estimatedTables = Math.ceil(safeGuests / 10) + 1; // +1 bàn dự phòng
-  const costPerGuest = Math.round(safeBudget / safeGuests);
-  const venueBudget = Math.round(safeBudget * 0.45);
-  const estimatedTableCost = Math.round(venueBudget / estimatedTables);
-  const contingencyReserve = Math.round(safeBudget * 0.04);
+  const roundUnit = safeBudget >= 50000000 ? 500000 : 100000;
+  const costPerGuest = Math.round((safeBudget / safeGuests) / 50000) * 50000;
+  const venueBudget = Math.round((safeBudget * 0.45) / roundUnit) * roundUnit;
+  const estimatedTableCost = Math.round((venueBudget / estimatedTables) / 100000) * 100000;
+  const contingencyReserve = Math.round((safeBudget * 0.04) / roundUnit) * roundUnit;
 
   let tierName = 'Nhà hàng tiệc cưới tiêu chuẩn ấm cúng';
   let tierBadge = 'Standard Elegance';
@@ -154,7 +155,7 @@ export function generateSmartBlueprint(
   ];
 
   // Calculate adjusted weights based on user priority selections
-  let adjustedWeights = rawCategories.map(cat => {
+  const adjustedWeights = rawCategories.map(cat => {
     const isPriority = priorityCategoryNames.some(p => cat.name.toLowerCase().includes(p) || cat.matchKeyword.includes(p));
     return {
       ...cat,
@@ -164,14 +165,27 @@ export function generateSmartBlueprint(
   });
 
   const sumW = adjustedWeights.reduce((sum, c) => sum + c.weight, 0);
-  const budgetItems: BudgetItemSummary[] = adjustedWeights.map(cat => {
+  const roundUnit = totalBudget >= 50000000 ? 500000 : 100000;
+  let allocatedSoFar = 0;
+
+  const budgetItems: BudgetItemSummary[] = adjustedWeights.map((cat, idx) => {
     const normWeight = cat.weight / sumW;
-    const estimatedCost = Math.round(totalBudget * normWeight);
+    let estimatedCost: number;
+
+    if (idx === adjustedWeights.length - 1) {
+      // Hạng mục cuối cùng cân bằng phần chênh lệch để tổng bằng chính xác 100% totalBudget
+      estimatedCost = Math.max(roundUnit, totalBudget - allocatedSoFar);
+    } else {
+      const rawCost = totalBudget * normWeight;
+      estimatedCost = Math.max(roundUnit, Math.round(rawCost / roundUnit) * roundUnit);
+      allocatedSoFar += estimatedCost;
+    }
+
     return {
       categoryName: cat.name,
       estimatedCost,
       actualCost: 0,
-      percentage: Math.round(normWeight * 1000) / 10,
+      percentage: Math.round((estimatedCost / totalBudget) * 1000) / 10,
       isPriority: cat.isPriority,
       note: cat.isPriority ? `⭐ Hạng mục ưu tiên (+25% định mức chất lượng cao) — ${cat.description}` : cat.description
     };

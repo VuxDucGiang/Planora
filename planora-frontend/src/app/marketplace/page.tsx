@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { getActivePlan, getServiceCategories, getWeddingStyles } from '@/services/weddingPlan';
+import { usePlan } from '@/contexts/PlanContext';
 import { 
   getVendors, 
   getVendorDetail, 
@@ -16,7 +16,6 @@ import type {
   VendorResponse, 
   VendorDetailResponse 
 } from '@/types/vendor';
-import type { ServiceCategory, WeddingStyle, ActivePlanResponse } from '@/types/weddingPlan';
 import { 
   Search, 
   Heart, 
@@ -34,6 +33,7 @@ import {
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Seed sample vendors with high quality photography to guarantee a full grid matching the dashboard design
 const SEED_EDITORIAL_VENDORS: Array<{
@@ -149,6 +149,49 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1537633552985-df8429e8048b?q=80&w=600',
 ];
 
+// Helper: Translate category to active language
+function translateCategory(categoryName: string | undefined, lang: 'vi' | 'en'): string {
+  if (!categoryName) return lang === 'vi' ? 'DỊCH VỤ CƯỚI' : 'WEDDING SERVICE';
+  const upper = categoryName.toUpperCase().trim();
+  const mapViToEn: Record<string, string> = {
+    'DỊCH VỤ CƯỚI': 'WEDDING SERVICE',
+    'CHỤP ẢNH': 'PHOTOGRAPHY',
+    'NHIẾP ẢNH': 'PHOTOGRAPHY',
+    'TRANG TRÍ': 'DECORATION',
+    'TRANG TRÍ & HOA CƯỚI': 'DECORATION & FLORAL',
+    'VÁY CƯỚI': 'BRIDAL ATTIRE',
+    'ÁO CƯỚI': 'BRIDAL ATTIRE',
+    'TRỌN GÓI': 'FULL PACKAGE',
+    'QUAY PHIM': 'VIDEOGRAPHY',
+    'MAKEUP ARTIST': 'MAKEUP ARTIST',
+    'TRANG ĐIỂM': 'MAKEUP ARTIST',
+    'NHÀ HÀNG': 'VENUE & CATERING',
+    'ĐỊA ĐIỂM CƯỚI': 'WEDDING VENUE',
+    'VENUE': 'VENUE',
+    'CATERING': 'CATERING',
+    'PHOTOGRAPHY': 'PHOTOGRAPHY',
+    'DECORATION': 'DECORATION'
+  };
+  const mapEnToVi: Record<string, string> = {
+    'WEDDING SERVICE': 'DỊCH VỤ CƯỚI',
+    'PHOTOGRAPHY': 'NHIẾP ẢNH',
+    'DECORATION': 'TRANG TRÍ',
+    'DECORATION & FLORAL': 'TRANG TRÍ & HOA CƯỚI',
+    'BRIDAL ATTIRE': 'VÁY CƯỚI',
+    'FULL PACKAGE': 'TRỌN GÓI',
+    'VIDEOGRAPHY': 'QUAY PHIM',
+    'MAKEUP ARTIST': 'TRANG ĐIỂM',
+    'VENUE & CATERING': 'NHÀ HÀNG & ĐỊA ĐIỂM',
+    'WEDDING VENUE': 'ĐỊA ĐIỂM CƯỚI'
+  };
+
+  if (lang === 'en') {
+    return mapViToEn[upper] || categoryName;
+  } else {
+    return mapEnToVi[upper] || categoryName;
+  }
+}
+
 // ─── VENDOR CARD: Matching Dashboard Design & Dimensions Exactly ───
 function MarketplaceVendorCard({
   vendor,
@@ -165,6 +208,7 @@ function MarketplaceVendorCard({
   onToggleShortlist: (e: React.MouseEvent) => void;
   onOpenDetail: () => void;
 }) {
+  const { language, t } = useLanguage();
   const imageUrl = vendor.imageUrl || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
   const rating = vendor.ratingAverage || 4.8;
   const reviewsCount = vendor.totalReviews || 32;
@@ -176,20 +220,28 @@ function MarketplaceVendorCard({
   );
 
   // Format price estimation
-  let priceText = 'Est: $1,500 – $2,000';
+  let priceText = `${t.common.estPrice} $1,500 – $2,000`;
   if (vendor.priceFrom && vendor.priceTo) {
     if (vendor.priceFrom >= 100000) {
-      priceText = `Est: ${(vendor.priceFrom / 1000000).toFixed(1)}M – ${(vendor.priceTo / 1000000).toFixed(1)}M ₫`;
+      priceText = language === 'en'
+        ? `${t.common.estPrice} $${Math.round(vendor.priceFrom / 25000).toLocaleString()} – $${Math.round(vendor.priceTo / 25000).toLocaleString()}`
+        : `${t.common.estPrice} ${(vendor.priceFrom / 1000000).toFixed(1)}M – ${(vendor.priceTo / 1000000).toFixed(1)}M ₫`;
     } else {
-      priceText = `Est: $${vendor.priceFrom.toLocaleString()} – $${vendor.priceTo.toLocaleString()}`;
+      priceText = `${t.common.estPrice} $${vendor.priceFrom.toLocaleString()} – $${vendor.priceTo.toLocaleString()}`;
     }
   } else if (vendor.priceFrom) {
-    priceText = `Est: Từ ${vendor.priceFrom >= 100000 ? `${(vendor.priceFrom / 1000000).toFixed(1)}M ₫` : `$${vendor.priceFrom.toLocaleString()}`}`;
-  } else if ((vendor as any).priceEst) {
-    priceText = (vendor as any).priceEst;
+    priceText = `${t.common.estPrice} ${vendor.priceFrom >= 100000 ? (language === 'en' ? `$${Math.round(vendor.priceFrom / 25000).toLocaleString()}` : `${(vendor.priceFrom / 1000000).toFixed(1)}M ₫`) : `$${vendor.priceFrom.toLocaleString()}`}`;
+  } else if (vendor.priceEst) {
+    const rawEst = vendor.priceEst;
+    if (language === 'en' && rawEst.includes('₫')) {
+      priceText = rawEst.replace('₫', 'VND');
+    } else {
+      priceText = rawEst;
+    }
   }
 
-  const categoryTag = vendor.primaryCategoryName || (vendor as any).category || 'DỊCH VỤ CƯỚI';
+  const rawCat = vendor.primaryCategoryName || vendor.category;
+  const categoryTag = translateCategory(rawCat, language);
 
   return (
     <div
@@ -202,10 +254,12 @@ function MarketplaceVendorCard({
           <img
             src={imageUrl}
             alt={vendor.businessName}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          {/* Category Pill Tag (matching user's screenshot "DỊCH VỤ CƯỚI") */}
-          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white/85 text-neutral-800 backdrop-blur-sm shadow-sm uppercase tracking-wider">
+          {/* Category Pill Tag */}
+          <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/85 text-neutral-800 backdrop-blur-sm shadow-sm uppercase tracking-wider">
             {categoryTag}
           </span>
 
@@ -217,7 +271,7 @@ function MarketplaceVendorCard({
             className={`absolute top-3 right-3 p-1.5 rounded-full bg-white/85 hover:bg-white backdrop-blur-sm shadow-sm transition-all active:scale-90 z-10 cursor-pointer ${
               isSaved ? 'text-red-600' : 'text-neutral-400 hover:text-red-500'
             }`}
-            title={isSaved ? 'Bỏ lưu yêu thích' : 'Lưu vào danh sách yêu thích'}
+            title={isSaved ? t.marketplace.removeFromShortlistBtn : t.marketplace.saveToShortlistBtn}
           >
             <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-600' : ''}`} />
           </button>
@@ -227,7 +281,7 @@ function MarketplaceVendorCard({
       {/* Card Body */}
       <div className="p-4 sm:p-5 flex flex-col justify-between flex-1">
         {/* Rating row */}
-        <div className="flex items-center justify-between text-xs text-neutral-500 mb-2">
+        <div className="flex items-center justify-between text-sm text-neutral-500 mb-2">
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5 text-amber-500">
               {[...Array(5)].map((_, i) => (
@@ -243,7 +297,7 @@ function MarketplaceVendorCard({
             </div>
             <span className="font-semibold text-neutral-700">({rating.toFixed(1)})</span>
           </div>
-          <span className="text-[11px] text-neutral-400">({reviewsCount} reviews)</span>
+          <span className="text-xs text-neutral-400">({reviewsCount} {t.common.reviews})</span>
         </div>
 
         {/* Vendor Name */}
@@ -256,11 +310,11 @@ function MarketplaceVendorCard({
 
         {/* Match and Price */}
         <div className="space-y-0.5 mb-4">
-          <div className="flex items-center gap-1 text-xs font-semibold text-neutral-800">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
             <span className="text-amber-700 text-xs">✦</span>
-            <span>Match: {matchScore}%</span>
+            <span>{t.marketplace.matchText}: {matchScore}%</span>
           </div>
-          <p className="text-xs text-neutral-600 font-medium">{priceText}</p>
+          <p className="text-sm text-neutral-600 font-medium">{priceText}</p>
         </div>
 
         {/* Action Buttons */}
@@ -268,10 +322,10 @@ function MarketplaceVendorCard({
           <Link
             href={`/marketplace/${vendor.id}?inquire=true`}
             onClick={(e) => e.stopPropagation()}
-            className="flex-1 py-2 px-3.5 rounded-full text-xs font-bold uppercase tracking-wider text-center transition-all duration-200 shadow-sm hover:opacity-95 active:scale-95 cursor-pointer !text-[#FFFBF5]"
+            className="flex-1 py-2 px-3.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider text-center transition-all duration-200 shadow-sm hover:opacity-95 active:scale-95 cursor-pointer !text-[#FFFBF5]"
             style={{ backgroundColor: '#5D0F12', color: '#FFFBF5' }}
           >
-            INQUIRE NOW
+            {t.marketplace.inquireNow}
           </Link>
           <button
             type="button"
@@ -279,9 +333,9 @@ function MarketplaceVendorCard({
               e.stopPropagation();
               onOpenDetail();
             }}
-            className="py-2 px-4 rounded-full text-xs font-semibold text-neutral-800 bg-white border border-neutral-300 hover:bg-neutral-50 text-center transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
+            className="py-2 px-4 rounded-full text-xs sm:text-sm font-semibold text-neutral-800 bg-white border border-neutral-300 hover:bg-neutral-50 text-center transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
           >
-            View
+            {t.common.view}
           </button>
         </div>
       </div>
@@ -291,20 +345,13 @@ function MarketplaceVendorCard({
 
 export default function Marketplace() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { plan, planId, daysLeft } = usePlan();
+  const { language, t } = useLanguage();
   const router = useRouter();
-
-  // Authentication & Plan State
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
-  const [planId, setPlanId] = useState<number | null>(null);
-  const [daysLeft, setDaysLeft] = useState(0);
 
   // Data States
   const [vendors, setVendors] = useState<VendorResponse[]>([]);
   const [shortlistIds, setShortlistIds] = useState<Set<number>>(new Set());
-
-  // Filter Categories & Styles Metadata
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
-  const [styles, setStyles] = useState<WeddingStyle[]>([]);
 
   // Filter Values
   const [searchQuery, setSearchQuery] = useState('');
@@ -339,41 +386,21 @@ export default function Marketplace() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Load Initial Metadata and Active Plan
+  // Load Shortlist when authenticated and planId is available
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !planId) return;
 
-    async function loadInitialData() {
+    async function loadShortlist() {
       try {
-        setIsLoading(true);
-        const [activePlan, cats, stys] = await Promise.all([
-          getActivePlan(),
-          getServiceCategories(),
-          getWeddingStyles()
-        ]);
-
-        setCategories(cats);
-        setStyles(stys);
-        setPlan(activePlan);
-
-        if (activePlan) {
-          setPlanId(activePlan.id);
-          if (activePlan.weddingDate) {
-            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
-            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-          }
-          const savedList = await getShortlist(activePlan.id);
-          setShortlistIds(new Set(savedList.map(v => v.id)));
-        }
+        const savedList = await getShortlist(planId);
+        setShortlistIds(new Set(savedList.map(v => v.id)));
       } catch (err) {
-        console.error('Lỗi tải dữ liệu ban đầu:', err);
-      } finally {
-        setIsLoading(false);
+        console.error('Lỗi tải danh sách yêu thích:', err);
       }
     }
 
-    loadInitialData();
-  }, [isAuthenticated]);
+    loadShortlist();
+  }, [isAuthenticated, planId]);
 
   // Core loading trigger depending on Filter changes
   useEffect(() => {
@@ -447,21 +474,33 @@ export default function Marketplace() {
           setVendorDetail({
             id: found.id,
             businessName: found.businessName,
-            description: 'Chuyên gia dịch vụ cưới cao cấp với hơn 8 năm kinh nghiệm, đồng hành cùng hàng trăm cặp đôi kiến tạo ngày trọng đại hoàn mỹ.',
+            description: language === 'vi'
+              ? 'Chuyên gia dịch vụ cưới cao cấp với hơn 8 năm kinh nghiệm, đồng hành cùng hàng trăm cặp đôi kiến tạo ngày trọng đại hoàn mỹ.'
+              : 'Premium wedding service professional with over 8 years of experience, crafting exquisite and unforgettable celebrations.',
             experienceYears: 8,
             city: found.city,
-            district: 'Trung tâm',
+            district: language === 'vi' ? 'Trung tâm' : 'City Center',
             verified: true,
             ratingAverage: found.ratingAverage,
             totalReviews: found.totalReviews,
             styles: ['Modern Rustic', 'Boho Chic', 'Minimalist'],
-            primaryCategoryName: found.category,
+            primaryCategoryName: translateCategory(found.category, language),
             phone: '0909 123 456',
             email: 'contact@weddingvendor.com',
             portfolios: [],
             packages: [
-              { id: 1, packageName: 'Gói Tiêu Chuẩn', description: 'Đầy đủ dịch vụ cơ bản trọn gói ngày cưới', price: 25000000 },
-              { id: 2, packageName: 'Gói Cao Cấp', description: 'Thiết kế concept riêng biệt và điều phối chuyên nghiệp', price: 45000000 }
+              { 
+                id: 1, 
+                packageName: language === 'vi' ? 'Gói Tiêu Chuẩn' : 'Standard Package', 
+                description: language === 'vi' ? 'Đầy đủ dịch vụ cơ bản trọn gói ngày cưới' : 'Complete essential services for your wedding celebration', 
+                price: 25000000 
+              },
+              { 
+                id: 2, 
+                packageName: language === 'vi' ? 'Gói Cao Cấp' : 'Premium Package', 
+                description: language === 'vi' ? 'Thiết kế concept riêng biệt và điều phối chuyên nghiệp' : 'Bespoke concept design and dedicated on-day coordination', 
+                price: 45000000 
+              }
             ]
           });
         }
@@ -471,14 +510,16 @@ export default function Marketplace() {
     }
 
     loadDetail();
-  }, [selectedVendorId]);
+  }, [selectedVendorId, language]);
 
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center text-primary">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-neutral-600 font-medium">Đang tải Marketplace...</span>
+          <span className="text-sm text-neutral-600 font-medium">
+            {language === 'vi' ? 'Đang tải Marketplace...' : 'Loading Marketplace...'}
+          </span>
         </div>
       </div>
     );
@@ -508,7 +549,7 @@ export default function Marketplace() {
         else next.add(vendorId);
         return next;
       });
-      setSuccessMessage(isSaved ? 'Đã xoá khỏi danh sách yêu thích!' : 'Đã lưu vào danh sách yêu thích!');
+      setSuccessMessage(isSaved ? t.marketplace.removedFromShortlist : t.marketplace.addedToShortlist);
       setTimeout(() => setSuccessMessage(null), 2500);
     } catch {
       setShortlistIds(prev => {
@@ -517,7 +558,7 @@ export default function Marketplace() {
         else next.add(vendorId);
         return next;
       });
-      setSuccessMessage(isSaved ? 'Đã xoá khỏi danh sách yêu thích!' : 'Đã lưu vào danh sách yêu thích!');
+      setSuccessMessage(isSaved ? t.marketplace.removedFromShortlist : t.marketplace.addedToShortlist);
       setTimeout(() => setSuccessMessage(null), 2500);
     } finally {
       setIsTogglingShortlist(null);
@@ -580,13 +621,13 @@ export default function Marketplace() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
               <div>
                 {/* Clean, Elegant Breadcrumb Badge (No red background) */}
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-neutral-200/90 shadow-xs">
-                  <Building2 className="w-3.5 h-3.5 text-[#5D0F12]" />
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-neutral-200/90 shadow-xs">
+                  <Building2 className="w-4 h-4 text-[#5D0F12]" />
                   <span
-                    className="font-serif tracking-widest text-[11px] font-bold uppercase text-[#5D0F12]"
+                    className="font-serif tracking-widest text-xs font-bold uppercase text-[#5D0F12]"
                     style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                   >
-                    MARKETPLACE &gt; ALL WEDDING VENDORS
+                    {t.marketplace.breadcrumb}
                   </span>
                 </div>
 
@@ -595,32 +636,32 @@ export default function Marketplace() {
                   className="text-sm sm:text-base font-serif italic text-neutral-800 mt-1.5 pl-1"
                   style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                 >
-                  Explore Top Wedding Vendors &amp; Curated Specialists
+                  {t.marketplace.headerSubtitle}
                 </h2>
               </div>
 
               {/* Search Pill Input */}
-              <form onSubmit={handleSearchSubmit} className="relative w-full md:w-[260px]">
+              <form onSubmit={handleSearchSubmit} className="relative w-full md:w-[280px]">
                 <input
                   type="text"
-                  placeholder="Tìm kiếm nhà cung cấp..."
+                  placeholder={t.marketplace.searchPlaceholder}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-full pl-9 pr-4 py-2 text-xs text-neutral-900 shadow-xs focus:outline-none focus:border-[#5D0F12] placeholder:text-neutral-400"
+                  className="w-full bg-white border border-neutral-300 rounded-full pl-10 pr-4 py-2.5 text-sm text-neutral-900 shadow-xs focus:outline-none focus:border-[#5D0F12] placeholder:text-neutral-400"
                 />
-                <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
               </form>
             </div>
 
             {/* System Notification Messages */}
             {errorMessage && (
-              <div className="p-3 mb-4 bg-red-50 text-red-700 border border-red-200 rounded-xl flex items-center gap-2 text-xs animate-fade-in">
+              <div className="p-3 mb-4 bg-red-50 text-red-700 border border-red-200 rounded-xl flex items-center gap-2 text-sm animate-fade-in">
                 <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
             )}
             {successMessage && (
-              <div className="p-3 mb-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs animate-fade-in">
+              <div className="p-3 mb-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl flex items-center gap-2 text-sm animate-fade-in">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{successMessage}</span>
               </div>
@@ -635,24 +676,27 @@ export default function Marketplace() {
                 <div className="bg-[#FAF8F5] border border-neutral-200/60 rounded-[2rem] p-6 sm:p-8 shadow-xs flex flex-col justify-between min-h-[600px]">
                   
                   {/* Showcase Top Bar: Showing count & Sort */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-neutral-600 mb-6 pb-4 border-b border-neutral-200/80 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-neutral-600 mb-6 pb-4 border-b border-neutral-200/80 text-sm">
                     <span 
-                      className="font-serif italic text-neutral-700 text-sm tracking-wide"
+                      className="font-serif italic text-neutral-700 text-sm sm:text-base tracking-wide"
                       style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                     >
-                      Showing {displayedVendors.length > 0 ? currentPage * 9 + 1 : 0}–{Math.min((currentPage + 1) * 9, totalElements)} of {totalElements} trusted vendors
+                      {t.marketplace.showingVendorsCount
+                        .replace('{start}', String(displayedVendors.length > 0 ? currentPage * 9 + 1 : 0))
+                        .replace('{end}', String(Math.min((currentPage + 1) * 9, totalElements)))
+                        .replace('{total}', String(totalElements))}
                     </span>
                     <div className="flex items-center gap-2 self-end sm:self-auto">
-                      <span className="text-[11px] uppercase tracking-wider font-semibold text-neutral-500">Sắp xếp:</span>
+                      <span className="text-xs uppercase tracking-wider font-semibold text-neutral-500">{t.marketplace.sortBy}:</span>
                       <select 
                         value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as any)}
-                        className="text-xs font-semibold bg-white border border-neutral-300 rounded-full px-3 py-1.5 text-neutral-700 focus:outline-none focus:border-[#5D0F12] shadow-xs cursor-pointer"
+                        onChange={(e) => setSortBy(e.target.value as 'featured' | 'rating' | 'price_asc' | 'price_desc')}
+                        className="text-sm font-semibold bg-white border border-neutral-300 rounded-full px-3.5 py-1.5 text-neutral-700 focus:outline-none focus:border-[#5D0F12] shadow-xs cursor-pointer"
                       >
-                        <option value="featured">Nổi bật (Featured)</option>
-                        <option value="rating">Đánh giá cao nhất</option>
-                        <option value="price_asc">Giá: Thấp đến Cao</option>
-                        <option value="price_desc">Giá: Cao đến Thấp</option>
+                        <option value="featured">{t.marketplace.sortFeatured}</option>
+                        <option value="rating">{t.marketplace.sortRating}</option>
+                        <option value="price_asc">{t.marketplace.sortPriceAsc}</option>
+                        <option value="price_desc">{t.marketplace.sortPriceDesc}</option>
                       </select>
                     </div>
                   </div>
@@ -661,17 +705,17 @@ export default function Marketplace() {
                   {isLoading ? (
                     <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3 text-neutral-500">
                       <Loader2 className="w-8 h-8 animate-spin text-[#5D0F12]" />
-                      <span className="text-xs uppercase tracking-wider font-medium text-neutral-600">Đang tải nhà cung cấp...</span>
+                      <span className="text-sm uppercase tracking-wider font-medium text-neutral-600">{t.marketplace.loadingVendors}</span>
                     </div>
                   ) : displayedVendors.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
                       <Building2 className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
-                      <p className="text-sm font-serif italic text-neutral-600">Không tìm thấy nhà cung cấp nào phù hợp.</p>
+                      <p className="text-base font-serif italic text-neutral-600">{t.marketplace.noVendorsFoundDetailed}</p>
                       <button
                         onClick={handleClearAllFilters}
-                        className="mt-3 text-xs font-bold uppercase tracking-wider text-[#5D0F12] hover:underline cursor-pointer"
+                        className="mt-3 text-sm font-bold uppercase tracking-wider text-[#5D0F12] hover:underline cursor-pointer"
                       >
-                        Xoá bộ lọc &amp; Thử lại
+                        {t.marketplace.clearFiltersAndRetry}
                       </button>
                     </div>
                   ) : (
@@ -691,13 +735,13 @@ export default function Marketplace() {
                   )}
 
                   {/* ─── Bottom Pagination: Dots & Next/Prev ─── */}
-                  <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-neutral-200/80 text-xs">
+                  <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-neutral-200/80 text-sm">
                     <button
                       onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
                       disabled={currentPage === 0}
                       className="font-semibold uppercase tracking-wider text-[#5D0F12] hover:underline disabled:opacity-30 disabled:hover:no-underline cursor-pointer transition-opacity flex items-center gap-1"
                     >
-                      <span>&larr;</span> Trước
+                      <span>&larr;</span> {t.marketplace.prevPage}
                     </button>
 
                     <div className="flex items-center gap-2">
@@ -707,10 +751,10 @@ export default function Marketplace() {
                           onClick={() => setCurrentPage(i)}
                           className={`transition-all duration-300 rounded-full cursor-pointer ${
                             currentPage === i
-                              ? 'w-7 h-2 bg-[#5D0F12]'
-                              : 'w-2 h-2 bg-neutral-300 hover:bg-neutral-400'
+                              ? 'w-7 h-2.5 bg-[#5D0F12]'
+                              : 'w-2.5 h-2.5 bg-neutral-300 hover:bg-neutral-400'
                           }`}
-                          aria-label={`Trang ${i + 1}`}
+                          aria-label={language === 'vi' ? `Trang ${i + 1}` : `Page ${i + 1}`}
                         />
                       ))}
                     </div>
@@ -720,7 +764,7 @@ export default function Marketplace() {
                       disabled={currentPage >= (totalPages - 1)}
                       className="font-semibold uppercase tracking-wider text-[#5D0F12] hover:underline disabled:opacity-30 disabled:hover:no-underline cursor-pointer transition-opacity flex items-center gap-1"
                     >
-                      Tiếp <span>&rarr;</span>
+                      {t.marketplace.nextPage} <span>&rarr;</span>
                     </button>
                   </div>
 
@@ -732,17 +776,17 @@ export default function Marketplace() {
               <div className="w-full lg:w-56 xl:w-60 shrink-0 space-y-3 order-1 lg:order-2">
                 
                 {/* Filter Header Tab */}
-                <div className="bg-white rounded-2xl border border-neutral-200/90 py-3 px-4 shadow-xs flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-neutral-200/90 py-3.5 px-4 shadow-xs flex items-center justify-between">
                   <div>
-                    <h3 className="text-xs font-bold text-neutral-900 tracking-wider uppercase font-sans">
-                      FILTER BY
+                    <h3 className="text-sm font-bold text-neutral-900 tracking-wider uppercase font-sans">
+                      {t.marketplace.filterBy}
                     </h3>
                     <button 
                       type="button" 
                       onClick={handleClearAllFilters}
-                      className="text-[10px] text-neutral-500 hover:text-[#5D0F12] hover:underline cursor-pointer block font-medium mt-0.5"
+                      className="text-xs text-neutral-500 hover:text-[#5D0F12] hover:underline cursor-pointer block font-medium mt-0.5"
                     >
-                      [Xoá tất cả]
+                      [{t.marketplace.clearFilters}]
                     </button>
                   </div>
                 </div>
@@ -752,27 +796,32 @@ export default function Marketplace() {
                   
                   {/* Category Filter */}
                   <div className="space-y-2">
-                    <h4 className="text-[11px] font-bold text-neutral-900 uppercase tracking-wider">
-                      Danh mục
+                    <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                      {t.marketplace.filterCategory}
                     </h4>
                     <div className="flex flex-col gap-1.5">
-                      {[
+                      {(language === 'vi' ? [
+                        { id: 1, name: 'Nhiếp ảnh & Phóng sự', count: 24 },
+                        { id: 2, name: 'Trang trí & Hoa cưới', count: 18 },
+                        { id: 3, name: 'Trang điểm cô dâu', count: 10 },
+                        { id: 4, name: 'Địa điểm & Nhà hàng', count: 5 }
+                      ] : [
                         { id: 1, name: 'Photography', count: 24 },
                         { id: 2, name: 'Decoration', count: 18 },
                         { id: 3, name: 'Makeup Artist', count: 10 },
                         { id: 4, name: 'Wedding Venue', count: 5 }
-                      ].map(cat => (
-                        <label key={cat.id} className="flex items-center justify-between text-[11px] text-neutral-700 cursor-pointer hover:text-neutral-900 select-none group py-0.5">
+                      ]).map(cat => (
+                        <label key={cat.id} className="flex items-center justify-between text-xs sm:text-sm text-neutral-700 cursor-pointer hover:text-neutral-900 select-none group py-0.5">
                           <div className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={selectedCategory === cat.id}
                               onChange={() => setSelectedCategory(selectedCategory === cat.id ? 'ALL' : cat.id)}
-                              className="rounded border-neutral-300 text-[#5D0F12] focus:ring-[#5D0F12] w-3.5 h-3.5 accent-[#5D0F12] cursor-pointer"
+                              className="rounded border-neutral-300 text-[#5D0F12] focus:ring-[#5D0F12] w-4 h-4 accent-[#5D0F12] cursor-pointer"
                             />
                             <span className="font-medium group-hover:text-[#5D0F12] transition-colors">{cat.name}</span>
                           </div>
-                          <span className="text-[10px] text-neutral-400 font-medium">({cat.count})</span>
+                          <span className="text-xs text-neutral-400 font-medium">({cat.count})</span>
                         </label>
                       ))}
                     </div>
@@ -780,26 +829,26 @@ export default function Marketplace() {
 
                   <div className="border-t border-neutral-100" />
 
-                  {/* Pricing (VND) Filter */}
+                  {/* Pricing Filter */}
                   <div className="space-y-2">
-                    <h4 className="text-[11px] font-bold text-neutral-900 uppercase tracking-wider">
-                      Ngân sách (VNĐ)
+                    <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                      {t.marketplace.filterPricing}
                     </h4>
                     <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-serif">
                       <input
                         type="number"
-                        placeholder="Từ (VNĐ)"
+                        placeholder={t.marketplace.priceFromPlaceholder}
                         value={priceFrom}
                         onChange={e => setPriceFrom(e.target.value)}
-                        className="w-full bg-white border border-neutral-300 rounded-lg px-2.5 py-1 text-xs text-neutral-800 text-center focus:outline-none focus:border-[#5D0F12] h-7"
+                        className="w-full bg-white border border-neutral-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm text-neutral-800 text-center focus:outline-none focus:border-[#5D0F12] h-8"
                       />
                       <span>—</span>
                       <input
                         type="number"
-                        placeholder="Đến (VNĐ)"
+                        placeholder={t.marketplace.priceToPlaceholder}
                         value={priceTo}
                         onChange={e => setPriceTo(e.target.value)}
-                        className="w-full bg-white border border-neutral-300 rounded-lg px-2.5 py-1 text-xs text-neutral-800 text-center focus:outline-none focus:border-[#5D0F12] h-7"
+                        className="w-full bg-white border border-neutral-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm text-neutral-800 text-center focus:outline-none focus:border-[#5D0F12] h-8"
                       />
                     </div>
                   </div>
@@ -808,8 +857,8 @@ export default function Marketplace() {
 
                   {/* Wedding Style Filter */}
                   <div className="space-y-2">
-                    <h4 className="text-[11px] font-bold text-neutral-900 uppercase tracking-wider">
-                      Phong cách
+                    <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                      {t.marketplace.filterStyle}
                     </h4>
                     <div className="flex flex-col gap-1.5">
                       {[
@@ -817,17 +866,17 @@ export default function Marketplace() {
                         { id: 2, name: 'Minimalist', count: 18 },
                         { id: 3, name: 'Boho Chic', count: 10 }
                       ].map(sty => (
-                        <label key={sty.id} className="flex items-center justify-between text-[11px] text-neutral-700 cursor-pointer hover:text-neutral-900 select-none group py-0.5">
+                        <label key={sty.id} className="flex items-center justify-between text-xs sm:text-sm text-neutral-700 cursor-pointer hover:text-neutral-900 select-none group py-0.5">
                           <div className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={selectedStyle === sty.id}
                               onChange={() => setSelectedStyle(selectedStyle === sty.id ? 'ALL' : sty.id)}
-                              className="rounded border-neutral-300 text-[#5D0F12] focus:ring-[#5D0F12] w-3.5 h-3.5 accent-[#5D0F12] cursor-pointer"
+                              className="rounded border-neutral-300 text-[#5D0F12] focus:ring-[#5D0F12] w-4 h-4 accent-[#5D0F12] cursor-pointer"
                             />
                             <span className="font-medium group-hover:text-[#5D0F12] transition-colors">{sty.name}</span>
                           </div>
-                          <span className="text-[10px] text-neutral-400 font-medium">({sty.count})</span>
+                          <span className="text-xs text-neutral-400 font-medium">({sty.count})</span>
                         </label>
                       ))}
                     </div>
@@ -837,8 +886,8 @@ export default function Marketplace() {
 
                   {/* Location Filter */}
                   <div className="space-y-2">
-                    <h4 className="text-[11px] font-bold text-neutral-900 uppercase tracking-wider">
-                      Địa điểm
+                    <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                      {t.marketplace.filterLocation}
                     </h4>
                     <div className="flex flex-col gap-1.5">
                       {[
@@ -847,17 +896,17 @@ export default function Marketplace() {
                         { name: 'Ha Noi', count: 12 },
                         { name: 'Da Nang', count: 8 }
                       ].map(city => (
-                        <label key={city.name} className="flex items-center justify-between text-[11px] text-neutral-700 cursor-pointer hover:text-neutral-900 select-none group py-0.5">
+                        <label key={city.name} className="flex items-center justify-between text-xs sm:text-sm text-neutral-700 cursor-pointer hover:text-neutral-900 select-none group py-0.5">
                           <div className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={selectedCity === city.name}
                               onChange={() => setSelectedCity(selectedCity === city.name ? 'ALL' : city.name)}
-                              className="rounded border-neutral-300 text-[#5D0F12] focus:ring-[#5D0F12] w-3.5 h-3.5 accent-[#5D0F12] cursor-pointer"
+                              className="rounded border-neutral-300 text-[#5D0F12] focus:ring-[#5D0F12] w-4 h-4 accent-[#5D0F12] cursor-pointer"
                             />
                             <span className="font-medium group-hover:text-[#5D0F12] transition-colors">{city.name}</span>
                           </div>
-                          <span className="text-[10px] text-neutral-400 font-medium">({city.count})</span>
+                          <span className="text-xs text-neutral-400 font-medium">({city.count})</span>
                         </label>
                       ))}
                     </div>
@@ -892,44 +941,44 @@ export default function Marketplace() {
             {isLoadingDetail ? (
               <div className="py-20 flex flex-col items-center justify-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="text-xs text-neutral-500">Đang tải thông tin chi tiết...</span>
+                <span className="text-sm text-neutral-500">{t.marketplace.loadingDetail}</span>
               </div>
             ) : vendorDetail ? (
               <div className="space-y-6">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary block mb-1">
-                    {vendorDetail.primaryCategoryName || 'Dịch vụ cưới'}
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary block mb-1">
+                    {vendorDetail.primaryCategoryName || (language === 'vi' ? 'Dịch vụ cưới' : 'Wedding Service')}
                   </span>
-                  <h3 className="text-2xl font-serif font-bold text-neutral-900 uppercase">
+                  <h3 className="text-2xl sm:text-3xl font-serif font-bold text-neutral-900 uppercase">
                     {vendorDetail.businessName}
                   </h3>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-neutral-500">
+                  <div className="flex items-center gap-3 mt-2 text-sm text-neutral-500">
                     <span className="flex items-center gap-1 font-semibold text-amber-600">
                       ★ {(vendorDetail.ratingAverage || 4.8).toFixed(1)}
                     </span>
                     <span>&bull;</span>
-                    <span>{vendorDetail.totalReviews || 32} đánh giá</span>
+                    <span>{vendorDetail.totalReviews || 32} {t.common.reviews}</span>
                     <span>&bull;</span>
                     <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-neutral-400" />
+                      <MapPin className="w-3.5 h-3.5 text-neutral-400" />
                       {vendorDetail.city}, {vendorDetail.district}
                     </span>
                   </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
+                <p className="text-sm sm:text-base text-neutral-600 leading-relaxed">
                   {vendorDetail.description}
                 </p>
 
                 {/* Contact info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-100 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-100 text-sm">
                   <div className="flex items-center gap-2 text-neutral-700">
-                    <Phone className="w-3.5 h-3.5 text-primary" />
+                    <Phone className="w-4 h-4 text-primary" />
                     <span>{vendorDetail.phone || '0909 888 999'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-neutral-700">
-                    <Mail className="w-3.5 h-3.5 text-primary" />
+                    <Mail className="w-4 h-4 text-primary" />
                     <span>{vendorDetail.email || 'contact@planora.vn'}</span>
                   </div>
                 </div>
@@ -937,15 +986,17 @@ export default function Marketplace() {
                 {/* Packages */}
                 {vendorDetail.packages && vendorDetail.packages.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-900">
-                      Gói Dịch Vụ
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-neutral-900">
+                      {t.marketplace.pricingPackages}
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {vendorDetail.packages.map(pkg => (
-                        <div key={pkg.id} className="p-3.5 rounded-xl border border-neutral-200 bg-white shadow-xs">
-                          <p className="font-bold text-xs text-neutral-900">{pkg.packageName}</p>
-                          <p className="text-[11px] text-neutral-500 mt-1 line-clamp-2">{pkg.description}</p>
-                          <p className="text-xs font-bold text-primary mt-2 font-mono">{pkg.price.toLocaleString()} ₫</p>
+                        <div key={pkg.id} className="p-4 rounded-xl border border-neutral-200 bg-white shadow-xs">
+                          <p className="font-bold text-sm text-neutral-900">{pkg.packageName}</p>
+                          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{pkg.description}</p>
+                          <p className="text-sm font-bold text-primary mt-2 font-mono">
+                            {language === 'en' ? `$${(pkg.price / 25000).toFixed(0)}` : `${pkg.price.toLocaleString()} ₫`}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -956,38 +1007,38 @@ export default function Marketplace() {
                 <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
                   <Link
                     href={`/marketplace/${vendorDetail.id}`}
-                    className="text-xs font-semibold text-neutral-600 hover:text-[#5D0F12] flex items-center gap-1 hover:underline"
+                    className="text-sm font-semibold text-neutral-600 hover:text-[#5D0F12] flex items-center gap-1 hover:underline"
                   >
-                    Xem trang chi tiết đầy đủ <ExternalLink className="w-3.5 h-3.5" />
+                    {t.marketplace.viewFullDetail} <ExternalLink className="w-4 h-4" />
                   </Link>
 
                   <div className="flex items-center gap-3">
                     <button
                       onClick={handleCloseModal}
-                      className="px-4 py-2 rounded-full text-xs font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
+                      className="px-4 py-2 rounded-full text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors cursor-pointer"
                     >
-                      Đóng
+                      {t.marketplace.closeModal}
                     </button>
                     <button
                       onClick={(e) => {
                         handleToggleShortlist(e, vendorDetail.id);
                       }}
-                      className={`px-5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm ${
+                      className={`px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
                         shortlistIds.has(vendorDetail.id)
                           ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
                           : 'bg-[#5D0F12] text-white hover:bg-[#4A0C0E] !text-[#FFFBF5]'
                       }`}
                       style={!shortlistIds.has(vendorDetail.id) ? { backgroundColor: '#5D0F12', color: '#FFFBF5' } : undefined}
                     >
-                      <Heart className={`w-3.5 h-3.5 ${shortlistIds.has(vendorDetail.id) ? 'fill-red-600' : ''}`} />
-                      {shortlistIds.has(vendorDetail.id) ? 'Bỏ lưu yêu thích' : 'Lưu vào yêu thích'}
+                      <Heart className={`w-4 h-4 ${shortlistIds.has(vendorDetail.id) ? 'fill-red-600' : ''}`} />
+                      {shortlistIds.has(vendorDetail.id) ? t.marketplace.removeFromShortlistBtn : t.marketplace.saveToShortlistBtn}
                     </button>
                   </div>
                 </div>
 
               </div>
             ) : (
-              <p className="text-center py-10 text-xs text-neutral-500">Không tìm thấy thông tin vendor.</p>
+              <p className="text-center py-10 text-sm text-neutral-500">{t.common.notFound}</p>
             )}
           </div>
         </div>
