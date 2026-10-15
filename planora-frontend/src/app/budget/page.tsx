@@ -31,15 +31,14 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
-import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { usePlan } from '@/contexts/PlanContext';
 
 export default function Budget() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { language, t, formatCurrency } = useLanguage();
+  const { plan, daysLeft, isLoadingPlan } = usePlan();
   const router = useRouter();
-
-  // Plan & Countdown States
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
-  const [daysLeft, setDaysLeft] = useState(0);
 
   // Data Loading States
   const [budgetData, setBudgetData] = useState<BudgetResponse | null>(null);
@@ -79,52 +78,41 @@ export default function Budget() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Load Active Plan and Budget Data
+  // Load Budget Data directly using cached plan
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (!plan?.id) {
+      if (!isLoadingPlan && !plan) {
+        router.replace('/');
+      }
+      return;
+    }
 
+    let isMounted = true;
     async function loadData() {
       try {
         setIsLoading(true);
-        const activePlan = await getActivePlan();
-        if (activePlan) {
-          setPlan(activePlan);
-          if (activePlan.weddingDate) {
-            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
-            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-          }
-          const data = await getBudget(activePlan.id);
+        const data = await getBudget(plan!.id);
+        if (isMounted) {
           setBudgetData(data);
-        } else {
-          router.replace('/');
         }
       } catch (err) {
-        console.error('Lỗi khi tải dữ liệu ngân sách:', err);
-        setErrorMessage('Không thể tải thông tin ngân sách. Vui lòng thử lại!');
+        console.error('Error loading budget data:', err);
+        if (isMounted) {
+          setErrorMessage(t.budget.errorLoading);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadData();
-  }, [isAuthenticated, router]);
-
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-slate-400">Đang tải dữ liệu phiên làm việc...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Format currency to VND
-  const formatCurrency = (amount: number | null | undefined): string => {
-    if (amount === null || amount === undefined) return '0 ₫';
-    return amount.toLocaleString('vi-VN') + ' ₫';
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, plan, isLoadingPlan, router, t.budget.errorLoading]);
 
   // Open Edit Modal
   const handleOpenEdit = (item: BudgetItemResponse) => {
@@ -220,26 +208,27 @@ export default function Budget() {
           expenses: parsed.expenses
         };
       }
-    } catch (e) {
+    } catch {
       // Plain text fallback
       return { noteText: note, expenses: [] };
     }
     return { noteText: '', expenses: [] };
   };
 
-  // Sync Category Detail state
-  useEffect(() => {
-    if (selectedCategoryItem) {
-      const parsed = parseBudgetItemNote(selectedCategoryItem.note);
+  // Handle Category Selection without cascading effect
+  const handleSelectCategory = (item: BudgetItemResponse | null) => {
+    setSelectedCategoryItem(item);
+    if (item) {
+      const parsed = parseBudgetItemNote(item.note);
       setExpensesList(parsed.expenses);
       setNoteText(parsed.noteText);
-      setAllocationInput(selectedCategoryItem.estimatedCost.toString());
+      setAllocationInput(item.estimatedCost.toString());
     } else {
       setExpensesList([]);
       setNoteText('');
       setAllocationInput('');
     }
-  }, [selectedCategoryItem]);
+  };
 
   const updateLocalBudgetData = (updatedItem: BudgetItemResponse) => {
     if (budgetData) {
@@ -356,6 +345,7 @@ export default function Budget() {
 
       updateLocalBudgetData(updated);
       setSelectedCategoryItem(updated);
+      setExpensesList(updatedExpenses);
       setIsExpenseModalOpen(false);
       setSuccessMessage(editingExpenseId ? 'Cập nhật khoản chi thành công!' : 'Thêm khoản chi mới thành công!');
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -388,6 +378,7 @@ export default function Budget() {
 
       updateLocalBudgetData(updated);
       setSelectedCategoryItem(updated);
+      setExpensesList(updatedExpenses);
       setSuccessMessage('Xóa khoản chi tiêu thành công!');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
@@ -430,6 +421,17 @@ export default function Budget() {
   const spentPercent = totalBudget > 0 ? Math.round((totalActualSpent / totalBudget) * 100) : 0;
   const isOverBudget = remainingBalance < 0;
 
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center text-body-text">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="text-sm text-muted-text">{t.dashboard.loadingSession}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full">
       {/* Top Info Bar */}
@@ -444,7 +446,7 @@ export default function Budget() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
-          <main className="flex-1 max-w-5xl w-full mx-auto px-6 sm:px-10 py-8 flex flex-col justify-start">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 flex flex-col justify-start">
         
 
         {/* Page Title */}
@@ -452,10 +454,10 @@ export default function Budget() {
           <div className="space-y-1">
             <h1 className="text-3xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
               <Coins className="w-7 h-7 text-primary" />
-              Quản lý Ngân Sách
+              {t.budget.title}
             </h1>
-            <p className="text-xs text-muted-text">
-              Theo dõi phân bổ ngân sách dự kiến và ghi nhận các chi phí thực tế đã thanh toán.
+            <p className="text-sm text-muted-text">
+              {t.budget.subtitle}
             </p>
           </div>
         </div>
@@ -477,7 +479,9 @@ export default function Budget() {
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="text-sm text-muted-text font-display">Đang tải dữ liệu ngân sách...</span>
+            <span className="text-sm text-muted-text font-display">
+              {language === 'vi' ? 'Đang tải dữ liệu ngân sách...' : 'Loading budget data...'}
+            </span>
           </div>
         ) : (
           <div className="space-y-8">
@@ -488,37 +492,43 @@ export default function Budget() {
               
               {/* Stat Card 1: Total Budget */}
               <div className="p-5 bg-white border border-hairline rounded-lg shadow-sm flex flex-col justify-between space-y-3">
-                <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block flex items-center gap-1.5">
-                  <Wallet className="w-3.5 h-3.5 text-muted-text" />
-                  Quỹ cưới ban đầu
+                <span className="text-xs font-bold text-muted-text uppercase tracking-wider block flex items-center gap-1.5">
+                  <Wallet className="w-4 h-4 text-muted-text" />
+                  {t.budget.totalBudget}
                 </span>
                 <div className="space-y-1">
-                  <span className="text-xl font-bold text-ink font-mono">{formatCurrency(totalBudget)}</span>
-                  <span className="text-[10px] text-muted-text block leading-none">Cố định từ Onboarding</span>
+                  <span className="text-2xl sm:text-3xl font-bold text-ink font-mono">{formatCurrency(totalBudget)}</span>
+                  <span className="text-xs text-muted-text block leading-none">
+                    {language === 'vi' ? 'Cố định từ Onboarding' : 'From Onboarding'}
+                  </span>
                 </div>
               </div>
 
               {/* Stat Card 2: Allocated Estimated */}
               <div className="p-5 bg-white border border-hairline rounded-lg shadow-sm flex flex-col justify-between space-y-3">
-                <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-muted-text" />
-                  Dự kiến phân bổ
+                <span className="text-xs font-bold text-muted-text uppercase tracking-wider block flex items-center gap-1.5">
+                  <TrendingUp className="w-4 h-4 text-muted-text" />
+                  {t.budget.totalAllocated}
                 </span>
                 <div className="space-y-1">
-                  <span className="text-xl font-bold text-primary font-mono">{formatCurrency(totalEstimated)}</span>
-                  <span className="text-[10px] text-muted-text block leading-none">Tổng dự chi các mục</span>
+                  <span className="text-2xl sm:text-3xl font-bold text-primary font-mono">{formatCurrency(totalEstimated)}</span>
+                  <span className="text-xs text-muted-text block leading-none">
+                    {language === 'vi' ? 'Tổng dự chi các mục' : 'Estimated for categories'}
+                  </span>
                 </div>
               </div>
 
               {/* Stat Card 3: Total Spent */}
               <div className="p-5 bg-white border border-hairline rounded-lg shadow-sm flex flex-col justify-between space-y-3">
-                <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest block flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-muted-text" />
-                  Thực tế đã chi
+                <span className="text-xs font-bold text-muted-text uppercase tracking-wider block flex items-center gap-1.5">
+                  <DollarSign className="w-4 h-4 text-muted-text" />
+                  {t.budget.totalSpent}
                 </span>
                 <div className="space-y-1">
-                  <span className="text-xl font-bold text-ink font-mono">{formatCurrency(totalActualSpent)}</span>
-                  <span className="text-[10px] text-muted-text block leading-none">Tổng khoản đã thanh toán</span>
+                  <span className="text-2xl sm:text-3xl font-bold text-ink font-mono">{formatCurrency(totalActualSpent)}</span>
+                  <span className="text-xs text-muted-text block leading-none">
+                    {language === 'vi' ? 'Tổng khoản đã thanh toán' : 'Total payments recorded'}
+                  </span>
                 </div>
               </div>
 
@@ -526,16 +536,18 @@ export default function Budget() {
               <div className={`p-5 border rounded-lg shadow-sm flex flex-col justify-between space-y-3 ${
                 isOverBudget ? 'bg-red-50/50 border-red-200' : 'bg-white border-hairline'
               }`}>
-                <span className="text-[10px] font-bold uppercase tracking-widest block flex items-center gap-1.5 text-muted-text">
-                  <Coins className={`w-3.5 h-3.5 ${isOverBudget ? 'text-red-500' : 'text-muted-text'}`} />
-                  Số dư còn lại
+                <span className="text-xs font-bold uppercase tracking-wider block flex items-center gap-1.5 text-muted-text">
+                  <Coins className={`w-4 h-4 ${isOverBudget ? 'text-red-500' : 'text-muted-text'}`} />
+                  {t.budget.remainingBudget}
                 </span>
                 <div className="space-y-1">
-                  <span className={`text-xl font-bold font-mono ${isOverBudget ? 'text-red-600' : 'text-success'}`}>
+                  <span className={`text-2xl sm:text-3xl font-bold font-mono ${isOverBudget ? 'text-red-600' : 'text-success'}`}>
                     {formatCurrency(remainingBalance)}
                   </span>
-                  <span className="text-[10px] text-muted-text block leading-none">
-                    {isOverBudget ? 'Quỹ cưới đã bị vượt!' : 'Trong phạm vi cho phép'}
+                  <span className="text-xs text-muted-text block leading-none">
+                    {isOverBudget 
+                      ? (language === 'vi' ? 'Quỹ cưới đã bị vượt!' : 'Over budget!') 
+                      : (language === 'vi' ? 'Trong phạm vi cho phép' : 'Within budget')}
                   </span>
                 </div>
               </div>
@@ -544,10 +556,12 @@ export default function Budget() {
 
             {/* Visual Spend Progress Indicator */}
             <div className="p-6 bg-white border border-hairline rounded-lg shadow-sm space-y-3.5">
-              <div className="flex justify-between items-center text-xs font-semibold">
-                <span className="text-ink">Biểu đồ tiến độ chi tiêu quỹ cưới</span>
-                <span className={`font-mono text-xs ${isOverBudget ? 'text-red-600 font-bold' : 'text-primary'}`}>
-                  {spentPercent}% đã tiêu
+              <div className="flex justify-between items-center text-sm font-semibold">
+                <span className="text-ink">
+                  {language === 'vi' ? 'Biểu đồ tiến độ chi tiêu quỹ cưới' : 'Budget Spending Progress'}
+                </span>
+                <span className={`font-mono text-sm ${isOverBudget ? 'text-red-600 font-bold' : 'text-primary'}`}>
+                  {spentPercent}% {language === 'vi' ? 'đã chi' : 'spent'}
                 </span>
               </div>
               <div className="w-full h-3 bg-canvas border border-hairline rounded-full overflow-hidden">
@@ -557,9 +571,13 @@ export default function Budget() {
                 />
               </div>
               {isOverBudget && (
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-red-600 bg-red-50 border border-red-100 p-2.5 rounded-sm">
-                  <AlertCircle className="w-4 h-4 text-red-500" />
-                  <span>Chú ý: Chi phí thực tế đã vượt quỹ cưới ban đầu {formatCurrency(Math.abs(remainingBalance))}. Hãy xem xét giảm bớt chi phí ở các mục chưa thanh toán.</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-100 p-3 rounded-sm">
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <span>
+                    {language === 'vi'
+                      ? `Chú ý: Chi phí thực tế đã vượt quỹ cưới ban đầu ${formatCurrency(Math.abs(remainingBalance))}. Hãy xem xét giảm bớt chi phí ở các mục chưa thanh toán.`
+                      : `Warning: Actual expenses have exceeded your initial budget by ${formatCurrency(Math.abs(remainingBalance))}. Consider reducing costs in pending categories.`}
+                  </span>
                 </div>
               )}
             </div>
@@ -567,11 +585,13 @@ export default function Budget() {
             {/* Budget Items Table/Card List */}
             <div className="bg-white border border-hairline rounded-lg shadow-sm overflow-hidden">
               <div className="p-5 border-b border-hairline bg-canvas/30 flex justify-between items-center">
-                <h3 className="text-xs font-bold text-ink uppercase tracking-wider">
-                  Chi tiết phân bổ theo hạng mục
+                <h3 className="text-sm sm:text-base font-bold text-ink uppercase tracking-wider">
+                  {t.budget.categoryAllocationTitle}
                 </h3>
-                <span className="text-[10px] text-muted-text">
-                  Nhấp vào biểu tượng sửa để điều chỉnh chi tiết chi phí
+                <span className="text-xs text-muted-text">
+                  {language === 'vi' 
+                    ? 'Nhấp vào từng hạng mục để xem chi tiết chi phí và điều chỉnh' 
+                    : 'Click any category to inspect expenses and adjust'}
                 </span>
               </div>
 
@@ -584,22 +604,24 @@ export default function Budget() {
                     return (
                       <div 
                         key={item.itemId} 
-                        onClick={() => setSelectedCategoryItem(item)}
+                        onClick={() => handleSelectCategory(item)}
                         className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-canvas/10 cursor-pointer transition-colors"
                       >
                         
                         {/* Name and notes */}
                         <div className="space-y-1.5 flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-ink">
+                          <h4 className="text-base font-semibold text-ink">
                             {item.categoryName}
                           </h4>
                           {item.note ? (
-                            <p className="text-xs text-muted-text flex items-start gap-1">
-                              <FileText className="w-3.5 h-3.5 mt-0.5 text-muted-text flex-shrink-0" />
+                            <p className="text-sm text-muted-text flex items-start gap-1.5">
+                              <FileText className="w-4 h-4 mt-0.5 text-muted-text flex-shrink-0" />
                               <span className="break-words leading-relaxed">{item.note}</span>
                             </p>
                           ) : (
-                            <p className="text-xs text-light-grey italic">Chưa có ghi chú nào.</p>
+                            <p className="text-sm text-light-grey italic">
+                              {language === 'vi' ? 'Chưa có ghi chú nào.' : 'No notes added yet.'}
+                            </p>
                           )}
                         </div>
 
@@ -608,31 +630,37 @@ export default function Budget() {
                           
                           {/* Estimated */}
                           <div className="space-y-0.5">
-                            <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider block">Dự kiến</span>
-                            <span className="text-xs font-semibold font-mono text-ink">
+                            <span className="text-xs font-bold text-muted-text uppercase tracking-wider block">
+                              {t.budget.allocated}
+                            </span>
+                            <span className="text-sm sm:text-base font-semibold font-mono text-ink">
                               {formatCurrency(item.estimatedCost)}
                             </span>
                           </div>
 
                           {/* Actual Spent */}
                           <div className="space-y-0.5">
-                            <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider block">Thực tế</span>
-                            <span className="text-xs font-semibold font-mono text-ink">
+                            <span className="text-xs font-bold text-muted-text uppercase tracking-wider block">
+                              {t.budget.spent}
+                            </span>
+                            <span className="text-sm sm:text-base font-semibold font-mono text-ink">
                               {formatCurrency(item.actualCost)}
                             </span>
                           </div>
 
                           {/* Gap/Diff */}
-                          <div className="space-y-0.5 min-w-[100px] sm:text-right">
-                            <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider block">Chênh lệch</span>
-                            <span className={`text-xs font-semibold font-mono ${
+                          <div className="space-y-0.5 min-w-[110px] sm:text-right">
+                            <span className="text-xs font-bold text-muted-text uppercase tracking-wider block">
+                              {t.budget.remaining}
+                            </span>
+                            <span className={`text-sm sm:text-base font-semibold font-mono ${
                               isDiffNegative ? 'text-red-600' : diff > 0 ? 'text-success' : 'text-muted-text'
                             }`}>
                               {isDiffNegative 
-                                ? `Vượt: ${formatCurrency(Math.abs(diff))}` 
+                                ? `${language === 'vi' ? 'Vượt: ' : 'Over: '}${formatCurrency(Math.abs(diff))}` 
                                 : diff > 0 
-                                ? `Dư: ${formatCurrency(diff)}` 
-                                : 'Cân bằng'
+                                ? `${language === 'vi' ? 'Dư: ' : 'Saved: '}${formatCurrency(diff)}` 
+                                : (language === 'vi' ? 'Cân bằng' : 'Balanced')
                               }
                             </span>
                           </div>
@@ -645,7 +673,7 @@ export default function Budget() {
                                 handleOpenEdit(item);
                               }}
                               className="p-2 text-muted-text hover:text-primary hover:bg-canvas rounded-sm transition-all"
-                              title="Sửa nhanh chi phí"
+                              title={t.common.edit}
                             >
                               <Edit3 className="w-4 h-4" />
                             </button>
@@ -659,7 +687,9 @@ export default function Budget() {
                 ) : (
                   <div className="py-16 text-center text-muted-text flex flex-col items-center gap-2">
                     <Coins className="w-10 h-10 text-hairline" />
-                    <span className="text-xs font-semibold">Chưa có hạng mục phân bổ chi phí nào trong kế hoạch.</span>
+                    <span className="text-sm font-semibold">
+                      {language === 'vi' ? 'Chưa có hạng mục phân bổ chi phí nào trong kế hoạch.' : 'No budget categories created yet.'}
+                    </span>
                   </div>
                 )}
               </div>
@@ -675,18 +705,20 @@ export default function Budget() {
                       {getCategoryIcon(selectedCategoryItem.categoryName)}
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-ink font-display">
+                      <h2 className="text-2xl font-bold text-ink font-display">
                         {selectedCategoryItem.categoryName}
                       </h2>
-                      <span className="text-[10px] text-muted-text uppercase tracking-widest block">Chi tiết hạng mục ngân sách</span>
+                      <span className="text-xs text-muted-text uppercase tracking-wider block">
+                        {language === 'vi' ? 'Chi tiết hạng mục ngân sách' : 'Category Budget Details'}
+                      </span>
                     </div>
                   </div>
                   <button
-                    onClick={() => setSelectedCategoryItem(null)}
-                    className="px-4 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5"
+                    onClick={() => handleSelectCategory(null)}
+                    className="px-4 py-2 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                   >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Quay lại
+                    <ArrowLeft className="w-4 h-4" />
+                    {t.common.back}
                   </button>
                 </div>
 
@@ -694,15 +726,21 @@ export default function Budget() {
                 <div className="bg-white border border-hairline rounded-lg p-6 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
-                      <h3 className="text-xs font-bold text-primary uppercase tracking-wider block">Hạn mức ngân sách</h3>
-                      <p className="text-xs text-muted-text">Điều chỉnh số tiền dự kiến chi cho hạng mục này.</p>
+                      <h3 className="text-sm font-bold text-primary uppercase tracking-wider block">
+                        {language === 'vi' ? 'Hạn mức ngân sách' : 'Category Allocation Limit'}
+                      </h3>
+                      <p className="text-sm text-muted-text">
+                        {language === 'vi' 
+                          ? 'Điều chỉnh số tiền dự kiến chi cho hạng mục này.' 
+                          : 'Adjust the estimated allocation for this category.'}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text font-mono text-xs">₫</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text font-mono text-sm">₫</span>
                         <input
                           type="number"
-                          className="bg-canvas border border-hairline rounded-sm pl-7 pr-3 py-1.5 text-xs font-mono focus:outline-none focus:border-primary text-ink w-36 font-semibold"
+                          className="bg-canvas border border-hairline rounded-sm pl-7 pr-3 py-2 text-sm font-mono focus:outline-none focus:border-primary text-ink w-40 font-semibold"
                           value={allocationInput}
                           onChange={e => setAllocationInput(e.target.value)}
                         />
@@ -710,21 +748,23 @@ export default function Budget() {
                       <button
                         onClick={handleSaveAllocation}
                         disabled={isSavingAllocation}
-                        className="px-4 py-1.5 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-all disabled:opacity-50"
+                        className="px-4 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-all disabled:opacity-50 cursor-pointer"
                       >
-                        {isSavingAllocation ? 'Đang lưu...' : 'Lưu'}
+                        {isSavingAllocation ? t.common.saving : t.common.save}
                       </button>
                     </div>
                   </div>
 
                   {/* Allocation Chart/Bar */}
                   <div className="space-y-2.5 pt-4 border-t border-hairline">
-                    <div className="flex justify-between items-center text-xs font-semibold">
+                    <div className="flex justify-between items-center text-sm font-semibold">
                       <span className="text-muted-text">
-                        Đã thực chi: <strong className="text-ink">{formatCurrency(selectedCategoryItem.actualCost)}</strong> trên hạn mức <strong className="text-ink">{formatCurrency(parseFloat(allocationInput) || 0)}</strong>
+                        {language === 'vi' ? 'Đã thực chi: ' : 'Actually spent: '}
+                        <strong className="text-ink">{formatCurrency(selectedCategoryItem.actualCost)}</strong> {language === 'vi' ? 'trên hạn mức ' : 'of limit '}
+                        <strong className="text-ink">{formatCurrency(parseFloat(allocationInput) || 0)}</strong>
                       </span>
-                      <span className={`font-mono text-xs ${selectedCategoryItem.actualCost > (parseFloat(allocationInput) || 0) ? 'text-red-600 font-bold' : 'text-primary'}`}>
-                        {parseFloat(allocationInput) > 0 ? Math.round((selectedCategoryItem.actualCost / parseFloat(allocationInput)) * 100) : 0}% đã dùng
+                      <span className={`font-mono text-sm ${selectedCategoryItem.actualCost > (parseFloat(allocationInput) || 0) ? 'text-red-600 font-bold' : 'text-primary'}`}>
+                        {parseFloat(allocationInput) > 0 ? Math.round((selectedCategoryItem.actualCost / parseFloat(allocationInput)) * 100) : 0}% {language === 'vi' ? 'đã dùng' : 'used'}
                       </span>
                     </div>
                     <div className="w-full h-3 bg-canvas border border-hairline rounded-full overflow-hidden">
@@ -734,9 +774,13 @@ export default function Budget() {
                       />
                     </div>
                     {selectedCategoryItem.actualCost > (parseFloat(allocationInput) || 0) && (
-                      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-red-600 bg-red-50 border border-red-100 p-2.5 rounded-sm">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-100 p-3 rounded-sm">
                         <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span>Cảnh báo: Khoản chi thực tế đã vượt hạn mức dự kiến {formatCurrency(selectedCategoryItem.actualCost - (parseFloat(allocationInput) || 0))}! Bạn hãy cân đối lại các hóa đơn.</span>
+                        <span>
+                          {language === 'vi'
+                            ? `Cảnh báo: Khoản chi thực tế đã vượt hạn mức dự kiến ${formatCurrency(selectedCategoryItem.actualCost - (parseFloat(allocationInput) || 0))}! Bạn hãy cân đối lại các hóa đơn.`
+                            : `Warning: Actual expenses have exceeded estimated limit by ${formatCurrency(selectedCategoryItem.actualCost - (parseFloat(allocationInput) || 0))}!`}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -745,15 +789,15 @@ export default function Budget() {
                 {/* Expenses List & Actions */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-bold text-ink uppercase tracking-wider pl-1">
-                      Danh sách hóa đơn & Khoản chi thực tế
+                    <h3 className="text-sm sm:text-base font-bold text-ink uppercase tracking-wider pl-1">
+                      {t.budget.expensesTitle}
                     </h3>
                     <button
                       onClick={() => handleOpenExpenseModal(null)}
-                      className="px-4 py-2 bg-primary hover:bg-primary-active text-white rounded-full text-xs font-semibold transition-all flex items-center gap-1 shadow-sm uppercase tracking-wider font-display"
+                      className="px-4 py-2 bg-primary hover:bg-primary-active text-white rounded-full text-sm font-semibold transition-all flex items-center gap-1.5 shadow-sm uppercase tracking-wider font-display cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5 text-cream" />
-                      Thêm khoản chi
+                      <Plus className="w-4 h-4 text-cream" />
+                      {t.budget.addExpenseBtn}
                     </button>
                   </div>
 
@@ -762,40 +806,42 @@ export default function Budget() {
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                           <thead>
-                            <tr className="bg-canvas/50 text-[10px] font-bold text-muted-text uppercase tracking-widest border-b border-hairline">
-                              <th className="p-4">Ngày chi</th>
-                              <th className="p-4">Mô tả chi tiết</th>
-                              <th className="p-4 text-right">Số tiền</th>
-                              <th className="p-4 text-center">Hành động</th>
+                            <tr className="bg-canvas/50 text-xs font-bold text-muted-text uppercase tracking-wider border-b border-hairline">
+                              <th className="p-4">{t.budget.expenseDate}</th>
+                              <th className="p-4">{t.budget.expenseDesc}</th>
+                              <th className="p-4 text-right">{t.budget.expenseCost}</th>
+                              <th className="p-4 text-center">{t.common.actions}</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-hairline">
                             {expensesList.map((exp) => (
                               <tr key={exp.id} className="hover:bg-canvas/5 transition-colors">
-                                <td className="p-4 text-xs text-muted-text font-mono">
-                                  {new Date(exp.date).toLocaleDateString('vi-VN')}
+                                <td className="p-4 text-sm text-muted-text font-mono">
+                                  {language === 'vi' 
+                                    ? new Date(exp.date).toLocaleDateString('vi-VN')
+                                    : new Date(exp.date).toLocaleDateString('en-US')}
                                 </td>
-                                <td className="p-4 text-xs font-semibold text-ink">
+                                <td className="p-4 text-sm sm:text-base font-semibold text-ink">
                                   {exp.description}
                                 </td>
-                                <td className="p-4 text-xs font-mono font-bold text-ink text-right">
+                                <td className="p-4 text-sm sm:text-base font-mono font-bold text-ink text-right">
                                   {formatCurrency(exp.cost)}
                                 </td>
-                                <td className="p-4 text-xs text-center">
+                                <td className="p-4 text-sm text-center">
                                   <div className="flex items-center justify-center gap-2">
                                     <button
                                       onClick={() => handleOpenExpenseModal(exp)}
-                                      className="p-1.5 text-muted-text hover:text-primary hover:bg-canvas rounded-sm transition-all"
-                                      title="Sửa khoản chi"
+                                      className="p-1.5 text-muted-text hover:text-primary hover:bg-canvas rounded-sm transition-all cursor-pointer"
+                                      title={t.common.edit}
                                     >
-                                      <Edit3 className="w-3.5 h-3.5" />
+                                      <Edit3 className="w-4 h-4" />
                                     </button>
                                     <button
                                       onClick={() => handleDeleteExpense(exp.id)}
-                                      className="p-1.5 text-muted-text hover:text-red-600 hover:bg-red-50 rounded-sm transition-all"
-                                      title="Xóa khoản chi"
+                                      className="p-1.5 text-muted-text hover:text-red-600 hover:bg-red-50 rounded-sm transition-all cursor-pointer"
+                                      title={t.common.delete}
                                     >
-                                      <Trash2 className="w-3.5 h-3.5" />
+                                      <Trash2 className="w-4 h-4" />
                                     </button>
                                   </div>
                                 </td>
@@ -807,8 +853,12 @@ export default function Budget() {
                     ) : (
                       <div className="py-16 text-center text-muted-text flex flex-col items-center gap-2">
                         <Coins className="w-10 h-10 text-hairline" />
-                        <span className="text-xs font-semibold">Chưa có khoản chi tiêu thực tế nào.</span>
-                        <span className="text-[10px] text-light-grey">Nhấp vào "Thêm khoản chi" để bắt đầu ghi nhận các hóa đơn thực tế.</span>
+                        <span className="text-sm font-semibold">{t.budget.noExpenses}</span>
+                        <span className="text-xs text-light-grey">
+                          {language === 'vi' 
+                            ? 'Nhấp vào "Thêm khoản chi" để bắt đầu ghi nhận các hóa đơn thực tế.' 
+                            : 'Click "Add Expense" to start recording payments.'}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -829,12 +879,13 @@ export default function Budget() {
           <div className="bg-white border border-hairline rounded-lg w-full max-w-md p-6 shadow-xl animate-scale-up space-y-5">
             
             <div className="flex justify-between items-center border-b border-hairline pb-3">
-              <h3 className="text-md font-semibold text-ink font-display">
-                Điều chỉnh chi phí: {editingItem.categoryName}
+              <h3 className="text-lg font-bold text-ink font-display">
+                {language === 'vi' ? 'Điều chỉnh chi phí: ' : 'Edit Allocation: '}
+                {editingItem.categoryName}
               </h3>
               <button 
                 onClick={handleCloseModal}
-                className="text-muted-text hover:text-ink text-sm font-semibold p-1 hover:bg-canvas rounded-sm"
+                className="text-muted-text hover:text-ink text-base font-semibold p-1 hover:bg-canvas rounded-sm cursor-pointer"
               >
                 ✕
               </button>
@@ -852,12 +903,12 @@ export default function Budget() {
               
               {/* Estimated Cost */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-estimated" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Chi phí ước tính (Dự kiến)
+                <label htmlFor="modal-estimated" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.budget.estimatedCost}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-xs text-muted-text">₫</span>
+                    <span className="text-sm text-muted-text">₫</span>
                   </div>
                   <input
                     type="number"
@@ -865,8 +916,8 @@ export default function Budget() {
                     required
                     min="0"
                     step="1000"
-                    placeholder="Nhập chi phí dự kiến..."
-                    className="w-full bg-canvas border border-hairline rounded-sm pl-7 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink font-mono font-semibold"
+                    placeholder="0"
+                    className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold"
                     value={estimatedCostInput}
                     onChange={e => setEstimatedCostInput(e.target.value)}
                   />
@@ -875,12 +926,12 @@ export default function Budget() {
 
               {/* Actual Cost */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-actual" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Chi phí thực tế (Thực chi)
+                <label htmlFor="modal-actual" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.budget.actualCost}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-xs text-muted-text">₫</span>
+                    <span className="text-sm text-muted-text">₫</span>
                   </div>
                   <input
                     type="number"
@@ -888,8 +939,8 @@ export default function Budget() {
                     required
                     min="0"
                     step="1000"
-                    placeholder="Nhập chi phí thực tế đã chi..."
-                    className="w-full bg-canvas border border-hairline rounded-sm pl-7 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink font-mono font-semibold"
+                    placeholder="0"
+                    className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold"
                     value={actualCostInput}
                     onChange={e => setActualCostInput(e.target.value)}
                   />
@@ -898,14 +949,14 @@ export default function Budget() {
 
               {/* Item Note */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-note" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Ghi chú chi tiết
+                <label htmlFor="modal-note" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.budget.notesLabel}
                 </label>
                 <textarea
                   id="modal-note"
                   rows={3}
-                  placeholder="Ví dụ: Đã đặt cọc đợt 1 bằng tiền mặt..."
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink resize-none text-body-text leading-relaxed"
+                  placeholder={t.budget.notesPlaceholder}
+                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink resize-none text-body-text leading-relaxed"
                   value={itemNote}
                   onChange={e => setItemNote(e.target.value)}
                 />
@@ -917,19 +968,19 @@ export default function Budget() {
                   type="button"
                   onClick={handleCloseModal}
                   disabled={isSubmitting}
-                  className="px-4 py-2 border border-border-strong rounded-sm text-xs font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-border-strong rounded-sm text-sm font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  Hủy
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-5 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    'Lưu thay đổi'
+                    t.common.save
                   )}
                 </button>
               </div>
@@ -945,12 +996,12 @@ export default function Budget() {
           <div className="bg-white border border-hairline rounded-lg w-full max-w-md p-6 shadow-xl animate-scale-up space-y-5">
             
             <div className="flex justify-between items-center border-b border-hairline pb-3">
-              <h3 className="text-md font-semibold text-ink font-display">
-                {editingExpenseId ? 'Sửa khoản chi' : 'Thêm khoản chi mới'}
+              <h3 className="text-lg font-bold text-ink font-display">
+                {editingExpenseId ? t.budget.editExpenseModalTitle : t.budget.addExpenseModalTitle}
               </h3>
               <button 
                 onClick={() => setIsExpenseModalOpen(false)}
-                className="text-muted-text hover:text-ink text-sm font-semibold p-1 hover:bg-canvas rounded-sm"
+                className="text-muted-text hover:text-ink text-base font-semibold p-1 hover:bg-canvas rounded-sm cursor-pointer"
               >
                 ✕
               </button>
@@ -968,15 +1019,15 @@ export default function Budget() {
               
               {/* Description */}
               <div className="space-y-1.5">
-                <label htmlFor="expense-desc" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Mô tả khoản chi / Tên hóa đơn *
+                <label htmlFor="expense-desc" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.budget.expenseDesc} *
                 </label>
                 <input
                   type="text"
                   id="expense-desc"
                   required
-                  placeholder="Ví dụ: Đặt cọc địa điểm tiệc cưới đợt 1..."
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink font-semibold"
+                  placeholder={language === 'vi' ? 'Ví dụ: Đặt cọc địa điểm tiệc cưới đợt 1...' : 'e.g., Venue deposit installment 1...'}
+                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-medium"
                   value={expenseDescription}
                   onChange={e => setExpenseDescription(e.target.value)}
                 />
@@ -984,12 +1035,12 @@ export default function Budget() {
 
               {/* Amount */}
               <div className="space-y-1.5">
-                <label htmlFor="expense-amount" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Số tiền đã chi *
+                <label htmlFor="expense-amount" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.budget.expenseCost} *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-xs text-muted-text">₫</span>
+                    <span className="text-sm text-muted-text">₫</span>
                   </div>
                   <input
                     type="number"
@@ -997,8 +1048,8 @@ export default function Budget() {
                     required
                     min="0"
                     step="1000"
-                    placeholder="Nhập số tiền..."
-                    className="w-full bg-canvas border border-hairline rounded-sm pl-7 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink font-mono font-semibold"
+                    placeholder="0"
+                    className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold"
                     value={expenseCost}
                     onChange={e => setExpenseCost(e.target.value)}
                   />
@@ -1007,14 +1058,14 @@ export default function Budget() {
 
               {/* Date */}
               <div className="space-y-1.5">
-                <label htmlFor="expense-date" className="text-xs font-semibold text-ink uppercase tracking-wider block">
-                  Ngày thanh toán *
+                <label htmlFor="expense-date" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                  {t.budget.expenseDate} *
                 </label>
                 <input
                   type="date"
                   id="expense-date"
                   required
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary text-ink font-mono font-semibold"
+                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold cursor-pointer"
                   value={expenseDate}
                   onChange={e => setExpenseDate(e.target.value)}
                 />
@@ -1026,19 +1077,19 @@ export default function Budget() {
                   type="button"
                   onClick={() => setIsExpenseModalOpen(false)}
                   disabled={isSubmittingExpense}
-                  className="px-4 py-2 border border-border-strong rounded-sm text-xs font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-border-strong rounded-sm text-sm font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  Hủy
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingExpense}
-                  className="px-5 py-2 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-5 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmittingExpense ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    'Lưu khoản chi'
+                    t.common.save
                   )}
                 </button>
               </div>
