@@ -105,7 +105,9 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
         BigDecimal totalBudget = plan.getBudget() != null ? plan.getBudget() : BigDecimal.ZERO;
         int guests = plan.getGuestCount() != null && plan.getGuestCount() > 0 ? plan.getGuestCount() : 100;
         int estimatedTables = (int) Math.ceil((double) guests / 10.0) + 1;
-        BigDecimal costPerGuest = totalBudget.divide(BigDecimal.valueOf(guests), 0, RoundingMode.HALF_UP);
+        BigDecimal costPerGuest = guests > 0
+                ? BigDecimal.valueOf(Math.round(totalBudget.divide(BigDecimal.valueOf(guests), 0, RoundingMode.HALF_UP).doubleValue() / 50_000.0) * 50_000L)
+                : BigDecimal.ZERO;
 
         BigDecimal venueEstimated = BigDecimal.ZERO;
         BigDecimal contingencyEstimated = BigDecimal.ZERO;
@@ -143,7 +145,7 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
         }
 
         BigDecimal tableCostEstimated = estimatedTables > 0 && venueEstimated.compareTo(BigDecimal.ZERO) > 0
-                ? venueEstimated.divide(BigDecimal.valueOf(estimatedTables), 0, RoundingMode.HALF_UP)
+                ? BigDecimal.valueOf(Math.round(venueEstimated.divide(BigDecimal.valueOf(estimatedTables), 0, RoundingMode.HALF_UP).doubleValue() / 100_000.0) * 100_000L)
                 : BigDecimal.ZERO;
 
         ActivePlanResponse.BudgetAnalytics budgetAnalytics = ActivePlanResponse.BudgetAnalytics.builder()
@@ -305,20 +307,40 @@ public class WeddingPlanServiceImpl implements WeddingPlanService {
             weights.put(entry.getKey(), entry.getValue() / sumWeights);
         }
 
-        for (Map.Entry<String, Double> entry : weights.entrySet()) {
+        // Làm tròn số chẵn cho từng hạng mục theo đơn vị tiền tệ phù hợp (500.000 ₫ hoặc 100.000 ₫)
+        long roundUnit = totalBudget.compareTo(BigDecimal.valueOf(50_000_000)) >= 0 ? 500_000L : 100_000L;
+        BigDecimal roundUnitBd = BigDecimal.valueOf(roundUnit);
+
+        List<Map.Entry<String, Double>> entryList = new ArrayList<>(weights.entrySet());
+        BigDecimal allocatedTotalSoFar = BigDecimal.ZERO;
+
+        for (int i = 0; i < entryList.size(); i++) {
+            Map.Entry<String, Double> entry = entryList.get(i);
             String catName = entry.getKey();
             Double weight = entry.getValue();
 
             BudgetCategory category = budgetCategoryRepository.findByName(catName)
                     .orElseGet(() -> budgetCategoryRepository.save(BudgetCategory.builder().name(catName).build()));
 
-            BigDecimal estimatedCost = totalBudget.multiply(BigDecimal.valueOf(weight))
-                    .setScale(0, RoundingMode.HALF_UP);
+            BigDecimal estimatedCost;
+            if (i == entryList.size() - 1) {
+                // Hạng mục cuối cùng nhận phần chênh lệch còn lại để đảm bảo chính xác 100% tổng ngân sách
+                estimatedCost = totalBudget.subtract(allocatedTotalSoFar);
+                if (estimatedCost.compareTo(roundUnitBd) < 0) {
+                    estimatedCost = roundUnitBd;
+                }
+            } else {
+                double rawCost = totalBudget.doubleValue() * weight;
+                long roundedValue = Math.round(rawCost / roundUnit) * roundUnit;
+                estimatedCost = BigDecimal.valueOf(Math.max(roundUnit, roundedValue));
+                allocatedTotalSoFar = allocatedTotalSoFar.add(estimatedCost);
+            }
 
             String note;
             if (catName.contains("Venue")) {
                 BigDecimal tableCost = estimatedCost.divide(BigDecimal.valueOf(estimatedTables), 0, RoundingMode.HALF_UP);
-                note = String.format("Dự kiến ~%,d ₫/bàn (cho %d bàn tiệc bao gồm 1 bàn dự phòng)", tableCost.longValue(), estimatedTables);
+                long roundedTableCost = Math.round(tableCost.doubleValue() / 100_000.0) * 100_000L;
+                note = String.format("Dự kiến ~%,d ₫/bàn (cho %d bàn tiệc bao gồm 1 bàn dự phòng)", roundedTableCost, estimatedTables);
             } else if (Boolean.TRUE.equals(isBoosted.get(catName))) {
                 note = "Hạng mục ưu tiên của bạn (+25% định mức chất lượng cao)";
             } else if (catName.contains("Contingency")) {

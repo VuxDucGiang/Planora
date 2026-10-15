@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlan } from '@/contexts/PlanContext';
 import { 
   getWeddingStyles, 
   getServiceCategories, 
@@ -40,7 +41,8 @@ import {
   Images,
   Grid,
   Globe,
-  ChevronDown
+  ChevronDown,
+  Music
 } from 'lucide-react';
 import { WEDDING_STYLES_CATALOG, WeddingStyleDetail } from '@/constants/weddingStyles';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -83,8 +85,116 @@ const COUNTRIES_AND_CITIES: Record<string, string[]> = {
   'Quốc gia khác': ['Nhập tùy chỉnh'],
 };
 
+interface CategoryMetaItem {
+  viTitle: string;
+  enTitle: string;
+  viDesc: string;
+  enDesc: string;
+  IconComponent: React.ComponentType<{ className?: string }>;
+}
+
+const PRIORITY_CATEGORY_META: Record<string, CategoryMetaItem> = {
+  'studio': {
+    viTitle: 'Studio Cưới',
+    enTitle: 'Photo Studio',
+    viDesc: 'Album Pre-wedding & ảnh cổng',
+    enDesc: 'Pre-wedding album & shoot',
+    IconComponent: Camera,
+  },
+  'makeup': {
+    viTitle: 'Trang Điểm',
+    enTitle: 'Bridal Makeup',
+    viDesc: 'Makeup cô dâu lễ sáng & tiệc tối',
+    enDesc: 'Ceremony & evening reception',
+    IconComponent: Sparkles,
+  },
+  'wedding planner': {
+    viTitle: 'Wedding Planner',
+    enTitle: 'Wedding Planner',
+    viDesc: 'Ý tưởng & điều phối chuyên nghiệp',
+    enDesc: 'Full planning & coordination',
+    IconComponent: Heart,
+  },
+  'decor': {
+    viTitle: 'Trang Trí Tiệc Cưới',
+    enTitle: 'Decor & Florals',
+    viDesc: 'Cổng hoa, gia tiên & sân khấu',
+    enDesc: 'Floral arches, gallery & stage',
+    IconComponent: Palette,
+  },
+  'dress rental': {
+    viTitle: 'Váy Cưới & Trang Phục',
+    enTitle: 'Bridal Gowns & Suits',
+    viDesc: 'Váy cưới chính, áo dài & vest',
+    enDesc: 'Gowns, ao dai & tuxedos',
+    IconComponent: Shirt,
+  },
+  'photographer': {
+    viTitle: 'Nhiếp Ảnh Gia',
+    enTitle: 'Photographer',
+    viDesc: 'Phóng sự cưới ngày chính lễ',
+    enDesc: 'Day-of photo & video coverage',
+    IconComponent: Camera,
+  },
+  'venue': {
+    viTitle: 'Sảnh Tiệc & Địa Điểm',
+    enTitle: 'Venue & Banquet',
+    viDesc: 'Không gian tiệc & thực đơn ẩm thực',
+    enDesc: 'Banquet hall & culinary service',
+    IconComponent: UtensilsCrossed,
+  },
+  'music & mc': {
+    viTitle: 'Âm Thanh & Ban Nhạc',
+    enTitle: 'Music & MC',
+    viDesc: 'MC, hòa tấu & ban nhạc tiệc cưới',
+    enDesc: 'Live band, MC & sound lighting',
+    IconComponent: Music,
+  },
+  'music': {
+    viTitle: 'Âm Thanh & Ban Nhạc',
+    enTitle: 'Music & MC',
+    viDesc: 'MC, hòa tấu & ban nhạc tiệc cưới',
+    enDesc: 'Live band, MC & sound lighting',
+    IconComponent: Music,
+  },
+  'mc': {
+    viTitle: 'Âm Thanh & Ban Nhạc',
+    enTitle: 'Music & MC',
+    viDesc: 'MC, hòa tấu & ban nhạc tiệc cưới',
+    enDesc: 'Live band, MC & sound lighting',
+    IconComponent: Music,
+  },
+};
+
+function getCategoryDetails(name: string, lang: 'vi' | 'en') {
+  const lower = name.toLowerCase().trim();
+  for (const [key, meta] of Object.entries(PRIORITY_CATEGORY_META)) {
+    if (lower.includes(key) || key.includes(lower)) {
+      return {
+        title: lang === 'vi' ? meta.viTitle : meta.enTitle,
+        desc: lang === 'vi' ? meta.viDesc : meta.enDesc,
+        IconComponent: meta.IconComponent,
+      };
+    }
+  }
+
+  let FallbackIcon = Gem;
+  if (lower.includes('photo') || lower.includes('ảnh') || lower.includes('chụp')) FallbackIcon = Camera;
+  else if (lower.includes('make') || lower.includes('điểm')) FallbackIcon = Sparkles;
+  else if (lower.includes('hoa') || lower.includes('trí')) FallbackIcon = Palette;
+  else if (lower.includes('váy') || lower.includes('áo') || lower.includes('vest')) FallbackIcon = Shirt;
+  else if (lower.includes('tiệc') || lower.includes('nhà hàng') || lower.includes('ăn')) FallbackIcon = UtensilsCrossed;
+
+  return {
+    title: name,
+    desc: lang === 'vi' ? 'Dịch vụ cưới cao cấp' : 'Premier wedding service',
+    IconComponent: FallbackIcon,
+  };
+}
+
 export default function Onboarding() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { refreshPlan } = usePlan();
   const { language } = useLanguage();
   const router = useRouter();
 
@@ -331,10 +441,33 @@ export default function Onboarding() {
           getServiceCategories()
         ]);
         setAvailableStyles(styles);
-        setAvailableCategories(categories);
+        const cats = (categories && categories.length > 0) ? [...categories] : [
+          { id: 1, name: 'Studio' },
+          { id: 2, name: 'Makeup' },
+          { id: 3, name: 'Wedding Planner' },
+          { id: 4, name: 'Decor' },
+          { id: 5, name: 'Dress Rental' },
+          { id: 6, name: 'Photographer' },
+          { id: 7, name: 'Venue' },
+          { id: 8, name: 'Music & MC' }
+        ];
+        const hasMusic = cats.some(c => c.name.toLowerCase().includes('music') || c.name.toLowerCase().includes('mc') || c.name.toLowerCase().includes('âm thanh') || c.name.toLowerCase().includes('nhạc'));
+        if (!hasMusic) {
+          cats.push({ id: 8, name: 'Music & MC' });
+        }
+        setAvailableCategories(cats);
       } catch (err) {
         console.error('Lỗi khi tải dữ liệu onboarding:', err);
-        setErrorMessage('Không thể tải cấu hình khảo sát từ hệ thống. Vui lòng tải lại trang!');
+        setAvailableCategories([
+          { id: 1, name: 'Studio' },
+          { id: 2, name: 'Makeup' },
+          { id: 3, name: 'Wedding Planner' },
+          { id: 4, name: 'Decor' },
+          { id: 5, name: 'Dress Rental' },
+          { id: 6, name: 'Photographer' },
+          { id: 7, name: 'Venue' },
+          { id: 8, name: 'Music & MC' }
+        ]);
       } finally {
         setIsLoadingData(false);
       }
@@ -472,6 +605,7 @@ export default function Onboarding() {
       try {
         const activePlan = await getActivePlan();
         if (activePlan) {
+          refreshPlan();
           setGeneratedPlan({
             ...fallbackBlueprint,
             ...activePlan,
@@ -667,8 +801,10 @@ export default function Onboarding() {
             )}
 
                         {/* Form Steps Rendering - centered card */}
-            <div className={`bg-[#FFFBF5] rounded-2xl border border-primary/10 p-5 sm:p-8 shadow-md w-full mx-auto z-10 transition-all duration-500 ${
-              currentStep === 3 ? 'max-w-[1240px]' : currentStep === 5 ? 'max-w-[840px]' : 'max-w-[520px]'
+            <div className={`bg-[#FFFBF5] rounded-2xl border border-primary/10 shadow-md w-full mx-auto z-10 transition-all duration-500 ${
+              currentStep === 4 ? 'p-5 sm:p-6' : 'p-5 sm:p-8'
+            } ${
+              currentStep === 3 ? 'max-w-[1240px]' : currentStep === 5 ? 'max-w-[840px]' : currentStep === 4 ? 'max-w-[1100px]' : 'max-w-[520px]'
             }`}>
               
               {/* STEP 1: Basic Information */}
@@ -1300,23 +1436,45 @@ export default function Onboarding() {
 
               {/* STEP 4: Priority Services */}
               {currentStep === 4 && (
-                <div className="space-y-4">
-                  <div className="border-b border-hairline pb-3 mb-1">
-                    <h2 className="text-base font-medium tracking-tight text-ink font-display flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      {language === 'vi' ? 'Dịch vụ Ưu tiên' : 'Priority Services'}
+                <div className="space-y-4 py-1 animate-fade-in">
+                  {/* Unified Header matching Step 1, 2, 3, 5 */}
+                  <div className="text-center space-y-1.5 mb-3.5">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-primary/5 border border-primary/15 text-primary text-[11px] font-medium tracking-wide">
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
+                      <span>{language === 'vi' ? 'Bước 4 / 4 • Dịch vụ ưu tiên' : 'Step 4 of 4 • Priority Services'}</span>
+                    </div>
+                    <h2 
+                      className="text-[24px] md:text-[28px] italic leading-tight"
+                      style={{ 
+                        fontFamily: "'IM Fell French Canon', serif", 
+                        fontWeight: 400, 
+                        color: '#2C0600'
+                      }}
+                    >
+                      {language === 'vi' ? 'Dịch vụ bạn muốn ưu tiên' : 'Select your priority services'}
                     </h2>
-                    <p className="text-[11px] text-muted-text mt-0.5">
+                    <p 
+                      className="text-xs sm:text-sm font-normal text-muted-text max-w-2xl mx-auto"
+                      style={{ 
+                        fontFamily: "'IM Fell French Canon', serif", 
+                        fontWeight: 400, 
+                        lineHeight: '20px',
+                        color: '#2C0600'
+                      }}
+                    >
                       {language === 'vi' 
-                        ? 'Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Chúng tôi sẽ phân bổ ngân sách tối ưu cho các hạng mục này.' 
-                        : 'Select services you wish to prioritize. We will boost budget allocation for these essential categories.'}
+                        ? 'Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Planora AI sẽ tự động phân bổ thêm ngân sách cho các hạng mục này.' 
+                        : 'Select services you wish to prioritize. Planora AI will boost budget allocation for these essential categories.'}
                     </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 max-h-[160px] overflow-y-auto pr-1 dashboard-scroll">
+                  <div className="space-y-3.5">
+                    {/* Grid 2x4: 2 rows x 4 columns on md+ screens, expanding horizontally */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 pt-0.5">
                       {availableCategories.map(category => {
                         const isSelected = selectedCategories.includes(category.id);
+                        const { title, desc, IconComponent } = getCategoryDetails(category.name, language);
+
                         return (
                           <button
                             key={category.id}
@@ -1325,39 +1483,88 @@ export default function Onboarding() {
                               toggleCategory(category.id);
                               setErrorMessage(null);
                             }}
-                            className={`p-2 border rounded-sm text-xs font-medium text-left transition-all flex items-center justify-between ${
+                            className={`p-3 sm:p-3.5 rounded-2xl border-2 text-left transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer select-none ${
                               isSelected
-                                ? 'bg-primary/5 border-primary text-primary font-semibold ring-1 ring-primary/20'
-                                : 'bg-white border-hairline text-body-text hover:bg-canvas'
+                                ? 'bg-primary/5 border-primary shadow-md ring-2 ring-primary/15 scale-[1.01]'
+                                : 'bg-white border-primary/15 hover:border-primary/45 hover:bg-white hover:shadow-xs hover:scale-[1.005]'
                             }`}
                           >
-                            <span className="truncate">{category.name}</span>
-                            {isSelected && <Check className="w-3 h-3 text-primary flex-shrink-0" />}
+                            <div className="flex items-center justify-between w-full">
+                              <div
+                                className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                  isSelected
+                                    ? 'bg-primary text-white shadow-xs'
+                                    : 'bg-primary/10 text-primary'
+                                }`}
+                              >
+                                <IconComponent className="w-4 h-4" />
+                              </div>
+
+                              <div
+                                className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${
+                                  isSelected
+                                    ? 'bg-primary border-primary text-white scale-110 shadow-2xs'
+                                    : 'border-primary/30 bg-transparent'
+                                }`}
+                              >
+                                {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                              </div>
+                            </div>
+
+                            <div className="min-w-0">
+                              <span
+                                className={`block text-[13px] sm:text-sm font-bold tracking-tight truncate transition-colors ${
+                                  isSelected ? 'text-primary' : 'text-neutral-900'
+                                }`}
+                              >
+                                {title}
+                              </span>
+                              <span className="block text-[10.5px] sm:text-[11px] text-neutral-500 font-normal truncate mt-0.5">
+                                {desc}
+                              </span>
+                            </div>
+
+                            <div className="pt-2 border-t border-primary/10 flex items-center justify-between">
+                              <span
+                                className={`text-[9.5px] sm:text-[10px] font-bold uppercase tracking-wider ${
+                                  isSelected ? 'text-primary' : 'text-neutral-400'
+                                }`}
+                              >
+                                {isSelected
+                                  ? (language === 'vi' ? '✦ Ưu tiên +25%' : '✦ Boosted +25%')
+                                  : (language === 'vi' ? 'Tiêu chuẩn' : 'Standard')}
+                              </span>
+                              {isSelected && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                              )}
+                            </div>
                           </button>
                         );
                       })}
                     </div>
 
-                    {/* Priority Impact Notification */}
+                    {/* Priority Impact Notification Box */}
                     {selectedCategories.length > 0 ? (
-                      <div className="p-3 bg-primary/10 rounded-xl border border-primary/25 flex gap-2.5 text-[11px] text-primary leading-relaxed items-center animate-fade-in">
-                        <Sparkles className="w-4 h-4 flex-shrink-0 text-gold" />
-                        <div>
-                          <span className="font-bold block text-primary">
+                      <div className="p-3 sm:p-3.5 bg-primary/5 rounded-2xl border border-primary/20 flex items-center gap-3 text-xs text-primary leading-relaxed shadow-xs animate-fade-in">
+                        <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                          <span className="font-bold text-xs sm:text-sm text-primary whitespace-nowrap">
                             {language === 'vi' ? `Đã chọn ${selectedCategories.length} dịch vụ ưu tiên:` : `Selected ${selectedCategories.length} priority services:`}
                           </span>
-                          <span className="text-body-text">
+                          <span className="text-body-text text-xs leading-normal">
                             {language === 'vi' ? (
-                              <>Các hạng mục này sẽ được tự động tăng <strong>+25% ngân sách</strong> để bạn có thể chọn các nhà cung cấp chất lượng cao nhất.</>
+                              <>Được tự động tăng <strong>+25% ngân sách</strong> để bạn chọn nhà cung cấp cao cấp nhất.</>
                             ) : (
-                              <>These categories will automatically receive a <strong>+25% budget boost</strong> so you can hire top-tier vendors.</>
+                              <>Automatically receive a <strong>+25% budget boost</strong> for top-tier vendors.</>
                             )}
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 flex gap-2.5 text-[11px] text-amber-800 leading-relaxed items-center">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
+                      <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 flex items-center gap-2.5 text-xs text-amber-800 leading-relaxed shadow-xs">
+                        <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 text-amber-600" />
                         <span>
                           {language === 'vi' 
                             ? 'Hãy chọn ít nhất 1 dịch vụ bạn mong muốn đầu tư nhiều nhất để thuật toán tối ưu phân bổ.' 
@@ -1799,7 +2006,10 @@ export default function Onboarding() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => router.replace('/')}
+                    onClick={async () => {
+                      await refreshPlan();
+                      router.replace('/');
+                    }}
                     className="px-7 py-2.5 bg-primary hover:bg-primary-active text-white rounded-full text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-sm uppercase tracking-wider cursor-pointer"
                   >
                     {language === 'vi' ? 'Xác nhận & Vào Dashboard' : 'Confirm & Open Dashboard'}

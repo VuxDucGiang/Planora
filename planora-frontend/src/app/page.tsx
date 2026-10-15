@@ -30,6 +30,7 @@ import DashboardFooter from '@/components/layout/DashboardFooter';
 import Link from 'next/link';
 import SavedVendorsCarousel from '@/components/dashboard/SavedVendorsCarousel';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePlan } from '@/contexts/PlanContext';
 
 // ─── Circular Progress Ring Component ────────────────────────────
 function CircularProgress({
@@ -89,9 +90,8 @@ export default function Home() {
   const { language, t, formatCurrency } = useLanguage();
   const router = useRouter();
 
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
+  const { plan, daysLeft, isLoadingPlan, setPlan, deletePlan: contextDeletePlan } = usePlan();
   const [savedVendors, setSavedVendors] = useState<VendorResponse[]>([]);
-  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
 
   // Delete Plan Modal & Status States
@@ -105,8 +105,7 @@ export default function Home() {
     try {
       setIsDeleting(true);
       setDeleteError(null);
-      await deleteActivePlan();
-      setPlan(null);
+      await contextDeletePlan();
       setSavedVendors([]);
       setShowDeleteModal(false);
       setNotificationMessage(t.dashboard.deleteSuccessMsg);
@@ -128,35 +127,32 @@ export default function Home() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Load Active Plan
+  // Load saved vendors when plan changes
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !plan?.id) {
+      setSavedVendors([]);
+      return;
+    }
 
-    async function loadActivePlan() {
+    let isMounted = true;
+    async function loadSavedVendors() {
       try {
-        setIsLoadingPlan(true);
-        const activePlan = await getActivePlan();
-        setPlan(activePlan);
-
-        // Load saved vendors (shortlist) if plan exists
-        if (activePlan?.id) {
-          try {
-            const vendors = await getShortlist(activePlan.id);
-            setSavedVendors(vendors || []);
-          } catch {
-            setSavedVendors([]);
-          }
+        const vendors = await getShortlist(plan!.id);
+        if (isMounted) {
+          setSavedVendors(vendors || []);
         }
-      } catch (err) {
-        console.error('Active plan not found:', err);
-        setPlan(null);
-      } finally {
-        setIsLoadingPlan(false);
+      } catch {
+        if (isMounted) {
+          setSavedVendors([]);
+        }
       }
     }
 
-    loadActivePlan();
-  }, [isAuthenticated]);
+    loadSavedVendors();
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, plan?.id]);
 
   // Countdown timer logic
   useEffect(() => {

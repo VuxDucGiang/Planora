@@ -28,18 +28,16 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePlan } from '@/contexts/PlanContext';
 
 export default function Timeline() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { plan, daysLeft, isLoadingPlan } = usePlan();
   const { t } = useLanguage();
   const router = useRouter();
 
-  // Plan & Countdown States
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
-  const [daysLeft, setDaysLeft] = useState(0);
-
   // Data Loading States
-  const [planId, setPlanId] = useState<number | null>(null);
+  const planId = plan?.id ?? null;
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -68,36 +66,41 @@ export default function Timeline() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Load Active Plan and Timeline Events
+  // Load Timeline Events directly using cached planId
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (!planId) {
+      if (!isLoadingPlan && !plan) {
+        router.replace('/');
+      }
+      return;
+    }
 
+    let isMounted = true;
     async function loadData() {
       try {
         setIsLoading(true);
-        const activePlan = await getActivePlan();
-        if (activePlan) {
-          setPlan(activePlan);
-          setPlanId(activePlan.id);
-          if (activePlan.weddingDate) {
-            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
-            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-          }
-          const timeline = await getTimeline(activePlan.id);
+        const timeline = await getTimeline(planId!);
+        if (isMounted) {
           setEvents(timeline);
-        } else {
-          router.replace('/');
         }
       } catch (err) {
         console.error('Lỗi khi tải dữ liệu timeline:', err);
-        setErrorMessage(t.timeline.errorLoading);
+        if (isMounted) {
+          setErrorMessage(t.timeline.errorLoading);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadData();
-  }, [isAuthenticated, router, t.timeline.errorLoading]);
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, planId, isLoadingPlan, plan, router, t.timeline.errorLoading]);
 
   if (authLoading || !isAuthenticated) {
     return (

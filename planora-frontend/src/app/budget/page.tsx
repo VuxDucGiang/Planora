@@ -32,15 +32,13 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePlan } from '@/contexts/PlanContext';
 
 export default function Budget() {
   const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const { language, t, formatCurrency } = useLanguage();
+  const { plan, daysLeft, isLoadingPlan } = usePlan();
   const router = useRouter();
-
-  // Plan & Countdown States
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
-  const [daysLeft, setDaysLeft] = useState(0);
 
   // Data Loading States
   const [budgetData, setBudgetData] = useState<BudgetResponse | null>(null);
@@ -80,35 +78,41 @@ export default function Budget() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Load Active Plan and Budget Data
+  // Load Budget Data directly using cached plan
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (!plan?.id) {
+      if (!isLoadingPlan && !plan) {
+        router.replace('/');
+      }
+      return;
+    }
 
+    let isMounted = true;
     async function loadData() {
       try {
         setIsLoading(true);
-        const activePlan = await getActivePlan();
-        if (activePlan) {
-          setPlan(activePlan);
-          if (activePlan.weddingDate) {
-            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
-            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-          }
-          const data = await getBudget(activePlan.id);
+        const data = await getBudget(plan!.id);
+        if (isMounted) {
           setBudgetData(data);
-        } else {
-          router.replace('/');
         }
       } catch (err) {
         console.error('Error loading budget data:', err);
-        setErrorMessage(t.budget.errorLoading);
+        if (isMounted) {
+          setErrorMessage(t.budget.errorLoading);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadData();
-  }, [isAuthenticated, router, t.budget.errorLoading]);
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, plan, isLoadingPlan, router, t.budget.errorLoading]);
 
   // Open Edit Modal
   const handleOpenEdit = (item: BudgetItemResponse) => {

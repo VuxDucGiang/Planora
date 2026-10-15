@@ -53,6 +53,7 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePlan } from '@/contexts/PlanContext';
 
 // Column configurations
 const COLUMNS: { id: KanbanStatus; title: string; subtitle: string; icon: string; headerColor: string; bgTint: string }[] = [
@@ -104,11 +105,10 @@ export default function Checklist() {
   const { t, formatDateDisplay } = useLanguage();
   const router = useRouter();
 
-  // Plan & Countdown States
-  const [plan, setPlan] = useState<ActivePlanResponse | null>(null);
-  const [daysLeft, setDaysLeft] = useState(0);
-  const [planId, setPlanId] = useState<number | null>(null);
-  const [weddingDate, setWeddingDate] = useState<string | null>(null);
+  // Plan & Countdown from PlanContext
+  const { plan, daysLeft, isLoadingPlan } = usePlan();
+  const planId = plan?.id ?? null;
+  const weddingDate = plan?.weddingDate ?? null;
 
   // Loading & Notification States
   const [isLoading, setIsLoading] = useState(true);
@@ -191,76 +191,73 @@ export default function Checklist() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Load Data
+  // Load Tasks directly with planId
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (!planId) {
+      if (!isLoadingPlan && !plan) {
+        router.replace('/');
+      }
+      return;
+    }
 
+    let isMounted = true;
     async function loadData() {
       try {
         setIsLoading(true);
-        const activePlan = await getActivePlan();
-        if (activePlan) {
-          setPlan(activePlan);
-          setPlanId(activePlan.id);
-          setWeddingDate(activePlan.weddingDate);
-          
-          if (activePlan.weddingDate) {
-            const diffTime = new Date(activePlan.weddingDate).getTime() - new Date().getTime();
-            setDaysLeft(Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
+        const backendTasks = await getChecklist(planId!);
+        const metaMap = loadLocalMeta(planId!);
+
+        const enrichedTasks: KanbanTask[] = backendTasks.map(bt => {
+          const meta = metaMap[bt.id];
+          let status: KanbanStatus = 'TODO';
+          if (meta?.kanbanStatus) {
+            status = meta.kanbanStatus;
+          } else if (bt.status === 'DONE') {
+            status = 'DONE';
+          } else if (bt.status === 'IN_PROGRESS') {
+            status = 'IN_PROGRESS';
+          } else {
+            status = 'TODO';
           }
 
-          // Fetch tasks from backend
-          const backendTasks = await getChecklist(activePlan.id);
-          const metaMap = loadLocalMeta(activePlan.id);
+          return {
+            id: bt.id,
+            weddingPlanId: bt.weddingPlanId,
+            title: bt.title,
+            description: bt.description,
+            dueDate: bt.dueDate || '',
+            status,
+            priority: (bt.priority as TaskPriority) || 'MEDIUM',
+            category: meta?.category || detectCategoryFromText(bt.title),
+            assignee: meta?.assignee || 'Cô dâu & Chú rể',
+            subtasks: meta?.subtasks || [],
+            notes: meta?.notes || '',
+            dependencyTaskId: meta?.dependencyTaskId !== undefined ? meta.dependencyTaskId : null,
+            createdAt: bt.createdAt || new Date().toISOString(),
+          };
+        });
 
-          // Merge backend tasks with local rich metadata
-          const enrichedTasks: KanbanTask[] = backendTasks.map(bt => {
-            const meta = metaMap[bt.id];
-            
-            // Map status: if meta has custom kanbanStatus (like REVIEW), use it.
-            // Otherwise, derive from backend status
-            let status: KanbanStatus = 'TODO';
-            if (meta?.kanbanStatus) {
-              status = meta.kanbanStatus;
-            } else if (bt.status === 'DONE') {
-              status = 'DONE';
-            } else if (bt.status === 'IN_PROGRESS') {
-              status = 'IN_PROGRESS';
-            } else {
-              status = 'TODO';
-            }
-
-            return {
-              id: bt.id,
-              weddingPlanId: bt.weddingPlanId,
-              title: bt.title,
-              description: bt.description,
-              dueDate: bt.dueDate || '',
-              status,
-              priority: (bt.priority as TaskPriority) || 'MEDIUM',
-              category: meta?.category || detectCategoryFromText(bt.title),
-              assignee: meta?.assignee || 'Cô dâu & Chú rể',
-              subtasks: meta?.subtasks || [],
-              notes: meta?.notes || '',
-              dependencyTaskId: meta?.dependencyTaskId !== undefined ? meta.dependencyTaskId : null,
-              createdAt: bt.createdAt || new Date().toISOString(),
-            };
-          });
-
+        if (isMounted) {
           setTasks(enrichedTasks);
-        } else {
-          router.replace('/');
         }
       } catch (err) {
         console.error('Lỗi khi tải dữ liệu checklist:', err);
-        setErrorMessage(t.checklist.errorLoading);
+        if (isMounted) {
+          setErrorMessage(t.checklist.errorLoading);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadData();
-  }, [isAuthenticated, router, t.checklist.errorLoading]);
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, planId, isLoadingPlan, plan, router, t.checklist.errorLoading]);
 
   // Persist single task change to LocalStorage and Backend
   const persistTaskUpdate = async (updatedTask: KanbanTask) => {
