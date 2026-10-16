@@ -389,10 +389,11 @@ export default function Marketplace() {
   // Load Shortlist when authenticated and planId is available
   useEffect(() => {
     if (!isAuthenticated || !planId) return;
+    const currentPlanId = planId;
 
     async function loadShortlist() {
       try {
-        const savedList = await getShortlist(planId);
+        const savedList = await getShortlist(currentPlanId);
         setShortlistIds(new Set(savedList.map(v => v.id)));
       } catch (err) {
         console.error('Lỗi tải danh sách yêu thích:', err);

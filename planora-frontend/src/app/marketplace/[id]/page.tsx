@@ -76,10 +76,11 @@ export default function VendorDetail(props: PageProps) {
   // Sync Shortlist state when plan is available
   useEffect(() => {
     if (!isAuthenticated || !plan?.id) return;
+    const planId = plan.id;
 
     async function checkShortlist() {
       try {
-        const savedList = await getShortlist(plan.id);
+        const savedList = await getShortlist(planId);
         const ids = new Set(savedList.map(v => v.id));
         setIsSaved(ids.has(vendorId));
       } catch (err) {

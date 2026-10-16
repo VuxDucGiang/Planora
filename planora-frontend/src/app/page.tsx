@@ -230,7 +230,7 @@ export default function Home() {
             <>
               <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8">
                 {/* ── Greeting Section ───────────────────────── */}
-                <div className="mb-8 animate-fade-in">
+                <div className={`mb-8 animate-fade-in ${!plan ? 'text-center' : ''}`}>
                   <h1
                     className="text-xl sm:text-2xl text-primary mb-1 font-normal"
                     style={{ fontFamily: '"IM Fell French Canon", serif' }}
@@ -249,7 +249,7 @@ export default function Home() {
 
                 {/* Notification Banner */}
                 {notificationMessage && (
-                  <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-xs shadow-xs animate-fade-in">
+                  <div className={`mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-xs shadow-xs animate-fade-in ${!plan ? 'max-w-2xl mx-auto' : ''}`}>
                     <div className="flex items-center gap-2.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                       <span className="font-medium">{notificationMessage}</span>
@@ -270,14 +270,14 @@ export default function Home() {
                      ══════════════════════════════════════════════ */
                   <div className="space-y-8 animate-fade-in">
                     {/* Wedding Summary Card - Empty */}
-                    <div className="bg-white border border-hairline rounded-xl p-8 shadow-sm vintage-card text-center space-y-5">
+                    <div className="bg-white border border-hairline rounded-xl p-8 shadow-sm vintage-card flex flex-col items-center justify-center text-center space-y-5">
                       <div className="inline-flex p-4 rounded-full bg-primary/10 border border-primary/20">
                         <Heart className="w-8 h-8 text-primary animate-pulse" />
                       </div>
-                      <h2 className="text-xl font-display font-medium text-ink">
+                      <h2 className="text-xl font-display font-medium text-ink text-center">
                         {t.dashboard.emptyCardTitle}
                       </h2>
-                      <p className="text-sm text-muted-text max-w-md mx-auto leading-relaxed">
+                      <p className="text-sm text-muted-text max-w-md mx-auto text-center leading-relaxed">
                         {t.dashboard.emptyCardDesc}
                       </p>
                       <Link

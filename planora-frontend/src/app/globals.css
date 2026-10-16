@@ -67,24 +67,24 @@ body {
   box-sizing: border-box;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--color-ink);
-  margin: 0;
-}
-
-p {
-  margin: 0;
-  line-height: 1.5;
-}
-
 @layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--color-ink);
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
   a {
     color: var(--color-link);
     text-decoration: none;
