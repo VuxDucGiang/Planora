@@ -52,12 +52,18 @@ export function parseToken(token: string): User | null {
 }
 
 export async function register(request: RegisterRequest): Promise<LoginResponse> {
+  const payload = {
+    ...request,
+    fullName: request.fullName || request.fullname,
+    fullname: request.fullName || request.fullname,
+    role: request.role || 'USER',
+  };
   const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(request),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

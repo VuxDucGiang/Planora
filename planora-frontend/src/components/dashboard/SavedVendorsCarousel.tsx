@@ -123,8 +123,7 @@ function VendorCard({
 
         {/* Vendor Name */}
         <h4
-          className="font-serif text-lg sm:text-xl font-bold uppercase tracking-wide line-clamp-1 mb-1"
-          style={{ color: '#5D0F12', fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+          className="font-serif text-lg sm:text-xl font-bold uppercase tracking-wide line-clamp-1 mb-1 text-[#5D0F12]"
         >
           {vendor.businessName}
         </h4>
@@ -178,6 +177,8 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
     setCurrentIndex(n);
   }
 
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
   const scrollPrev = () => {
     if (!isTransitionEnabled) return;
     setCurrentIndex((prev) => prev - 1);
@@ -186,6 +187,22 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
   const scrollNext = () => {
     if (!isTransitionEnabled) return;
     setCurrentIndex((prev) => prev + 1);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (diff > 45) {
+      scrollNext();
+    } else if (diff < -45) {
+      scrollPrev();
+    }
+    setTouchStartX(null);
   };
 
   const handleTransitionEnd = () => {
@@ -216,8 +233,7 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
     return (
       <div className="bg-white/80 border border-neutral-200/60 rounded-3xl p-10 text-center shadow-sm">
         <h3
-          className="text-xl sm:text-2xl font-medium tracking-wider uppercase mb-3 text-center"
-          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#5D0F12' }}
+          className="text-xl sm:text-2xl font-serif font-medium tracking-wider uppercase mb-3 text-center text-[#5D0F12]"
         >
           SAVED VENDORS
         </h3>
@@ -239,12 +255,11 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
   const activeDotIndex = isCarousel ? ((currentIndex % n) + n) % n : 0;
 
   return (
-    <div className="bg-[#FAF8F5] border border-neutral-200/50 rounded-[2.5rem] py-10 px-4 sm:px-8 shadow-sm relative overflow-hidden">
+    <div className="bg-[#FAF8F5] border border-neutral-200/50 rounded-[2rem] sm:rounded-[2.5rem] py-6 sm:py-10 px-3 sm:px-8 shadow-sm relative overflow-hidden">
       {/* Title Header */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 sm:mb-8">
         <h3
-          className="text-xl sm:text-2xl font-medium tracking-wider uppercase"
-          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#5D0F12' }}
+          className="text-xl sm:text-2xl font-serif font-medium tracking-wider uppercase text-[#5D0F12]"
         >
           SAVED VENDORS
         </h3>
@@ -252,7 +267,7 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
 
       {/* When <= 3 vendors: display directly without carousel or arrows */}
       {!isCarousel ? (
-        <div className="flex flex-wrap items-center justify-center gap-6 py-4 max-w-7xl w-full mx-auto">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 py-4 max-w-7xl w-full mx-auto">
           {vendors.map((vendor, idx) => (
             <VendorCard
               key={`${vendor.id}-${idx}`}
@@ -265,14 +280,18 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
           ))}
         </div>
       ) : (
-        /* When > 3 vendors: infinite loop carousel */
-        <div className="relative w-full overflow-hidden py-4">
+        /* When > 3 vendors: infinite loop carousel with touch swipe */
+        <div 
+          className="relative w-full overflow-hidden py-4 select-none touch-pan-y"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <style
             dangerouslySetInnerHTML={{
               __html: `
               :root {
-                --dash-card-width: 280px;
-                --dash-card-gap: 24px;
+                --dash-card-width: 260px;
+                --dash-card-gap: 16px;
               }
               @media (min-width: 640px) {
                 :root {
@@ -310,9 +329,9 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
           </div>
 
           {/* Bottom Controls: Dots Indicator & Left/Right Arrows */}
-          <div className="flex items-center justify-center gap-8 mt-6">
+          <div className="flex items-center justify-center gap-6 sm:gap-8 mt-5 sm:mt-6">
             {/* Dots */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {vendors.map((_, i) => (
                 <button
                   key={i}
@@ -323,7 +342,7 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
                   }}
                   className={`transition-all duration-300 rounded-full cursor-pointer ${
                     activeDotIndex === i
-                      ? 'w-7 h-2 bg-[#5D0F12]'
+                      ? 'w-6 sm:w-7 h-2 bg-[#5D0F12]'
                       : 'w-2 h-2 bg-neutral-300 hover:bg-neutral-400'
                   }`}
                   aria-label={`Go to slide ${i + 1}`}
@@ -332,17 +351,17 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
             </div>
 
             {/* Navigation Arrows */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2.5 sm:gap-4">
               <button
                 onClick={scrollPrev}
-                className="text-2xl font-bold text-neutral-800 hover:text-[#5D0F12] hover:scale-125 active:scale-95 transition-all p-1.5 cursor-pointer leading-none"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-neutral-200/90 shadow-2xs flex items-center justify-center text-neutral-800 hover:text-[#5D0F12] hover:border-[#5D0F12]/30 active:scale-95 transition-all cursor-pointer font-bold"
                 aria-label="Previous vendor"
               >
                 ←
               </button>
               <button
                 onClick={scrollNext}
-                className="text-2xl font-bold text-neutral-800 hover:text-[#5D0F12] hover:scale-125 active:scale-95 transition-all p-1.5 cursor-pointer leading-none"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-neutral-200/90 shadow-2xs flex items-center justify-center text-neutral-800 hover:text-[#5D0F12] hover:border-[#5D0F12]/30 active:scale-95 transition-all cursor-pointer font-bold"
                 aria-label="Next vendor"
               >
                 →

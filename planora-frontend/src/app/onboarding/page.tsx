@@ -745,23 +745,23 @@ export default function Onboarding() {
             
                         {/* Step Indicators */}
             {currentStep <= 4 && (
-            <div className="max-w-2xl mx-auto mb-6 mt-2 animate-fade-in bg-transparent px-4 sm:px-8">
+            <div className="max-w-2xl mx-auto mb-6 mt-2 animate-fade-in bg-transparent px-2 sm:px-8">
               <div className="relative">
                 {/* Horizontal line running behind all dots */}
                 <div className="absolute left-[12%] right-[12%] top-[5px] h-[1px] bg-white/40" />
                 
-                <div className="flex justify-between items-center relative">
+                <div className="flex justify-between items-start relative">
                   {[
-                    { number: 1, label: language === 'vi' ? 'Thông tin chung' : 'Wedding Details' },
+                    { number: 1, label: language === 'vi' ? 'Thông tin' : 'Details' },
                     { number: 2, label: language === 'vi' ? 'Ngân sách' : 'Budget' },
-                    { number: 3, label: language === 'vi' ? 'Phong cách cưới' : 'Wedding Style' },
-                    { number: 4, label: language === 'vi' ? 'Dịch vụ ưu tiên' : 'Priority Services' }
+                    { number: 3, label: language === 'vi' ? 'Phong cách' : 'Style' },
+                    { number: 4, label: language === 'vi' ? 'Dịch vụ' : 'Services' }
                   ].map((step) => {
                     const isCompleted = step.number < currentStep;
                     const isActive = step.number === currentStep;
                     
                     return (
-                      <div key={step.number} className="flex flex-col items-center z-10 w-[22%]">
+                      <div key={step.number} className="flex flex-col items-center z-10 w-[24%]">
                         <div className="h-[10px] flex items-center justify-center">
                           <button
                             type="button"
@@ -775,9 +775,9 @@ export default function Onboarding() {
                           />
                         </div>
                         <span 
-                          className="text-xs sm:text-sm text-center whitespace-nowrap text-white italic mt-2.5 transition-all duration-300"
+                          className="text-[11px] sm:text-xs md:text-sm text-center text-white italic mt-2 transition-all duration-300 leading-tight block truncate max-w-full"
                           style={{ 
-                            fontFamily: 'EB Garamond, Georgia, serif',
+                            fontFamily: 'var(--font-serif)',
                             opacity: isActive ? 1 : 0.65,
                             transform: isActive ? 'scale(1.03)' : 'scale(1)'
                           }}
@@ -787,7 +787,7 @@ export default function Onboarding() {
                       </div>
                     );
                   })}
-                                </div>
+                </div>
               </div>
             </div>
             )}
@@ -813,24 +813,12 @@ export default function Onboarding() {
                   {/* Header */}
                   <div className="text-center space-y-1 mb-8">
                     <h2 
-                      className="text-[28px] md:text-[32px] italic"
-                      style={{ 
-                        fontFamily: "'IM Fell French Canon', serif", 
-                        fontWeight: 400, 
-                        lineHeight: '40px',
-                        color: '#2C0600'
-                      }}
+                      className="text-[28px] md:text-[32px] italic font-serif text-[#2C0600] font-normal leading-[40px]"
                     >
                       {language === 'vi' ? 'Bắt đầu với những thông tin cơ bản' : "Let's start with the essentials"}
                     </h2>
                     <p 
-                      className="text-sm sm:text-base font-normal"
-                      style={{ 
-                        fontFamily: "'IM Fell French Canon', serif", 
-                        fontWeight: 400, 
-                        lineHeight: '40px',
-                        color: '#2C0600'
-                      }}
+                      className="text-sm sm:text-base font-serif font-normal text-[#2C0600] leading-[40px]"
                     >
                       {language === 'vi' ? 'Hãy chia sẻ một chút về ngày trọng đại sắp tới của hai bạn.' : 'Tell us a bit about your upcoming wedding day.'}
                     </p>
@@ -859,7 +847,7 @@ export default function Onboarding() {
                           <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
                             <select
                               aria-label={language === 'vi' ? 'Chọn ngày tổ chức' : 'Select wedding day'}
-                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
                               value={weddingDay}
                               onChange={e => handleDayChange(e.target.value)}
                             >
@@ -884,7 +872,7 @@ export default function Onboarding() {
                           <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
                             <select
                               aria-label={language === 'vi' ? 'Chọn tháng tổ chức' : 'Select wedding month'}
-                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
                               value={weddingMonth}
                               onChange={e => handleMonthChange(e.target.value)}
                             >
@@ -909,7 +897,7 @@ export default function Onboarding() {
                           <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-4 transition-all relative">
                             <select
                               aria-label={language === 'vi' ? 'Chọn năm tổ chức' : 'Select wedding year'}
-                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-medium text-ink font-sans cursor-pointer pr-6 focus:ring-0 focus:outline-none appearance-none"
                               value={weddingYear}
                               onChange={e => handleYearChange(e.target.value)}
                             >
@@ -983,7 +971,7 @@ export default function Onboarding() {
                             <Globe className="w-4 h-4 text-primary absolute left-4 pointer-events-none" />
                             <select
                               aria-label={language === 'vi' ? 'Chọn quốc gia' : 'Select country'}
-                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pl-7 pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-medium text-ink font-sans cursor-pointer pl-7 pr-6 focus:ring-0 focus:outline-none appearance-none"
                               value={selectedCountry}
                               onChange={e => handleCountryChange(e.target.value)}
                             >
@@ -1006,7 +994,7 @@ export default function Onboarding() {
                             <MapPin className="w-4 h-4 text-primary absolute left-4 pointer-events-none" />
                             <select
                               aria-label={language === 'vi' ? 'Chọn thành phố' : 'Select city'}
-                              className="w-full bg-transparent border-none outline-none text-sm font-medium text-ink font-sans cursor-pointer pl-7 pr-6 focus:ring-0 focus:outline-none appearance-none"
+                              className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-medium text-ink font-sans cursor-pointer pl-7 pr-6 focus:ring-0 focus:outline-none appearance-none"
                               value={selectedCity}
                               onChange={e => handleCityChange(e.target.value)}
                             >
@@ -1123,24 +1111,12 @@ export default function Onboarding() {
                   {/* Header */}
                   <div className="text-center space-y-1 mb-8">
                     <h2 
-                      className="text-[28px] md:text-[32px] italic"
-                      style={{ 
-                        fontFamily: "'IM Fell French Canon', serif", 
-                        fontWeight: 400, 
-                        lineHeight: '40px',
-                        color: '#2C0600'
-                      }}
+                      className="text-[28px] md:text-[32px] italic font-serif text-[#2C0600] font-normal leading-[40px]"
                     >
                       {language === 'vi' ? 'Ngân sách dự kiến của bạn là bao nhiêu?' : 'What is your estimated budget?'}
                     </h2>
                     <p 
-                      className="text-sm sm:text-base font-normal"
-                      style={{ 
-                        fontFamily: "'IM Fell French Canon', serif", 
-                        fontWeight: 400, 
-                        lineHeight: '40px',
-                        color: '#2C0600'
-                      }}
+                      className="text-sm sm:text-base font-serif font-normal text-[#2C0600] leading-[40px]"
                     >
                       {language === 'vi' ? 'Planora AI sẽ tự động phân bổ ngân sách chi tiết cho bạn.' : 'Planora AI will automatically allocate it for you.'}
                     </p>
@@ -1245,12 +1221,7 @@ export default function Onboarding() {
                         <span>{language === 'vi' ? 'Bước 3 / 4 • Phong cách tiệc cưới' : 'Step 3 of 4 • Wedding Style'}</span>
                       </div>
                       <h2 
-                        className="text-[26px] sm:text-[30px] italic leading-tight"
-                        style={{ 
-                          fontFamily: "'IM Fell French Canon', serif", 
-                          fontWeight: 400, 
-                          color: '#2C0600'
-                        }}
+                        className="text-[26px] sm:text-[30px] italic leading-tight font-serif text-[#2C0600] font-normal"
                       >
                         {language === 'vi' ? 'Chọn phong cách cưới mơ ước' : 'Pick your dream wedding style'}
                       </h2>
@@ -1362,8 +1333,7 @@ export default function Onboarding() {
                           <div className="p-3 bg-white flex-1 flex flex-col justify-between text-center border-t border-hairline/60">
                             <div>
                               <h3 
-                                className="text-sm font-bold text-ink"
-                                style={{ fontFamily: "'IM Fell French Canon', serif" }}
+                                className="text-sm font-bold text-ink font-serif"
                               >
                                 {style.tag}
                               </h3>
@@ -1444,23 +1414,12 @@ export default function Onboarding() {
                       <span>{language === 'vi' ? 'Bước 4 / 4 • Dịch vụ ưu tiên' : 'Step 4 of 4 • Priority Services'}</span>
                     </div>
                     <h2 
-                      className="text-[24px] md:text-[28px] italic leading-tight"
-                      style={{ 
-                        fontFamily: "'IM Fell French Canon', serif", 
-                        fontWeight: 400, 
-                        color: '#2C0600'
-                      }}
+                      className="text-[24px] md:text-[28px] italic leading-tight font-serif text-[#2C0600] font-normal"
                     >
                       {language === 'vi' ? 'Dịch vụ bạn muốn ưu tiên' : 'Select your priority services'}
                     </h2>
                     <p 
-                      className="text-xs sm:text-sm font-normal text-muted-text max-w-2xl mx-auto"
-                      style={{ 
-                        fontFamily: "'IM Fell French Canon', serif", 
-                        fontWeight: 400, 
-                        lineHeight: '20px',
-                        color: '#2C0600'
-                      }}
+                      className="text-xs sm:text-sm font-normal text-muted-text max-w-2xl mx-auto font-serif text-[#2C0600] leading-[20px]"
                     >
                       {language === 'vi' 
                         ? 'Chọn các dịch vụ bạn muốn ưu tiên đặc biệt. Planora AI sẽ tự động phân bổ thêm ngân sách cho các hạng mục này.' 
@@ -1582,14 +1541,12 @@ export default function Onboarding() {
                   {/* Header */}
                   <div className="text-center space-y-1 mb-6">
                     <h2 
-                      className="text-[26px] md:text-[32px] italic text-[#2C0600]"
-                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '38px' }}
+                      className="text-[26px] md:text-[32px] italic text-[#2C0600] font-serif font-normal leading-[38px]"
                     >
                       {language === 'vi' ? 'Bản Kế Hoạch Cưới Chuẩn Mực' : 'Master Wedding Blueprint'}
                     </h2>
                     <p 
-                      className="text-xs sm:text-sm font-normal text-muted-text max-w-lg mx-auto"
-                      style={{ fontFamily: "'IM Fell French Canon', serif", fontWeight: 400, lineHeight: '22px' }}
+                      className="text-xs sm:text-sm font-normal text-muted-text max-w-lg mx-auto font-serif leading-[22px]"
                     >
                       {language === 'vi' 
                         ? 'Bản kế hoạch cưới chi tiết được cá nhân hóa tự động theo ngân sách, quy mô bàn tiệc và phong cách của hai bạn.' 
@@ -2042,8 +1999,7 @@ export default function Onboarding() {
                     {galleryStyle.tag}
                   </span>
                   <h3 
-                    className="text-lg sm:text-xl font-bold text-ink"
-                    style={{ fontFamily: "'IM Fell French Canon', serif" }}
+                    className="text-lg sm:text-xl font-bold text-ink font-serif"
                   >
                     {language === 'vi' ? galleryStyle.vietnameseTitle : galleryStyle.name}
                   </h3>
