@@ -92,37 +92,37 @@ export default function UserJourneyPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Top Navigation */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition"
+          className="inline-flex items-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition w-fit cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" /> Quay lại
         </button>
         <div>
-          <h1 className="text-xl font-bold text-[#1A1A1A]">Chi tiết Hành trình Người dùng</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#1A1A1A]">Chi tiết Hành trình Người dùng</h1>
           <p className="text-xs text-stone-500">Theo dõi toàn bộ lịch sử tương tác và chuyển đổi của tài khoản #{journey.userId}</p>
         </div>
       </div>
 
       {/* User Profile Overview Card */}
-      <div className="rounded-2xl border border-[#EADCC9] bg-white p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
+      <div className="rounded-2xl border border-[#EADCC9] bg-white p-4 sm:p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5D0F12] text-[#FFFBF5] font-bold text-xl shadow-md shadow-[#5D0F12]/20">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#5D0F12] text-[#FFFBF5] font-bold text-lg sm:text-xl shadow-md shadow-[#5D0F12]/20">
               {journey.fullName ? journey.fullName.charAt(0).toUpperCase() : 'U'}
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-[#1A1A1A]">{journey.fullName || 'Người dùng'}</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-base sm:text-lg font-bold text-[#1A1A1A]">{journey.fullName || 'Người dùng'}</h2>
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#FAF8F5] border border-[#EADCC9] px-2.5 py-0.5 text-[11px] font-semibold text-stone-700">
                   <ShieldCheck className="h-3 w-3 text-[#5D0F12]" />
                   {journey.role}
                 </span>
               </div>
-              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-stone-500">
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500">
                 <span className="flex items-center gap-1">
                   <Mail className="h-3.5 w-3.5 text-stone-400" /> {journey.email}
                 </span>
@@ -140,15 +140,15 @@ export default function UserJourneyPage() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-[#FAF8F5] p-4 border border-[#EADCC9]/70 text-right sm:min-w-[140px]">
+          <div className="rounded-xl bg-[#FAF8F5] p-3 sm:p-4 border border-[#EADCC9]/70 flex items-center justify-between sm:flex-col sm:items-end sm:min-w-[140px]">
             <span className="text-[11px] font-medium text-stone-400 uppercase">Tổng tương tác</span>
-            <p className="text-2xl font-bold text-[#5D0F12] mt-0.5">{journey.activities.length}</p>
+            <p className="text-xl sm:text-2xl font-bold text-[#5D0F12] sm:mt-0.5">{journey.activities.length}</p>
           </div>
         </div>
       </div>
 
       {/* User Journey Timeline */}
-      <div className="rounded-2xl border border-[#EADCC9] bg-white p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
+      <div className="rounded-2xl border border-[#EADCC9] bg-white p-4 sm:p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
         <h3 className="text-base font-bold text-[#1A1A1A] mb-6 flex items-center gap-2">
           <Layers className="h-4 w-4 text-[#5D0F12]" /> Chuỗi thời gian hoạt động (Activity Timeline)
         </h3>

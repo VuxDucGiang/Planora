@@ -41,7 +41,7 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await loginService({ email, password });
+      const response = await loginService({ email: email.trim(), password });
       login(response.accessToken);
       setSuccessMessage(t.auth.loginSuccess);
 
@@ -175,18 +175,17 @@ export default function Login() {
         </div>
 
         {/* Main Login Card Container */}
-        <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+        <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-2xl sm:rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
           
           {/* Floating Accent Badge: LOGIN TO */}
           <div
-            className="absolute -left-4 top-6 bg-[#5D0F12] text-white px-6 py-2 rounded-full shadow-lg z-20 select-none"
-            style={{ fontFamily: '"IM Fell French Canon", serif', fontSize: '1.1rem', letterSpacing: '0.05em' }}
+            className="absolute left-4 sm:-left-4 top-4 sm:top-6 bg-[#5D0F12] text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-full shadow-lg z-20 select-none text-sm sm:text-base font-serif tracking-wider"
           >
             {t.auth.loginTag}
           </div>
 
           {/* Left Column: Form */}
-          <div className="md:col-span-7 px-6 pb-6 pt-16 sm:px-8 sm:pb-8 sm:pt-20 flex flex-col justify-between overflow-visible">
+          <div className="md:col-span-7 px-4 pb-6 pt-16 sm:px-8 sm:pb-8 sm:pt-20 flex flex-col justify-between overflow-visible">
             
             {/* Inner Content Wrapper */}
             <div className="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center">
@@ -219,19 +218,18 @@ export default function Login() {
                   <label
                     htmlFor="email"
                     className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
-                    style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
                     {t.auth.emailLabel}
                   </label>
                   <input
                     id="email"
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t.auth.emailPlaceholder}
                     disabled={isSubmitting}
-                    className="block w-full h-[44px] px-6 bg-transparent border border-gray-400/80 rounded-full text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                    className="block w-full h-[44px] px-6 bg-transparent border border-gray-400/80 rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
                   />
                 </div>
 
@@ -240,7 +238,6 @@ export default function Login() {
                   <label
                     htmlFor="password"
                     className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
-                    style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
                     {t.auth.passwordLabel}
                   </label>
@@ -252,13 +249,13 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t.auth.passwordPlaceholder}
                     disabled={isSubmitting}
-                    className="block w-full h-[44px] pl-6 pr-12 bg-transparent border border-gray-400/80 rounded-full text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                    className="block w-full h-[44px] pl-6 pr-12 bg-transparent border border-gray-400/80 rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isSubmitting}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink transition-colors cursor-pointer"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink transition-colors cursor-pointer p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -272,7 +269,7 @@ export default function Login() {
                       e.preventDefault();
                       router.push('/forgot-password');
                     }}
-                    className="text-xs italic underline text-ink/70 hover:text-ink font-serif"
+                    className="text-xs italic underline text-ink/70 hover:text-ink font-serif py-1 inline-block"
                   >
                     {t.auth.forgotPassword}
                   </a>
@@ -283,7 +280,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full max-w-[170px] h-[42px] rounded-full bg-[#5D0F12] text-white text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                    className="w-full sm:max-w-[200px] h-[44px] rounded-full bg-[#5D0F12] text-white text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>
@@ -334,27 +331,6 @@ export default function Login() {
               </div>
 
             </div>
-
-            {/* Subdued Assist Card */}
-            <details className="mt-3 text-left border border-gray-200 rounded-xl p-2.5 bg-gray-50/50 cursor-pointer select-none">
-              <summary className="text-xs font-bold text-ink/60 uppercase tracking-wider">
-                {t.auth.demoAccounts}
-              </summary>
-              <div className="grid grid-cols-2 gap-2 text-xs text-muted-text font-mono border-t border-gray-200 mt-2 pt-2">
-                <div>
-                  <span className="block text-[10px] font-sans uppercase font-semibold text-ink">{t.auth.userRole}</span>
-                  <span>user@planora.com</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] font-sans uppercase font-semibold text-ink">{t.auth.passwordLabel}</span>
-                  <span className="text-[#5D0F12]">123456</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="block text-[10px] font-sans uppercase font-semibold text-ink">{t.auth.otherRoles}</span>
-                  <span>vendor@planora.com | admin@planora.com</span>
-                </div>
-              </div>
-            </details>
 
           </div>
 

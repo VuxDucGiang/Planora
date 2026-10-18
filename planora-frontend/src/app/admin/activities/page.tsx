@@ -84,7 +84,7 @@ export default function AdminActivitiesPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
           <input
@@ -92,7 +92,7 @@ export default function AdminActivitiesPage() {
             placeholder="Tìm theo tên người dùng, email, ID đối tượng..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-[#EADCC9] bg-white pl-10 pr-4 py-2 text-xs text-stone-800 focus:border-[#5D0F12] focus:outline-none shadow-sm"
+            className="w-full rounded-xl border border-[#EADCC9] bg-white pl-10 pr-4 py-2.5 sm:py-2 text-base sm:text-xs text-stone-800 focus:border-[#5D0F12] focus:outline-none shadow-sm"
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -100,7 +100,7 @@ export default function AdminActivitiesPage() {
           <select
             value={filterAction}
             onChange={(e) => setFilterAction(e.target.value)}
-            className="rounded-xl border border-[#EADCC9] bg-white px-3 py-2 text-xs text-stone-700 focus:border-[#5D0F12] focus:outline-none shadow-sm cursor-pointer"
+            className="w-full sm:w-auto rounded-xl border border-[#EADCC9] bg-white px-3 py-2.5 sm:py-2 text-base sm:text-xs text-stone-700 focus:border-[#5D0F12] focus:outline-none shadow-sm cursor-pointer"
           >
             <option value="ALL">Tất cả hành động</option>
             <option value="LOGIN">Đăng nhập (LOGIN)</option>
@@ -115,8 +115,8 @@ export default function AdminActivitiesPage() {
 
       {/* Main Table */}
       <div className="rounded-2xl border border-[#EADCC9] bg-white shadow-[0_4px_20px_rgba(93,15,18,0.03)] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-stone-600">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full min-w-[700px] text-left text-sm text-stone-600">
             <thead className="bg-[#FAF8F5] text-[11px] uppercase tracking-wider text-stone-500 border-b border-[#EADCC9]/80">
               <tr>
                 <th className="px-5 py-3.5">ID</th>
@@ -194,22 +194,22 @@ export default function AdminActivitiesPage() {
 
         {/* Pagination Controls */}
         {data && data.totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3.5 border-t border-[#EADCC9]/80 bg-[#FAF8F5]">
-            <span className="text-xs text-stone-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 border-t border-[#EADCC9]/80 bg-[#FAF8F5]">
+            <span className="text-xs text-stone-500 text-center sm:text-left">
               Trang <strong className="text-stone-800">{page + 1}</strong> / {data.totalPages} ({data.totalElements} bản ghi)
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => fetchActivities(Math.max(0, page - 1))}
                 disabled={page === 0 || loading}
-                className="inline-flex items-center gap-1 rounded-lg border border-[#EADCC9] bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-[#FAF8F5] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="inline-flex items-center gap-1 rounded-lg border border-[#EADCC9] bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-[#FAF8F5] disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
                 <ChevronLeft className="h-3.5 w-3.5" /> Trước
               </button>
               <button
                 onClick={() => fetchActivities(Math.min(data.totalPages - 1, page + 1))}
                 disabled={page >= data.totalPages - 1 || loading}
-                className="inline-flex items-center gap-1 rounded-lg border border-[#EADCC9] bg-white px-2.5 py-1.5 text-xs font-medium text-stone-700 hover:bg-[#FAF8F5] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="inline-flex items-center gap-1 rounded-lg border border-[#EADCC9] bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-[#FAF8F5] disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
                 Sau <ChevronRight className="h-3.5 w-3.5" />
               </button>

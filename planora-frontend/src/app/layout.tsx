@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Barlow, Syne, EB_Garamond, Abhaya_Libre, Great_Vibes } from "next/font/google";
+import { Barlow, EB_Garamond, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PlanProvider } from "@/contexts/PlanContext";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 
 const barlow = Barlow({
   subsets: ["latin", "vietnamese"],
@@ -12,24 +13,10 @@ const barlow = Barlow({
   display: "swap",
 });
 
-const syne = Syne({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-display",
-  display: "swap",
-});
-
 const ebGaramond = EB_Garamond({
   subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
-  display: "swap",
-});
-
-const abhayaLibre = Abhaya_Libre({
-  subsets: ["latin"],
-  weight: ["700"],
-  variable: "--font-hero",
   display: "swap",
 });
 
@@ -53,13 +40,15 @@ export default function RootLayout({
   return (
     <html 
       lang="vi" 
-      className={`h-full antialiased ${barlow.variable} ${syne.variable} ${ebGaramond.variable} ${abhayaLibre.variable} ${greatVibes.variable}`}
+      className={`h-full antialiased ${barlow.variable} ${ebGaramond.variable} ${greatVibes.variable}`}
     >
       <body className="min-h-full flex flex-col bg-canvas text-body-text">
         <LanguageProvider>
           <AuthProvider>
             <PlanProvider>
-              {children}
+              <NavigationProvider>
+                {children}
+              </NavigationProvider>
             </PlanProvider>
           </AuthProvider>
         </LanguageProvider>

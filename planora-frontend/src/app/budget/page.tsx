@@ -25,11 +25,14 @@ import {
   Utensils,
   Music,
   Layers,
-  Sparkles
+  Sparkles,
+  Receipt
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
+import CurrencyInput from '@/components/ui/CurrencyInput';
+import { numberToVietnameseWords } from '@/utils/numberToWords';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePlan } from '@/contexts/PlanContext';
@@ -119,7 +122,8 @@ export default function Budget() {
     setEditingItem(item);
     setEstimatedCostInput(item.estimatedCost.toString());
     setActualCostInput(item.actualCost.toString());
-    setItemNote(item.note || '');
+    const parsed = parseBudgetItemNote(item.note);
+    setItemNote(parsed.noteText);
     setModalError(null);
     setIsModalOpen(true);
   };
@@ -139,8 +143,8 @@ export default function Budget() {
     e.preventDefault();
     if (!editingItem) return;
 
-    const estCost = parseFloat(estimatedCostInput);
-    const actCost = parseFloat(actualCostInput);
+    const estCost = parseFloat(String(estimatedCostInput).replace(/,/g, ''));
+    const actCost = parseFloat(String(actualCostInput).replace(/,/g, ''));
 
     if (isNaN(estCost) || estCost < 0) {
       setModalError('Chi phí dự kiến phải là số dương hợp lệ!');
@@ -155,10 +159,22 @@ export default function Budget() {
     setModalError(null);
 
     try {
+      // Preserve existing expenses when editing category from modal
+      const existingParsed = parseBudgetItemNote(editingItem.note);
+      let noteToSave: string | undefined;
+      if (existingParsed.expenses && existingParsed.expenses.length > 0) {
+        noteToSave = JSON.stringify({
+          noteText: itemNote.trim(),
+          expenses: existingParsed.expenses
+        });
+      } else {
+        noteToSave = itemNote.trim() || undefined;
+      }
+
       const updatedItem = await updateBudgetItem(editingItem.itemId, {
         estimatedCost: estCost,
         actualCost: actCost,
-        note: itemNote.trim() || undefined
+        note: noteToSave
       });
 
       // Update state data locally
@@ -249,7 +265,7 @@ export default function Budget() {
   // Save Category budget allocation limits
   const handleSaveAllocation = async () => {
     if (!selectedCategoryItem) return;
-    const estCost = parseFloat(allocationInput);
+    const estCost = parseFloat(String(allocationInput).replace(/,/g, ''));
     if (isNaN(estCost) || estCost < 0) {
       alert('Hạn mức ngân sách dự kiến phải là số dương hợp lệ!');
       return;
@@ -299,7 +315,7 @@ export default function Budget() {
     e.preventDefault();
     if (!selectedCategoryItem) return;
 
-    const costVal = parseFloat(expenseCost);
+    const costVal = parseFloat(String(expenseCost).replace(/,/g, ''));
     if (isNaN(costVal) || costVal < 0) {
       setExpenseModalError('Số tiền chi tiêu phải là số dương hợp lệ!');
       return;
@@ -338,7 +354,7 @@ export default function Budget() {
       });
 
       const updated = await updateBudgetItem(selectedCategoryItem.itemId, {
-        estimatedCost: parseFloat(allocationInput),
+        estimatedCost: parseFloat(String(allocationInput).replace(/,/g, '')) || selectedCategoryItem.estimatedCost,
         actualCost: newActualCost,
         note: serializedNote
       });
@@ -371,7 +387,7 @@ export default function Budget() {
       });
 
       const updated = await updateBudgetItem(selectedCategoryItem.itemId, {
-        estimatedCost: parseFloat(allocationInput),
+        estimatedCost: parseFloat(String(allocationInput).replace(/,/g, '')) || selectedCategoryItem.estimatedCost,
         actualCost: newActualCost,
         note: serializedNote
       });
@@ -446,17 +462,17 @@ export default function Budget() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
-          <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 flex flex-col justify-start">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-8 lg:px-10 py-6 sm:py-8 flex flex-col justify-start">
         
 
         {/* Page Title */}
-        <div className="flex flex-col md:flex-row justify-between md:items-end border-b border-hairline pb-6 mb-8 gap-4">
+        <div className="flex flex-col md:flex-row justify-between md:items-end border-b border-hairline pb-4 sm:pb-6 mb-6 sm:mb-8 gap-3 sm:gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
-              <Coins className="w-7 h-7 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-ink font-display flex items-center gap-2">
+              <Coins className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
               {t.budget.title}
             </h1>
-            <p className="text-sm text-muted-text">
+            <p className="text-xs sm:text-sm text-muted-text">
               {t.budget.subtitle}
             </p>
           </div>
@@ -464,14 +480,14 @@ export default function Budget() {
 
         {/* Alert Notifications */}
         {errorMessage && (
-          <div className="p-4 mb-6 bg-red-50 text-red-700 border border-red-200 rounded-sm flex items-start gap-3 text-sm animate-fade-in">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" />
+          <div className="p-3.5 sm:p-4 mb-5 sm:mb-6 bg-red-50 text-red-700 border border-red-200 rounded-xl flex items-start gap-3 text-xs sm:text-sm animate-fade-in">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-red-500 mt-0.5" />
             <span className="font-medium">{errorMessage}</span>
           </div>
         )}
         {successMessage && (
-          <div className="p-4 mb-6 bg-green-50 text-green-700 border border-green-200 rounded-sm flex items-start gap-3 text-sm animate-fade-in">
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-green-500 mt-0.5" />
+          <div className="p-3.5 sm:p-4 mb-5 sm:mb-6 bg-green-50 text-green-700 border border-green-200 rounded-xl flex items-start gap-3 text-xs sm:text-sm animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-green-500 mt-0.5" />
             <span className="font-medium">{successMessage}</span>
           </div>
         )}
@@ -484,74 +500,73 @@ export default function Budget() {
             </span>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {selectedCategoryItem === null ? (
-            <div className="space-y-8 animate-fade-in">
+            <div className="space-y-6 sm:space-y-8 animate-fade-in">
             {/* Top Stat Dashboard Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
               
               {/* Stat Card 1: Total Budget */}
-              <div className="p-5 bg-white border border-hairline rounded-lg shadow-sm flex flex-col justify-between space-y-3">
+              <div className="p-4 sm:p-5 bg-white border border-hairline rounded-xl shadow-xs flex flex-col justify-between space-y-2.5">
                 <span className="text-xs font-bold text-muted-text uppercase tracking-wider block flex items-center gap-1.5">
                   <Wallet className="w-4 h-4 text-muted-text" />
                   {t.budget.totalBudget}
                 </span>
-                <div className="space-y-1">
-                  <span className="text-2xl sm:text-3xl font-bold text-ink font-mono">{formatCurrency(totalBudget)}</span>
-                  <span className="text-xs text-muted-text block leading-none">
+                <div className="space-y-0.5">
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-ink font-mono block truncate">{formatCurrency(totalBudget)}</span>
+                  <span className="text-[11px] sm:text-xs text-muted-text block leading-none">
                     {language === 'vi' ? 'Cố định từ Onboarding' : 'From Onboarding'}
                   </span>
                 </div>
               </div>
 
               {/* Stat Card 2: Allocated Estimated */}
-              <div className="p-5 bg-white border border-hairline rounded-lg shadow-sm flex flex-col justify-between space-y-3">
+              <div className="p-4 sm:p-5 bg-white border border-hairline rounded-xl shadow-xs flex flex-col justify-between space-y-2.5">
                 <span className="text-xs font-bold text-muted-text uppercase tracking-wider block flex items-center gap-1.5">
                   <TrendingUp className="w-4 h-4 text-muted-text" />
                   {t.budget.totalAllocated}
                 </span>
-                <div className="space-y-1">
-                  <span className="text-2xl sm:text-3xl font-bold text-primary font-mono">{formatCurrency(totalEstimated)}</span>
-                  <span className="text-xs text-muted-text block leading-none">
+                <div className="space-y-0.5">
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary font-mono block truncate">{formatCurrency(totalEstimated)}</span>
+                  <span className="text-[11px] sm:text-xs text-muted-text block leading-none">
                     {language === 'vi' ? 'Tổng dự chi các mục' : 'Estimated for categories'}
                   </span>
                 </div>
               </div>
 
               {/* Stat Card 3: Total Spent */}
-              <div className="p-5 bg-white border border-hairline rounded-lg shadow-sm flex flex-col justify-between space-y-3">
+              <div className="p-4 sm:p-5 bg-white border border-hairline rounded-xl shadow-xs flex flex-col justify-between space-y-2.5">
                 <span className="text-xs font-bold text-muted-text uppercase tracking-wider block flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4 text-muted-text" />
                   {t.budget.totalSpent}
                 </span>
-                <div className="space-y-1">
-                  <span className="text-2xl sm:text-3xl font-bold text-ink font-mono">{formatCurrency(totalActualSpent)}</span>
-                  <span className="text-xs text-muted-text block leading-none">
+                <div className="space-y-0.5">
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-ink font-mono block truncate">{formatCurrency(totalActualSpent)}</span>
+                  <span className="text-[11px] sm:text-xs text-muted-text block leading-none">
                     {language === 'vi' ? 'Tổng khoản đã thanh toán' : 'Total payments recorded'}
                   </span>
                 </div>
               </div>
 
               {/* Stat Card 4: Balance Remaining */}
-              <div className={`p-5 border rounded-lg shadow-sm flex flex-col justify-between space-y-3 ${
+              <div className={`p-4 sm:p-5 border rounded-xl shadow-xs flex flex-col justify-between space-y-2.5 ${
                 isOverBudget ? 'bg-red-50/50 border-red-200' : 'bg-white border-hairline'
               }`}>
                 <span className="text-xs font-bold uppercase tracking-wider block flex items-center gap-1.5 text-muted-text">
                   <Coins className={`w-4 h-4 ${isOverBudget ? 'text-red-500' : 'text-muted-text'}`} />
                   {t.budget.remainingBudget}
                 </span>
-                <div className="space-y-1">
-                  <span className={`text-2xl sm:text-3xl font-bold font-mono ${isOverBudget ? 'text-red-600' : 'text-success'}`}>
+                <div className="space-y-0.5">
+                  <span className={`text-xl sm:text-2xl lg:text-3xl font-bold font-mono block truncate ${isOverBudget ? 'text-red-600' : 'text-success'}`}>
                     {formatCurrency(remainingBalance)}
                   </span>
-                  <span className="text-xs text-muted-text block leading-none">
+                  <span className="text-[11px] sm:text-xs text-muted-text block leading-none">
                     {isOverBudget 
                       ? (language === 'vi' ? 'Quỹ cưới đã bị vượt!' : 'Over budget!') 
                       : (language === 'vi' ? 'Trong phạm vi cho phép' : 'Within budget')}
                   </span>
                 </div>
               </div>
-
             </div>
 
             {/* Visual Spend Progress Indicator */}
@@ -613,16 +628,45 @@ export default function Budget() {
                           <h4 className="text-base font-semibold text-ink">
                             {item.categoryName}
                           </h4>
-                          {item.note ? (
-                            <p className="text-sm text-muted-text flex items-start gap-1.5">
-                              <FileText className="w-4 h-4 mt-0.5 text-muted-text flex-shrink-0" />
-                              <span className="break-words leading-relaxed">{item.note}</span>
-                            </p>
-                          ) : (
-                            <p className="text-sm text-light-grey italic">
-                              {language === 'vi' ? 'Chưa có ghi chú nào.' : 'No notes added yet.'}
-                            </p>
-                          )}
+                          {(() => {
+                            const parsed = parseBudgetItemNote(item.note);
+                            const hasNote = Boolean(parsed.noteText?.trim());
+                            const hasExpenses = parsed.expenses && parsed.expenses.length > 0;
+
+                            if (!hasNote && !hasExpenses) {
+                              return (
+                                <p className="text-xs sm:text-sm text-light-grey italic">
+                                  {language === 'vi' ? 'Chưa có ghi chú nào.' : 'No notes added yet.'}
+                                </p>
+                              );
+                            }
+
+                            return (
+                              <div className="space-y-1">
+                                {hasNote && (
+                                  <p className="text-xs sm:text-sm text-muted-text flex items-center gap-1.5">
+                                    <FileText className="w-3.5 h-3.5 text-muted-text flex-shrink-0" />
+                                    <span className="break-words line-clamp-1">{parsed.noteText}</span>
+                                  </p>
+                                )}
+                                {hasExpenses && (
+                                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
+                                      <Receipt className="w-3 h-3" />
+                                      {parsed.expenses.length} {language === 'vi' ? 'khoản chi' : 'expenses'}
+                                    </span>
+                                    <span className="text-xs text-muted-text hidden sm:inline">
+                                      • {language === 'vi' ? 'Gần nhất: ' : 'Latest: '}
+                                      <span className="font-medium text-ink">
+                                        {parsed.expenses[parsed.expenses.length - 1].description}
+                                      </span>{' '}
+                                      ({formatCurrency(parsed.expenses[parsed.expenses.length - 1].cost)})
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Cost allocations */}
@@ -735,23 +779,29 @@ export default function Budget() {
                           : 'Adjust the estimated allocation for this category.'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text font-mono text-sm">₫</span>
-                        <input
-                          type="number"
-                          className="bg-canvas border border-hairline rounded-sm pl-7 pr-3 py-2 text-sm font-mono focus:outline-none focus:border-primary text-ink w-40 font-semibold"
+                    <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <CurrencyInput
                           value={allocationInput}
-                          onChange={e => setAllocationInput(e.target.value)}
+                          onChange={(raw) => setAllocationInput(raw)}
+                          showInWords={false}
+                          className="w-full sm:w-48"
+                          inputClassName="py-2 text-sm rounded-sm"
                         />
+                        <button
+                          onClick={handleSaveAllocation}
+                          disabled={isSavingAllocation}
+                          className="px-4 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-all disabled:opacity-50 cursor-pointer shrink-0 min-h-[38px]"
+                        >
+                          {isSavingAllocation ? t.common.saving : t.common.save}
+                        </button>
                       </div>
-                      <button
-                        onClick={handleSaveAllocation}
-                        disabled={isSavingAllocation}
-                        className="px-4 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-all disabled:opacity-50 cursor-pointer"
-                      >
-                        {isSavingAllocation ? t.common.saving : t.common.save}
-                      </button>
+                      {parseFloat(String(allocationInput).replace(/,/g, '')) > 0 && (
+                        <div className="text-[11px] text-primary bg-primary/5 px-2.5 py-1 rounded-sm border border-primary/15 self-start sm:self-end">
+                          <span className="font-bold text-ink mr-1">Bằng chữ:</span>
+                          <span className="font-semibold">{numberToVietnameseWords(parseFloat(String(allocationInput).replace(/,/g, '')))}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -761,25 +811,25 @@ export default function Budget() {
                       <span className="text-muted-text">
                         {language === 'vi' ? 'Đã thực chi: ' : 'Actually spent: '}
                         <strong className="text-ink">{formatCurrency(selectedCategoryItem.actualCost)}</strong> {language === 'vi' ? 'trên hạn mức ' : 'of limit '}
-                        <strong className="text-ink">{formatCurrency(parseFloat(allocationInput) || 0)}</strong>
+                        <strong className="text-ink">{formatCurrency(parseFloat(String(allocationInput).replace(/,/g, '')) || 0)}</strong>
                       </span>
-                      <span className={`font-mono text-sm ${selectedCategoryItem.actualCost > (parseFloat(allocationInput) || 0) ? 'text-red-600 font-bold' : 'text-primary'}`}>
-                        {parseFloat(allocationInput) > 0 ? Math.round((selectedCategoryItem.actualCost / parseFloat(allocationInput)) * 100) : 0}% {language === 'vi' ? 'đã dùng' : 'used'}
+                      <span className={`font-mono text-sm ${selectedCategoryItem.actualCost > (parseFloat(String(allocationInput).replace(/,/g, '')) || 0) ? 'text-red-600 font-bold' : 'text-primary'}`}>
+                        {(parseFloat(String(allocationInput).replace(/,/g, '')) || 0) > 0 ? Math.round((selectedCategoryItem.actualCost / (parseFloat(String(allocationInput).replace(/,/g, '')) || 1)) * 100) : 0}% {language === 'vi' ? 'đã dùng' : 'used'}
                       </span>
                     </div>
                     <div className="w-full h-3 bg-canvas border border-hairline rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${selectedCategoryItem.actualCost > (parseFloat(allocationInput) || 0) ? 'bg-red-600' : 'bg-primary'}`}
-                        style={{ width: `${Math.min(parseFloat(allocationInput) > 0 ? (selectedCategoryItem.actualCost / parseFloat(allocationInput)) * 100 : 0, 100)}%` }}
+                        className={`h-full rounded-full transition-all duration-500 ${selectedCategoryItem.actualCost > (parseFloat(String(allocationInput).replace(/,/g, '')) || 0) ? 'bg-red-600' : 'bg-primary'}`}
+                        style={{ width: `${Math.min((parseFloat(String(allocationInput).replace(/,/g, '')) || 0) > 0 ? (selectedCategoryItem.actualCost / (parseFloat(String(allocationInput).replace(/,/g, '')) || 1)) * 100 : 0, 100)}%` }}
                       />
                     </div>
-                    {selectedCategoryItem.actualCost > (parseFloat(allocationInput) || 0) && (
+                    {selectedCategoryItem.actualCost > (parseFloat(String(allocationInput).replace(/,/g, '')) || 0) && (
                       <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-100 p-3 rounded-sm">
                         <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                         <span>
                           {language === 'vi'
-                            ? `Cảnh báo: Khoản chi thực tế đã vượt hạn mức dự kiến ${formatCurrency(selectedCategoryItem.actualCost - (parseFloat(allocationInput) || 0))}! Bạn hãy cân đối lại các hóa đơn.`
-                            : `Warning: Actual expenses have exceeded estimated limit by ${formatCurrency(selectedCategoryItem.actualCost - (parseFloat(allocationInput) || 0))}!`}
+                            ? `Cảnh báo: Khoản chi thực tế đã vượt hạn mức dự kiến ${formatCurrency(selectedCategoryItem.actualCost - (parseFloat(String(allocationInput).replace(/,/g, '')) || 0))}! Bạn hãy cân đối lại các hóa đơn.`
+                            : `Warning: Actual expenses have exceeded estimated limit by ${formatCurrency(selectedCategoryItem.actualCost - (parseFloat(String(allocationInput).replace(/,/g, '')) || 0))}!`}
                         </span>
                       </div>
                     )}
@@ -875,17 +925,17 @@ export default function Budget() {
 
       {/* Edit Budget Item Modal */}
       {isModalOpen && editingItem && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-hairline rounded-lg w-full max-w-md p-6 shadow-xl animate-scale-up space-y-5">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+          <div className="bg-white border border-hairline rounded-t-3xl sm:rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl animate-slide-up sm:animate-scale-up space-y-4 max-h-[90vh] overflow-y-auto">
             
             <div className="flex justify-between items-center border-b border-hairline pb-3">
-              <h3 className="text-lg font-bold text-ink font-display">
+              <h3 className="text-base sm:text-lg font-bold text-ink font-display">
                 {language === 'vi' ? 'Điều chỉnh chi phí: ' : 'Edit Allocation: '}
                 {editingItem.categoryName}
               </h3>
               <button 
                 onClick={handleCloseModal}
-                className="text-muted-text hover:text-ink text-base font-semibold p-1 hover:bg-canvas rounded-sm cursor-pointer"
+                className="text-muted-text hover:text-ink text-base font-semibold w-8 h-8 flex items-center justify-center hover:bg-canvas rounded-full cursor-pointer"
               >
                 ✕
               </button>
@@ -893,7 +943,7 @@ export default function Budget() {
 
             {/* Modal Error alert */}
             {modalError && (
-              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-sm flex items-start gap-2 text-xs">
+              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl flex items-start gap-2 text-xs">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500 mt-0.5" />
                 <span>{modalError}</span>
               </div>
@@ -903,79 +953,63 @@ export default function Budget() {
               
               {/* Estimated Cost */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-estimated" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                <label htmlFor="modal-estimated" className="text-xs font-bold text-ink uppercase tracking-wider block">
                   {t.budget.estimatedCost}
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-sm text-muted-text">₫</span>
-                  </div>
-                  <input
-                    type="number"
-                    id="modal-estimated"
-                    required
-                    min="0"
-                    step="1000"
-                    placeholder="0"
-                    className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold"
-                    value={estimatedCostInput}
-                    onChange={e => setEstimatedCostInput(e.target.value)}
-                  />
-                </div>
+                <CurrencyInput
+                  id="modal-estimated"
+                  required
+                  value={estimatedCostInput}
+                  onChange={(raw) => setEstimatedCostInput(raw)}
+                  placeholder="0"
+                  showInWords={true}
+                />
               </div>
 
               {/* Actual Cost */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-actual" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                <label htmlFor="modal-actual" className="text-xs font-bold text-ink uppercase tracking-wider block">
                   {t.budget.actualCost}
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-sm text-muted-text">₫</span>
-                  </div>
-                  <input
-                    type="number"
-                    id="modal-actual"
-                    required
-                    min="0"
-                    step="1000"
-                    placeholder="0"
-                    className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold"
-                    value={actualCostInput}
-                    onChange={e => setActualCostInput(e.target.value)}
-                  />
-                </div>
+                <CurrencyInput
+                  id="modal-actual"
+                  required
+                  value={actualCostInput}
+                  onChange={(raw) => setActualCostInput(raw)}
+                  placeholder="0"
+                  showInWords={true}
+                />
               </div>
 
               {/* Item Note */}
               <div className="space-y-1.5">
-                <label htmlFor="modal-note" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                <label htmlFor="modal-note" className="text-xs font-bold text-ink uppercase tracking-wider block">
                   {t.budget.notesLabel}
                 </label>
                 <textarea
                   id="modal-note"
                   rows={3}
                   placeholder={t.budget.notesPlaceholder}
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink resize-none text-body-text leading-relaxed"
+                  className="w-full bg-canvas border border-hairline rounded-lg px-3.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-primary text-ink resize-none text-body-text leading-relaxed"
                   value={itemNote}
                   onChange={e => setItemNote(e.target.value)}
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3.5 pt-4 border-t border-hairline">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
                 <button
                   type="button"
                   onClick={handleCloseModal}
                   disabled={isSubmitting}
-                  className="px-4 py-2 border border-border-strong rounded-sm text-sm font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50 cursor-pointer"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 border border-border-strong rounded-lg text-xs font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50 cursor-pointer min-h-[44px] flex items-center justify-center"
                 >
                   {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="flex-1 sm:flex-initial px-5 py-2.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-active transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer min-h-[44px]"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -992,16 +1026,16 @@ export default function Budget() {
 
       {/* Add/Edit Expense Modal */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-hairline rounded-lg w-full max-w-md p-6 shadow-xl animate-scale-up space-y-5">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+          <div className="bg-white border border-hairline rounded-t-3xl sm:rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl animate-slide-up sm:animate-scale-up space-y-4 max-h-[90vh] overflow-y-auto">
             
             <div className="flex justify-between items-center border-b border-hairline pb-3">
-              <h3 className="text-lg font-bold text-ink font-display">
+              <h3 className="text-base sm:text-lg font-bold text-ink font-display">
                 {editingExpenseId ? t.budget.editExpenseModalTitle : t.budget.addExpenseModalTitle}
               </h3>
               <button 
                 onClick={() => setIsExpenseModalOpen(false)}
-                className="text-muted-text hover:text-ink text-base font-semibold p-1 hover:bg-canvas rounded-sm cursor-pointer"
+                className="text-muted-text hover:text-ink text-base font-semibold w-8 h-8 flex items-center justify-center hover:bg-canvas rounded-full cursor-pointer"
               >
                 ✕
               </button>
@@ -1009,7 +1043,7 @@ export default function Budget() {
 
             {/* Expense Modal Error alert */}
             {expenseModalError && (
-              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-sm flex items-start gap-2 text-xs">
+              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl flex items-start gap-2 text-xs">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500 mt-0.5" />
                 <span>{expenseModalError}</span>
               </div>
@@ -1019,7 +1053,7 @@ export default function Budget() {
               
               {/* Description */}
               <div className="space-y-1.5">
-                <label htmlFor="expense-desc" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                <label htmlFor="expense-desc" className="text-xs font-bold text-ink uppercase tracking-wider block">
                   {t.budget.expenseDesc} *
                 </label>
                 <input
@@ -1027,7 +1061,7 @@ export default function Budget() {
                   id="expense-desc"
                   required
                   placeholder={language === 'vi' ? 'Ví dụ: Đặt cọc địa điểm tiệc cưới đợt 1...' : 'e.g., Venue deposit installment 1...'}
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-medium"
+                  className="w-full bg-canvas border border-hairline rounded-lg px-3.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-primary text-ink font-medium"
                   value={expenseDescription}
                   onChange={e => setExpenseDescription(e.target.value)}
                 />
@@ -1035,56 +1069,48 @@ export default function Budget() {
 
               {/* Amount */}
               <div className="space-y-1.5">
-                <label htmlFor="expense-amount" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                <label htmlFor="expense-amount" className="text-xs font-bold text-ink uppercase tracking-wider block">
                   {t.budget.expenseCost} *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-sm text-muted-text">₫</span>
-                  </div>
-                  <input
-                    type="number"
-                    id="expense-amount"
-                    required
-                    min="0"
-                    step="1000"
-                    placeholder="0"
-                    className="w-full bg-canvas border border-hairline rounded-sm pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold"
-                    value={expenseCost}
-                    onChange={e => setExpenseCost(e.target.value)}
-                  />
-                </div>
+                <CurrencyInput
+                  id="expense-amount"
+                  required
+                  value={expenseCost}
+                  onChange={(raw) => setExpenseCost(raw)}
+                  placeholder="0"
+                  showInWords={true}
+                />
               </div>
 
               {/* Date */}
               <div className="space-y-1.5">
-                <label htmlFor="expense-date" className="text-sm font-semibold text-ink uppercase tracking-wider block">
+                <label htmlFor="expense-date" className="text-xs font-bold text-ink uppercase tracking-wider block">
                   {t.budget.expenseDate} *
                 </label>
                 <input
                   type="date"
                   id="expense-date"
                   required
-                  className="w-full bg-canvas border border-hairline rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold cursor-pointer"
+                  className="w-full bg-canvas border border-hairline rounded-lg px-3.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-primary text-ink font-mono font-semibold cursor-pointer"
                   value={expenseDate}
                   onChange={e => setExpenseDate(e.target.value)}
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3.5 pt-4 border-t border-hairline">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-hairline">
                 <button
                   type="button"
                   onClick={() => setIsExpenseModalOpen(false)}
                   disabled={isSubmittingExpense}
-                  className="px-4 py-2 border border-border-strong rounded-sm text-sm font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50 cursor-pointer"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 border border-border-strong rounded-lg text-xs font-semibold text-body-text hover:bg-canvas transition-colors disabled:opacity-50 cursor-pointer min-h-[44px] flex items-center justify-center"
                 >
                   {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingExpense}
-                  className="px-5 py-2 bg-primary text-white rounded-sm text-sm font-semibold hover:bg-primary-active transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="flex-1 sm:flex-initial px-5 py-2.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-active transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer min-h-[44px]"
                 >
                   {isSubmittingExpense ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
