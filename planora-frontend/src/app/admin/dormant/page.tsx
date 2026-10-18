@@ -83,20 +83,20 @@ export default function DormantUsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[#1A1A1A] tracking-tight">Tài Khoản Ngủ Đông & Nguy Cơ Rời Bỏ</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1A1A1A] tracking-tight">Tài Khoản Ngủ Đông & Nguy Cơ Rời Bỏ</h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 px-2.5 py-0.5 text-[11px] font-semibold text-[#5D0F12]">
               <UserX className="h-3 w-3" /> Churn Prevention
             </span>
           </div>
-          <p className="text-sm text-stone-500 mt-1">
+          <p className="text-xs sm:text-sm text-stone-500 mt-1">
             Nhận diện và kích hoạt lại các cặp đôi đã ngưng tương tác trên ứng dụng, ưu tiên những cặp đôi sắp đến ngày cưới.
           </p>
         </div>
         <button
           onClick={fetchDormantData}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer w-full sm:w-auto"
         >
           <RefreshCw className={`h-4 w-4 text-[#5D0F12] ${loading ? 'animate-spin' : ''}`} />
           <span>{loading ? 'Đang quét...' : 'Làm mới phân tích'}</span>
@@ -110,61 +110,61 @@ export default function DormantUsersPage() {
         </div>
       )}
 
-      {/* Top Cards: 4 Chỉ Số Vòng Đời Khách Hàng */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Top Cards: 4 Chỉ Số Vòng Đời Khách Hàng - 2 cột trên mobile */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {/* Card 1: Active */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Hoạt Động Tốt (&lt; 7 ngày)</span>
-            <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700 border border-emerald-200">
-              <CheckCircle2 className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Hoạt Động Tốt</span>
+            <div className="rounded-xl bg-emerald-50 p-2 sm:p-2.5 text-emerald-700 border border-emerald-200">
+              <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-emerald-800">{data?.activeCount || 0}</span>
-            <p className="mt-1 text-xs text-stone-400">Tài khoản tương tác thường xuyên</p>
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-emerald-800">{data?.activeCount || 0}</span>
+            <p className="mt-1 text-[11px] sm:text-xs text-stone-400">&lt; 7 ngày</p>
           </div>
         </div>
 
         {/* Card 2: At-Risk */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Nguy Cơ Rời Bỏ (7-29 ngày)</span>
-            <div className="rounded-xl bg-amber-50 p-2.5 text-amber-700 border border-amber-200">
-              <AlertTriangle className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Nguy Cơ Rời Bỏ</span>
+            <div className="rounded-xl bg-amber-50 p-2 sm:p-2.5 text-amber-700 border border-amber-200">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-amber-900">{data?.atRiskCount || 0}</span>
-            <p className="mt-1 text-xs text-amber-800 font-medium">Cần gửi email nhắc nhở</p>
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-amber-900">{data?.atRiskCount || 0}</span>
+            <p className="mt-1 text-[11px] sm:text-xs text-amber-800 font-medium">7-29 ngày</p>
           </div>
         </div>
 
         {/* Card 3: Dormant */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Ngủ Đông (&ge; 30 ngày)</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <UserX className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Ngủ Đông</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <UserX className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-[#5D0F12]">{data?.dormantCount || 0}</span>
-            <p className="mt-1 text-xs text-[#5D0F12] font-semibold">Gần như đã bỏ rơi kế hoạch</p>
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-[#5D0F12]">{data?.dormantCount || 0}</span>
+            <p className="mt-1 text-[11px] sm:text-xs text-[#5D0F12] font-semibold">&ge; 30 ngày</p>
           </div>
         </div>
 
         {/* Card 4: Health Score */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Tỷ Lệ Giữ Chân (Health)</span>
-            <div className="rounded-xl bg-[#FAF8F5] p-2.5 text-stone-700 border border-[#EADCC9]">
-              <Heart className="h-5 w-5 text-[#5D0F12]" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Tỷ Lệ Giữ Chân</span>
+            <div className="rounded-xl bg-[#FAF8F5] p-2 sm:p-2.5 text-stone-700 border border-[#EADCC9]">
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-[#5D0F12]" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-[#1A1A1A]">{data?.healthScore || 0}%</span>
-            <p className="mt-1 text-xs text-stone-400">Trên tổng số {data?.totalCouples || 0} cặp đôi</p>
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">{data?.healthScore || 0}%</span>
+            <p className="mt-1 text-[11px] sm:text-xs text-stone-400">Trên {data?.totalCouples || 0} cặp đôi</p>
           </div>
         </div>
       </div>
@@ -172,19 +172,19 @@ export default function DormantUsersPage() {
       {/* Main Table Section with Tabs & Search */}
       <div className="rounded-2xl border border-[#EADCC9] bg-white shadow-[0_4px_20px_rgba(93,15,18,0.03)] overflow-hidden">
         {/* Table Top Toolbar */}
-        <div className="p-5 border-b border-[#EADCC9]/60 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FAF8F5]/50">
+        <div className="p-4 sm:p-5 border-b border-[#EADCC9]/60 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FAF8F5]/50">
           {/* Tabs */}
           <div className="flex flex-wrap items-center gap-1.5">
             {[
-              { id: 'ALL', label: 'Tất cả cần chăm sóc', count: data?.dormantUsers.length || 0 },
-              { id: 'URGENT', label: '🚨 Sắp đến ngày cưới (< 90 ngày)', count: (data?.dormantUsers || []).filter(u => u.daysUntilWedding && u.daysUntilWedding <= 90).length },
+              { id: 'ALL', label: 'Tất cả', count: data?.dormantUsers.length || 0 },
+              { id: 'URGENT', label: '🚨 Sắp cưới (< 90 ngày)', count: (data?.dormantUsers || []).filter(u => u.daysUntilWedding && u.daysUntilWedding <= 90).length },
               { id: 'AT_RISK', label: 'Nguy cơ (7-29 ngày)', count: data?.atRiskCount || 0 },
               { id: 'DORMANT', label: 'Ngủ đông (≥ 30 ngày)', count: data?.dormantCount || 0 },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setFilterTab(tab.id as any)}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
                   filterTab === tab.id
                     ? 'bg-[#5D0F12] text-[#FFFBF5] shadow-sm'
                     : 'bg-white text-stone-600 border border-[#EADCC9] hover:bg-[#FAF8F5]'
@@ -203,14 +203,14 @@ export default function DormantUsersPage() {
               placeholder="Tìm theo tên, email, SĐT..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border border-[#EADCC9] bg-white pl-10 pr-4 py-2 text-xs text-stone-800 focus:border-[#5D0F12] focus:outline-none shadow-sm"
+              className="w-full rounded-xl border border-[#EADCC9] bg-white pl-10 pr-4 py-2.5 sm:py-2 text-base sm:text-xs text-stone-800 focus:border-[#5D0F12] focus:outline-none shadow-sm"
             />
           </div>
         </div>
 
         {/* Data Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-stone-600">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full min-w-[700px] text-left text-sm text-stone-600">
             <thead className="bg-[#FAF8F5] text-[11px] uppercase tracking-wider text-stone-500 border-b border-[#EADCC9]/80">
               <tr>
                 <th className="px-5 py-3.5">Cặp Đôi</th>
@@ -328,11 +328,11 @@ export default function DormantUsersPage() {
       {/* Modal Mẫu Email Nhắc Nhở Cá Nhân Hóa (Re-engagement Email Modal) */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-[#EADCC9] bg-white p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-lg rounded-2xl border border-[#EADCC9] bg-white p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
             <div className="flex items-center justify-between pb-3 border-b border-[#EADCC9]">
               <div className="flex items-center gap-2">
                 <Mail className="h-5 w-5 text-[#5D0F12]" />
-                <h3 className="font-bold text-[#1A1A1A]">Mẫu Email Tái Kích Hoạt (Re-engagement)</h3>
+                <h3 className="font-bold text-[#1A1A1A] text-sm sm:text-base">Mẫu Email Tái Kích Hoạt (Re-engagement)</h3>
               </div>
               <button
                 onClick={() => setSelectedUser(null)}
@@ -345,7 +345,7 @@ export default function DormantUsersPage() {
             <div className="space-y-3 text-xs">
               <div>
                 <span className="font-semibold text-stone-700">Gửi tới:</span>
-                <p className="font-mono text-stone-900 bg-[#FAF8F5] p-2 rounded-lg border border-[#EADCC9] mt-1">
+                <p className="font-mono text-stone-900 bg-[#FAF8F5] p-2 rounded-lg border border-[#EADCC9] mt-1 break-all">
                   {selectedUser.fullName} &lt;{selectedUser.email}&gt;
                 </p>
               </div>
@@ -361,7 +361,7 @@ export default function DormantUsersPage() {
 
               <div>
                 <span className="font-semibold text-stone-700">Nội dung mẫu:</span>
-                <div className="bg-[#FAF8F5] p-3 rounded-lg border border-[#EADCC9] text-stone-700 font-sans space-y-2 mt-1 whitespace-pre-line leading-relaxed">
+                <div className="bg-[#FAF8F5] p-3 rounded-lg border border-[#EADCC9] text-stone-700 font-sans space-y-2 mt-1 whitespace-pre-line leading-relaxed text-xs">
 {`Chào ${selectedUser.fullName},
 
 Chúng mình thấy đã ${selectedUser.daysInactive} ngày bạn chưa ghé thăm lại bảng kế hoạch cưới trên Planora.
@@ -380,10 +380,10 @@ Thân mến,
             </div>
 
             {/* Modal actions */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EADCC9]">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-[#EADCC9]">
               <button
                 onClick={() => setSelectedUser(null)}
-                className="rounded-xl border border-[#EADCC9] px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-[#FAF8F5] cursor-pointer"
+                className="w-full sm:w-auto rounded-xl border border-[#EADCC9] px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-[#FAF8F5] cursor-pointer text-center"
               >
                 Đóng
               </button>
@@ -399,7 +399,7 @@ Hãy truy cập lại Planora để tiếp tục chuẩn bị chu đáo nhé!
 Trân trọng, Đội ngũ Planora.`
                   )
                 }
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#5D0F12] px-4 py-2 text-xs font-semibold text-[#FFFBF5] hover:bg-[#4A0C0E] transition cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#5D0F12] px-4 py-2 text-xs font-semibold text-[#FFFBF5] hover:bg-[#4A0C0E] transition cursor-pointer"
               >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? 'Đã sao chép!' : 'Sao chép nội dung email'}

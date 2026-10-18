@@ -67,17 +67,18 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#1A1A1A] tracking-tight">Admin & User Tracking Dashboard</h1>
-          <p className="text-sm text-stone-500 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1A1A1A] tracking-tight">Admin & User Tracking Dashboard</h1>
+          <p className="text-xs sm:text-sm text-stone-500 mt-1">
             Theo dõi hành vi người dùng, phễu chuyển đổi và tương tác AI trên sàn Planora theo thời gian thực.
           </p>
         </div>
         <button
           onClick={fetchData}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer w-full sm:w-auto"
         >
           <RefreshCw className={`h-4 w-4 text-[#5D0F12] ${loading ? 'animate-spin' : ''}`} />
           <span>{loading ? 'Đang cập nhật...' : 'Làm mới số liệu'}</span>
@@ -91,80 +92,80 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* 4 Thẻ KPI Nổi Bật */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 4 Thẻ KPI Nổi Bật - 2 cột trên mobile, 4 cột trên desktop */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {/* Card 1: Users */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Tổng Người Dùng</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <Users className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Tổng Người Dùng</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-[#1A1A1A]">{summary?.totalUsers || 0}</span>
-            <div className="mt-1 flex items-center gap-2 text-xs text-stone-500">
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">{summary?.totalUsers || 0}</span>
+            <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-[11px] sm:text-xs text-stone-500">
               <span className="font-medium text-stone-700">{summary?.totalCouples || 0} Cặp đôi</span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span className="font-medium text-stone-700">{summary?.totalVendors || 0} Vendor</span>
             </div>
           </div>
         </div>
 
         {/* Card 2: DAU */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Hoạt động 24h (DAU)</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <UserCheck className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Hoạt động 24h</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-[#1A1A1A]">{summary?.dailyActiveUsers || 0}</span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5D0F12] bg-[#5D0F12]/10 px-2 py-0.5 rounded-full border border-[#5D0F12]/20">
+          <div className="mt-2.5 sm:mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+              <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">{summary?.dailyActiveUsers || 0}</span>
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-[#5D0F12] bg-[#5D0F12]/10 px-1.5 sm:px-2 py-0.5 rounded-full border border-[#5D0F12]/20 w-fit">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#5D0F12] animate-pulse"></span>
-                Active Today
+                Active
               </span>
             </div>
-            <p className="mt-1 text-xs text-stone-400">Tài khoản có tương tác trong ngày</p>
+            <p className="mt-1 text-[11px] sm:text-xs text-stone-400">Tài khoản trong ngày</p>
           </div>
         </div>
 
         {/* Card 3: AI Plans */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Kế hoạch Cưới AI</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <Sparkles className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Kế hoạch AI</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-[#1A1A1A]">{summary?.totalPlansGenerated || 0}</span>
-            <p className="mt-1 text-xs text-[#5D0F12] font-semibold">Wedding Plans đã tạo</p>
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">{summary?.totalPlansGenerated || 0}</span>
+            <p className="mt-1 text-[11px] sm:text-xs text-[#5D0F12] font-semibold">Plans đã tạo</p>
           </div>
         </div>
 
         {/* Card 4: Inquiries */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Yêu cầu Tư vấn (Leads)</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <Send className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Yêu cầu Tư vấn</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-[#1A1A1A]">{summary?.totalInquiriesSent || 0}</span>
-            <p className="mt-1 text-xs text-[#5D0F12] font-semibold">Kết nối tới Nhà cung cấp</p>
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">{summary?.totalInquiriesSent || 0}</span>
+            <p className="mt-1 text-[11px] sm:text-xs text-[#5D0F12] font-semibold">Gửi tới Vendor</p>
           </div>
         </div>
       </div>
 
-      {/* Phễu Chuyển Đổi (Conversion Funnel) - Dùng duy nhất màu Đỏ chủ đạo Planora (#5D0F12) */}
-      <div className="rounded-2xl border border-[#EADCC9] bg-white p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-[#EADCC9]/60 gap-2">
+      {/* Phễu Chuyển Đổi (Conversion Funnel) */}
+      <div className="rounded-2xl border border-[#EADCC9] bg-white p-4 sm:p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 sm:pb-5 border-b border-[#EADCC9]/60 gap-2">
           <div>
-            <h2 className="text-lg font-bold text-[#1A1A1A]">Phễu Hành Vi & Chuyển Đổi (User Funnel)</h2>
+            <h2 className="text-base sm:text-lg font-bold text-[#1A1A1A]">Phễu Hành Vi & Chuyển Đổi (User Funnel)</h2>
             <p className="text-xs text-stone-500 mt-0.5">Tỉ lệ cặp đôi đi từ Đăng ký tài khoản đến khi tạo kế hoạch cưới và gửi yêu cầu tư vấn</p>
           </div>
           <span className="flex items-center gap-1.5 text-xs font-semibold text-[#5D0F12] bg-[#5D0F12]/10 px-3 py-1.5 rounded-full border border-[#5D0F12]/20 self-start sm:self-auto">
@@ -202,22 +203,22 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Bảng Nhật Ký Tracking Gần Nhất (Live Action Stream) */}
-      <div className="rounded-2xl border border-[#EADCC9] bg-white p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
-        <div className="flex items-center justify-between pb-4 border-b border-[#EADCC9]/60 mb-4">
+      <div className="rounded-2xl border border-[#EADCC9] bg-white p-4 sm:p-6 shadow-[0_4px_20px_rgba(93,15,18,0.03)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#EADCC9]/60 mb-4 gap-2">
           <div>
-            <h2 className="text-lg font-bold text-[#1A1A1A]">Nhật Ký Tương Tác Gần Nhất (Live Activities)</h2>
+            <h2 className="text-base sm:text-lg font-bold text-[#1A1A1A]">Nhật Ký Tương Tác Gần Nhất (Live Activities)</h2>
             <p className="text-xs text-stone-500 mt-0.5">Các thao tác của người dùng trên nền tảng được ghi nhận theo thời gian thực</p>
           </div>
           <Link
             href="/admin/activities"
-            className="text-xs font-semibold text-[#5D0F12] hover:text-[#4A0C0E] flex items-center gap-1 transition"
+            className="text-xs font-semibold text-[#5D0F12] hover:text-[#4A0C0E] flex items-center gap-1 transition self-start sm:self-auto"
           >
             Xem tất cả nhật ký <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-stone-600">
+        <div className="overflow-x-auto no-scrollbar -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full min-w-[650px] text-left text-sm text-stone-600">
             <thead className="bg-[#FAF8F5] text-[11px] uppercase tracking-wider text-stone-500 border-b border-[#EADCC9]/80">
               <tr>
                 <th className="px-4 py-3 rounded-l-lg">Thời gian</th>

@@ -228,18 +228,16 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <main className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8">
+              <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-8 lg:px-10 py-6 sm:py-8">
                 {/* ── Greeting Section ───────────────────────── */}
-                <div className={`mb-8 animate-fade-in ${!plan ? 'text-center' : ''}`}>
+                <div className={`mb-6 sm:mb-8 animate-fade-in ${!plan ? 'text-center' : ''}`}>
                   <h1
-                    className="text-xl sm:text-2xl text-primary mb-1 font-normal"
-                    style={{ fontFamily: '"IM Fell French Canon", serif' }}
+                    className="text-xl sm:text-2xl text-primary mb-1 font-serif font-normal"
                   >
                     {getGreeting()}, {displayName}!
                   </h1>
                   <p
-                    className="text-sm sm:text-base text-primary font-normal"
-                    style={{ fontFamily: '"IM Fell French Canon", serif' }}
+                    className="text-sm sm:text-base text-primary font-serif font-normal"
                   >
                     {plan
                       ? t.dashboard.overviewSubtitle
@@ -317,8 +315,7 @@ export default function Home() {
                     <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-1">
                       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                         <h2
-                          className="text-xl sm:text-2xl font-medium text-ink uppercase tracking-wider flex items-center gap-2"
-                          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                          className="text-xl sm:text-2xl font-serif font-medium text-ink uppercase tracking-wider flex items-center gap-2"
                         >
                           <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                           {t.dashboard.summaryCardTitle}
@@ -397,8 +394,7 @@ export default function Home() {
                       {/* Progress Tracker */}
                       <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-2">
                         <h3
-                          className="text-xl sm:text-2xl font-medium text-ink uppercase tracking-wider mb-5 flex items-center gap-2"
-                          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                          className="text-xl sm:text-2xl font-serif font-medium text-ink uppercase tracking-wider mb-5 flex items-center gap-2"
                         >
                           <ListTodo className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                           {t.dashboard.progressTrackerTitle}
@@ -445,33 +441,34 @@ export default function Home() {
                       {/* Budget & Spending */}
                       <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-2">
                         <h3
-                          className="text-xl sm:text-2xl font-medium text-ink uppercase tracking-wider mb-4 flex items-center gap-2"
-                          style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                          className="text-xl sm:text-2xl font-serif font-medium text-ink uppercase tracking-wider mb-4 flex items-center gap-2"
                         >
                           <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                           {t.dashboard.budgetOverviewTitle}
                         </h3>
 
-                        <div className="flex items-center gap-6">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start md:items-center gap-5 sm:gap-6">
                           {/* Circular Progress */}
-                          <CircularProgress
-                            percent={plan.budget > 0 ? Math.round((totalSpent / plan.budget) * 100) : 0}
-                            size={105}
-                            stroke={7}
-                            color="var(--color-primary)"
-                          >
-                            <div className="text-center">
-                              <span className="text-sm font-bold text-ink block">
-                                {language === 'vi' ? 'Tổng' : 'Total'}
-                              </span>
-                              <span className="text-xs font-bold text-primary font-mono">
-                                {formatCurrency(plan.budget)}
-                              </span>
-                            </div>
-                          </CircularProgress>
+                          <div className="shrink-0">
+                            <CircularProgress
+                              percent={plan.budget > 0 ? Math.round((totalSpent / plan.budget) * 100) : 0}
+                              size={105}
+                              stroke={7}
+                              color="var(--color-primary)"
+                            >
+                              <div className="text-center px-1">
+                                <span className="text-xs sm:text-sm font-bold text-ink block">
+                                  {language === 'vi' ? 'Tổng' : 'Total'}
+                                </span>
+                                <span className="text-[11px] sm:text-xs font-bold text-primary font-mono truncate max-w-[80px] block">
+                                  {formatCurrency(plan.budget)}
+                                </span>
+                              </div>
+                            </CircularProgress>
+                          </div>
 
                           {/* Legend */}
-                          <div className="space-y-3 flex-1">
+                          <div className="space-y-3 w-full sm:flex-1">
                             <div className="flex items-center justify-between text-sm sm:text-base">
                               <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded-full bg-primary" />
@@ -566,10 +563,10 @@ export default function Home() {
 
               {/* Delete Plan Confirmation Modal */}
               {showDeleteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-                  <div className="bg-white rounded-2xl border border-hairline p-6 max-w-md w-full shadow-2xl space-y-4">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+                  <div className="bg-white rounded-t-3xl sm:rounded-2xl border border-hairline p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 animate-slide-up sm:animate-scale-up">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                         <Trash2 className="w-5 h-5" />
                       </div>
                       <div>
@@ -584,17 +581,17 @@ export default function Home() {
 
                     {deleteError && (
                       <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                         <span>{deleteError}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-hairline">
+                    <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-hairline">
                       <button
                         type="button"
                         disabled={isDeleting}
                         onClick={() => setShowDeleteModal(false)}
-                        className="px-4 py-2 text-xs font-semibold text-body-text hover:bg-canvas rounded-lg border border-hairline transition-all cursor-pointer"
+                        className="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-semibold text-body-text hover:bg-canvas rounded-lg border border-hairline transition-all cursor-pointer min-h-[44px] flex items-center justify-center"
                       >
                         {t.dashboard.deleteModalCancel}
                       </button>
@@ -602,7 +599,7 @@ export default function Home() {
                         type="button"
                         disabled={isDeleting}
                         onClick={handleDeletePlan}
-                        className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                        className="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 min-h-[44px]"
                       >
                         {isDeleting ? (
                           <>

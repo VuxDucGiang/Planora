@@ -20,8 +20,8 @@ if %errorlevel% neq 0 (
     exit /b %errorlevel%
 )
 
-echo [3/3] Đang khởi động lại Backend trên VPS...
-ssh root@160.191.51.35 "cd /root/planora && docker-compose restart backend"
+echo [3/3] Đang đóng gói lại Docker và khởi động Backend trên VPS...
+ssh root@160.191.51.35 "cd /root/planora && docker rm -f planora-backend && (docker compose up -d --build backend || docker-compose up -d --build backend)"
 
 echo ==============================================
 echo   DEPLOY THÀNH CÔNG! Backend đã được cập nhật.

@@ -28,7 +28,8 @@ import {
   MapPin,
   Phone,
   Mail,
-  ExternalLink
+  ExternalLink,
+  SlidersHorizontal
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
@@ -302,8 +303,7 @@ function MarketplaceVendorCard({
 
         {/* Vendor Name */}
         <h4
-          className="font-serif text-lg sm:text-xl font-bold uppercase tracking-wide line-clamp-1 mb-1"
-          style={{ color: '#5D0F12', fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+          className="font-serif text-lg sm:text-xl font-bold uppercase tracking-wide line-clamp-1 mb-1 text-[#5D0F12]"
         >
           {vendor.businessName}
         </h4>
@@ -366,6 +366,9 @@ export default function Marketplace() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(124);
+
+  // Filter Drawer State (Mobile)
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Detail Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -601,6 +604,12 @@ export default function Marketplace() {
     return 0;
   });
 
+  const activeFiltersCount = (selectedCategory !== 'ALL' ? 1 : 0) +
+    (selectedCity !== 'ALL' ? 1 : 0) +
+    (selectedStyle !== 'ALL' ? 1 : 0) +
+    (priceFrom ? 1 : 0) +
+    (priceTo ? 1 : 0);
+
   return (
     <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full">
       
@@ -616,17 +625,16 @@ export default function Marketplace() {
 
         {/* Main Content Area (Cùng tỉ lệ ngang với trang Dashboard, không nền đỏ) */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-8 py-6 sm:py-8">
           
             {/* ─── Breadcrumbs Badge & Search Input Row ─── */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5 mb-6">
               <div>
                 {/* Clean, Elegant Breadcrumb Badge (No red background) */}
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-neutral-200/90 shadow-xs">
                   <Building2 className="w-4 h-4 text-[#5D0F12]" />
                   <span
                     className="font-serif tracking-widest text-xs font-bold uppercase text-[#5D0F12]"
-                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                   >
                     {t.marketplace.breadcrumb}
                   </span>
@@ -634,24 +642,40 @@ export default function Marketplace() {
 
                 {/* Subtitle */}
                 <h2
-                  className="text-sm sm:text-base font-serif italic text-neutral-800 mt-1.5 pl-1"
-                  style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                  className="text-xs sm:text-base font-serif italic text-neutral-800 mt-1.5 pl-1"
                 >
                   {t.marketplace.headerSubtitle}
                 </h2>
               </div>
 
-              {/* Search Pill Input */}
-              <form onSubmit={handleSearchSubmit} className="relative w-full md:w-[280px]">
-                <input
-                  type="text"
-                  placeholder={t.marketplace.searchPlaceholder}
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-full pl-10 pr-4 py-2.5 text-sm text-neutral-900 shadow-xs focus:outline-none focus:border-[#5D0F12] placeholder:text-neutral-400"
-                />
-                <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
-              </form>
+              {/* Search & Mobile Filter Button */}
+              <div className="flex items-center gap-2.5 w-full md:w-auto">
+                <form onSubmit={handleSearchSubmit} className="relative flex-1 md:w-[280px]">
+                  <input
+                    type="text"
+                    placeholder={t.marketplace.searchPlaceholder}
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full bg-white border border-neutral-300 rounded-full pl-10 pr-4 py-2 text-base sm:text-sm text-neutral-900 shadow-xs focus:outline-none focus:border-[#5D0F12] placeholder:text-neutral-400"
+                  />
+                  <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
+                </form>
+
+                {/* Mobile Filter Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="lg:hidden shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white border border-neutral-300 text-xs font-bold text-neutral-800 shadow-xs hover:border-[#5D0F12] hover:text-[#5D0F12] transition-colors cursor-pointer"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-[#5D0F12]" />
+                  <span>{t.marketplace.filterBy}</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="w-4 h-4 rounded-full bg-[#5D0F12] text-white text-[10px] flex items-center justify-center font-bold">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* System Notification Messages */}
@@ -672,15 +696,14 @@ export default function Marketplace() {
             <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
               
               {/* ─── LEFT COLUMN: VENDOR SHOWCASE (NO RED BACKGROUND, CLEAN ELEGANT WARM LINEN) ─── */}
-              <div className="flex-1 min-w-0 order-2 lg:order-1 w-full">
+              <div className="flex-1 min-w-0 w-full">
                 
-                <div className="bg-[#FAF8F5] border border-neutral-200/60 rounded-[2rem] p-6 sm:p-8 shadow-xs flex flex-col justify-between min-h-[600px]">
+                <div className="bg-[#FAF8F5] border border-neutral-200/60 rounded-[1.75rem] sm:rounded-[2rem] p-4 sm:p-8 shadow-xs flex flex-col justify-between min-h-[600px]">
                   
                   {/* Showcase Top Bar: Showing count & Sort */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-neutral-600 mb-6 pb-4 border-b border-neutral-200/80 text-sm">
                     <span 
                       className="font-serif italic text-neutral-700 text-sm sm:text-base tracking-wide"
-                      style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
                     >
                       {t.marketplace.showingVendorsCount
                         .replace('{start}', String(displayedVendors.length > 0 ? currentPage * 9 + 1 : 0))
@@ -773,8 +796,8 @@ export default function Marketplace() {
 
               </div>
 
-              {/* ─── RIGHT COLUMN: FILTER BY SIDEBAR (Clean, Harmonious & Elegant) ─── */}
-              <div className="w-full lg:w-56 xl:w-60 shrink-0 space-y-3 order-1 lg:order-2">
+              {/* ─── RIGHT COLUMN: FILTER BY SIDEBAR (Desktop only) ─── */}
+              <div className="hidden lg:block w-56 xl:w-60 shrink-0 space-y-3">
                 
                 {/* Filter Header Tab */}
                 <div className="bg-white rounded-2xl border border-neutral-200/90 py-3.5 px-4 shadow-xs flex items-center justify-between">
@@ -924,11 +947,155 @@ export default function Marketplace() {
 
       </div>
 
+      {/* ─── MOBILE FILTER DRAWER (Bottom Sheet on Mobile) ─── */}
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex items-end justify-center bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div 
+            className="bg-white rounded-t-3xl w-full max-h-[88vh] overflow-y-auto shadow-2xl border-t border-hairline p-5 space-y-4 animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-[#5D0F12]" />
+                <h3 className="text-sm font-bold text-neutral-900 tracking-wider uppercase font-sans">
+                  {t.marketplace.filterBy}
+                </h3>
+                {activeFiltersCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-[#5D0F12]/10 text-[#5D0F12] text-xs font-bold">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleClearAllFilters}
+                  className="text-xs text-neutral-500 hover:text-[#5D0F12] font-semibold underline cursor-pointer"
+                >
+                  {t.marketplace.clearFilters}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                {t.marketplace.filterCategory}
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {(language === 'vi' ? [
+                  { id: 1, name: 'Nhiếp ảnh & Phóng sự', count: 24 },
+                  { id: 2, name: 'Trang trí & Hoa cưới', count: 18 },
+                  { id: 3, name: 'Trang điểm cô dâu', count: 10 },
+                  { id: 4, name: 'Địa điểm & Nhà hàng', count: 5 }
+                ] : [
+                  { id: 1, name: 'Photography', count: 24 },
+                  { id: 2, name: 'Decoration', count: 18 },
+                  { id: 3, name: 'Makeup Artist', count: 10 },
+                  { id: 4, name: 'Wedding Venue', count: 5 }
+                ]).map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'ALL' : cat.id)}
+                    className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer select-none transition-all text-left ${
+                      selectedCategory === cat.id
+                        ? 'border-[#5D0F12] bg-[#5D0F12]/10 text-[#5D0F12] font-bold'
+                        : 'border-neutral-200 bg-white text-neutral-700'
+                    }`}
+                  >
+                    <span className="truncate">{cat.name}</span>
+                    <span className="text-[10px] text-neutral-400">({cat.count})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-neutral-100" />
+
+            {/* Pricing Filter */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                {t.marketplace.filterPricing}
+              </h4>
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder={t.marketplace.priceFromPlaceholder}
+                  value={priceFrom}
+                  onChange={e => setPriceFrom(e.target.value)}
+                  className="w-full bg-canvas border border-neutral-300 rounded-xl px-3 py-2 text-base sm:text-sm text-neutral-800 text-center focus:outline-none focus:border-[#5D0F12]"
+                />
+                <span>—</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder={t.marketplace.priceToPlaceholder}
+                  value={priceTo}
+                  onChange={e => setPriceTo(e.target.value)}
+                  className="w-full bg-canvas border border-neutral-300 rounded-xl px-3 py-2 text-base sm:text-sm text-neutral-800 text-center focus:outline-none focus:border-[#5D0F12]"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-neutral-100" />
+
+            {/* Location Filter */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                {t.marketplace.filterLocation}
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { name: 'Da Lat', count: 24 },
+                  { name: 'Ho Chi Minh', count: 18 },
+                  { name: 'Ha Noi', count: 12 },
+                  { name: 'Da Nang', count: 8 }
+                ].map(city => (
+                  <button
+                    key={city.name}
+                    type="button"
+                    onClick={() => setSelectedCity(selectedCity === city.name ? 'ALL' : city.name)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                      selectedCity === city.name
+                        ? 'border-[#5D0F12] bg-[#5D0F12] text-white'
+                        : 'border-neutral-200 bg-white text-neutral-700 hover:bg-canvas'
+                    }`}
+                  >
+                    {city.name} ({city.count})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Apply Button */}
+            <div className="pt-2 border-t border-neutral-200">
+              <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="w-full py-3 bg-[#5D0F12] text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-md hover:bg-[#4A0C0E] transition-all cursor-pointer min-h-[44px] !text-[#FFFBF5]"
+              >
+                {t.common.apply || 'Áp dụng bộ lọc'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── VENDOR DETAIL MODAL ─── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-fade-in">
           <div 
-            className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative border border-hairline/80 p-6 sm:p-8"
+            className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative border-t sm:border border-hairline/80 p-5 sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}

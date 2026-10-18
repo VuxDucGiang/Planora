@@ -130,6 +130,7 @@ export default function Checklist() {
   const [deadlineFilter, setDeadlineFilter] = useState<'ALL' | 'OVERDUE' | 'DUE_SOON' | 'THIS_MONTH'>('ALL');
   const [showOnlyOverdue, setShowOnlyOverdue] = useState(false);
   const [sortBy, setSortBy] = useState<'DUE_DATE_ASC' | 'DUE_DATE_DESC' | 'PRIORITY_DESC' | 'PRIORITY_ASC' | 'CREATED_DESC'>('DUE_DATE_ASC');
+  const [activeMobileColumn, setActiveMobileColumn] = useState<KanbanStatus>('TODO');
 
   // Side Panel (Task Detail) States
   const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
@@ -868,7 +869,7 @@ export default function Checklist() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
-          <main className="flex-1 max-w-[1700px] w-full mx-auto px-4 sm:px-8 py-6 flex flex-col justify-start space-y-6">
+          <main className="flex-1 max-w-[1700px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6 flex flex-col justify-start space-y-5 sm:space-y-6">
 
             {/* ─── Header: Title & Main Action Buttons ─── */}
             <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4 pb-4 border-b border-hairline">
@@ -1204,23 +1205,52 @@ export default function Checklist() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4.5 items-start overflow-x-auto pb-6">
-                {COLUMNS.map(col => {
-                  const colTasks = columnsData[col.id] || [];
-                  const isDragOver = dragOverColumn === col.id;
+              <div className="space-y-4">
+                {/* ─── Mobile Kanban Column Segmented Switcher (Visible on < md) ─── */}
+                <div className="flex md:hidden items-center justify-between gap-1 p-1 bg-white border border-hairline rounded-full shadow-2xs overflow-x-auto no-scrollbar">
+                  {COLUMNS.map(col => {
+                    const colTasks = columnsData[col.id] || [];
+                    const isSelected = activeMobileColumn === col.id;
+                    return (
+                      <button
+                        key={col.id}
+                        type="button"
+                        onClick={() => setActiveMobileColumn(col.id)}
+                        className={`flex-1 min-w-[70px] py-1.5 px-2 rounded-full text-xs font-bold transition-all text-center whitespace-nowrap cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#5D0F12] text-white shadow-xs'
+                            : 'text-neutral-700 hover:text-black hover:bg-canvas'
+                        }`}
+                      >
+                        <span>{col.icon} </span>
+                        <span>{col.title.split(' ')[0]}</span>
+                        <span className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-neutral-100 text-neutral-600'}`}>
+                          {colTasks.length}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-                  return (
-                    <div
-                      key={col.id}
-                      onDragOver={e => handleDragOver(e, col.id)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={e => handleDrop(e, col.id)}
-                      className={`flex flex-col rounded-2xl border transition-all duration-200 min-w-[280px] bg-[#FAF8F5]/80 ${
-                        isDragOver
-                          ? 'border-primary ring-2 ring-primary/20 bg-primary/5 shadow-md'
-                          : 'border-hairline shadow-2xs'
-                      }`}
-                    >
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4.5 items-start overflow-x-auto pb-6">
+                  {COLUMNS.map(col => {
+                    const colTasks = columnsData[col.id] || [];
+                    const isDragOver = dragOverColumn === col.id;
+
+                    return (
+                      <div
+                        key={col.id}
+                        onDragOver={e => handleDragOver(e, col.id)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={e => handleDrop(e, col.id)}
+                        className={`flex-col rounded-2xl border transition-all duration-200 min-w-[280px] bg-[#FAF8F5]/80 ${
+                          activeMobileColumn !== col.id ? 'hidden md:flex' : 'flex'
+                        } ${
+                          isDragOver
+                            ? 'border-primary ring-2 ring-primary/20 bg-primary/5 shadow-md'
+                            : 'border-hairline shadow-2xs'
+                        }`}
+                      >
                       {/* Column Header */}
                       <div className={`p-4 border-b border-hairline rounded-t-2xl bg-white flex items-center justify-between border-t-4 ${col.headerColor}`}>
                         <div className="flex items-center gap-2">
@@ -1411,7 +1441,8 @@ export default function Checklist() {
                   );
                 })}
               </div>
-            )}
+            </div>
+          )}
 
           </main>
         </div>
@@ -1426,8 +1457,8 @@ export default function Checklist() {
             onClick={() => setActiveTaskId(null)}
           />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-xl bg-white shadow-2xl border-l border-hairline flex flex-col justify-between animate-slide-left">
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+            <div className="w-screen max-w-full sm:max-w-xl bg-white shadow-2xl border-l border-hairline flex flex-col justify-between animate-slide-left">
               
               {/* Panel Header */}
               <div className="p-6 border-b border-hairline bg-[#FAF8F5]/80 flex items-center justify-between">
@@ -1713,8 +1744,8 @@ export default function Checklist() {
 
       {/* ─── Section 6: Add Task Modal / Drawer ─── */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-hairline rounded-2xl w-full max-w-lg p-6 shadow-2xl animate-scale-up space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white border-t sm:border border-hairline rounded-t-3xl sm:rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl animate-scale-up space-y-4 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-hairline pb-3">
               <div>
                 <h3 className="text-lg font-bold text-ink font-display flex items-center gap-2">
@@ -1920,8 +1951,8 @@ export default function Checklist() {
 
       {/* ─── Section 8: Auto Generate Tasks Modal ─── */}
       {isAutoGenerateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-hairline rounded-2xl w-full max-w-xl p-6 shadow-2xl animate-scale-up space-y-5">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white border-t sm:border border-hairline rounded-t-3xl sm:rounded-2xl w-full max-w-xl p-5 sm:p-6 shadow-2xl animate-scale-up space-y-5 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start border-b border-hairline pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
