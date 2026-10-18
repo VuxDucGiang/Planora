@@ -266,7 +266,7 @@ export default function WeddingLanding() {
               <div className="space-y-4">
                 <h1 className="flex flex-col space-y-1">
                   <span
-                    className="text-8xl lg:text-9xl font-normal leading-none text-[#5D0F12] select-none"
+                    className="text-6xl sm:text-8xl lg:text-9xl font-normal leading-none text-[#5D0F12] select-none"
                     style={{
                       fontFamily: '"Burgues Script W00 Regular", cursive',
                       color: '#4b0c0eff',
@@ -276,9 +276,8 @@ export default function WeddingLanding() {
                     Planora
                   </span>
                   <span
-                    className="text-xl lg:text-2xl font-semibold italic tracking-wide pl-12 text-black"
+                    className="text-lg sm:text-xl lg:text-2xl font-serif font-semibold italic tracking-wide pl-4 sm:pl-12 text-black"
                     style={{
-                      fontFamily: '"ITC Garamond Std", "EB Garamond", serif',
                       color: '#000000',
                       fontWeight: 600,
                     }}
@@ -405,12 +404,12 @@ export default function WeddingLanding() {
             {/* Right Column: Collection details & 2x2 grid */}
             <div className="order-first md:order-second flex flex-col justify-center">
               <p className="text-xs font-bold text-sage-green tracking-widest uppercase mb-4">{t.landing.collectionTag}</p>
-              <h2 className="text-5xl lg:text-6xl font-serif text-ink leading-tight" style={{ fontFamily: 'var(--font-serif)', marginBottom: '40px' }}>
+              <h2 className="text-3xl sm:text-5xl lg:text-6xl font-serif text-ink leading-tight mb-8 sm:mb-10" style={{ fontFamily: 'var(--font-serif)' }}>
                 {t.landing.collectionTitleLine1}
                 <br />
                 {t.landing.collectionTitleLine2}
               </h2>
-              <p className="text-body-text leading-relaxed max-w-lg" style={{ marginBottom: '56px' }}>
+              <p className="text-body-text leading-relaxed max-w-lg mb-8 sm:mb-14">
                 {t.landing.collectionDesc}
               </p>
 
@@ -461,18 +460,18 @@ export default function WeddingLanding() {
       {/* How It Works Section */}
       <section id="how-it-works" className="relative pt-20 pb-24 bg-sage-green overflow-hidden text-center">
         {/* Header content constrained to central column */}
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-16">
-          <div className="mb-16">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 mb-12 sm:mb-16">
+          <div className="mb-8 sm:mb-16">
             <h2
-              className="text-[41px] lg:text-[51px] font-normal leading-[100%] tracking-normal mb-6"
-              style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#FFEEB5' }}
+              className="text-3xl sm:text-[41px] lg:text-[51px] font-serif font-normal leading-[110%] tracking-normal mb-4 sm:mb-6"
+              style={{ color: '#FFEEB5' }}
             >
               {t.landing.howItWorksTitle}
             </h2>
 
             <p
-              className="text-[15px] md:text-[20px] font-normal leading-[32px] tracking-normal"
-              style={{ fontFamily: '"IM Fell French Canon", serif', color: 'rgba(255, 255, 255, 0.9)' }}
+              className="text-[15px] md:text-[20px] font-serif font-normal leading-relaxed md:leading-[32px] tracking-normal"
+              style={{ color: 'rgba(255, 255, 255, 0.9)' }}
             >
               {t.landing.howItWorksSubtitle}
             </p>
@@ -490,8 +489,7 @@ export default function WeddingLanding() {
               {/* Dot */}
               <div className="w-[18px] h-[18px] rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.4)] mb-6 relative z-10 border-[3px] border-sage-green" />
               <h4
-                className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
-                style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
+                className="text-[17px] md:text-[20px] font-serif leading-relaxed max-w-[280px] text-white"
                 dangerouslySetInnerHTML={{ __html: t.landing.step1Title }}
               />
             </div>
@@ -501,8 +499,7 @@ export default function WeddingLanding() {
               {/* Dot */}
               <div className="w-[18px] h-[18px] rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.4)] mb-6 relative z-10 border-[3px] border-sage-green" />
               <h4
-                className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
-                style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
+                className="text-[17px] md:text-[20px] font-serif leading-relaxed max-w-[280px] text-white"
                 dangerouslySetInnerHTML={{ __html: t.landing.step2Title }}
               />
             </div>
@@ -512,8 +509,7 @@ export default function WeddingLanding() {
               {/* Dot */}
               <div className="w-[18px] h-[18px] rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.4)] mb-6 relative z-10 border-[3px] border-sage-green" />
               <h4
-                className="text-[17px] md:text-[20px] leading-relaxed max-w-[280px]"
-                style={{ fontFamily: '"IM Fell French Canon", serif', color: '#ffffff' }}
+                className="text-[17px] md:text-[20px] font-serif leading-relaxed max-w-[280px] text-white"
                 dangerouslySetInnerHTML={{ __html: t.landing.step3Title }}
               />
             </div>
@@ -538,10 +534,9 @@ export default function WeddingLanding() {
         {/* Constrained layout for the upper elements */}
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           {/* Badge */}
-          <div className="mb-12 flex justify-center text-center">
+          <div className="mb-8 sm:mb-12 flex justify-center text-center">
             <h2
-              className="text-[41px] lg:text-[51px] font-normal leading-[100%] tracking-normal"
-              style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif', color: '#5D0F12' }}
+              className="text-3xl sm:text-[41px] lg:text-[51px] font-serif font-normal leading-[110%] tracking-normal text-[#5D0F12]"
             >
               {t.landing.featuredVendorsTitle}
             </h2>
@@ -605,7 +600,7 @@ export default function WeddingLanding() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                  <p className="absolute bottom-6 left-0 right-0 text-center text-white text-sm font-bold tracking-widest uppercase" style={{ fontFamily: '"Istok Web", sans-serif' }}>
+                  <p className="absolute bottom-6 left-0 right-0 text-center text-white text-sm font-bold tracking-widest uppercase font-sans">
                     {item.name}
                   </p>
                 </div>
@@ -633,24 +628,23 @@ export default function WeddingLanding() {
         {/* Heading and Highlight Card restricted layout */}
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           {/* Heading */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-16">
-            <div className="flex flex-col md:flex-row md:items-baseline gap-4 md:gap-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10 sm:mb-16">
+            <div className="flex flex-col md:flex-row md:items-baseline gap-3 md:gap-8">
               <h3
-                className="text-4xl md:text-5xl font-normal tracking-wide uppercase border-b-2 pb-2 inline-block text-left"
-                style={{ fontFamily: '"IM Fell French Canon", serif', color: '#5D0F12', borderColor: '#5D0F12' }}
+                className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal tracking-wide uppercase border-b-2 pb-2 inline-block text-left text-[#5D0F12] border-[#5D0F12]"
               >
                 {t.landing.ourVendorsTitle}
               </h3>
-              <p className="text-sm text-muted-text text-left font-normal" style={{ fontFamily: '"Istok Web", sans-serif', lineHeight: '1.4' }}>
+              <p className="text-sm text-muted-text text-left font-normal font-sans" style={{ lineHeight: '1.4' }}>
                 {t.landing.ourVendorsSubtitle}
               </p>
             </div>
           </div>
 
           {/* Featured Highlight Card */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-white rounded-[2.5rem] p-8 shadow-[0_10px_40px_rgba(0,0,0,0.03)] border border-hairline/50">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-white rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.03)] border border-hairline/50">
             {/* Left Image column (6 cols) */}
-            <div className="md:col-span-6 relative aspect-[16/10] md:aspect-[4/3] rounded-[2rem] overflow-hidden shadow-sm">
+            <div className="md:col-span-6 relative aspect-[16/10] md:aspect-[4/3] rounded-2xl sm:rounded-[2rem] overflow-hidden shadow-sm">
               <img
                 src="/landing/landing-2.png"
                 alt="Behind every perfect wedding"
@@ -661,22 +655,19 @@ export default function WeddingLanding() {
             </div>
 
             {/* Right Details column (6 cols) */}
-            <div className="md:col-span-6 flex flex-col justify-center space-y-6 md:pl-6 text-left">
+            <div className="md:col-span-6 flex flex-col justify-center space-y-4 sm:space-y-6 md:pl-6 text-left">
               <div>
                 <p
-                  className="text-xs font-bold tracking-widest uppercase mb-3"
-                  style={{ fontFamily: '"Istok Web", sans-serif', color: 'rgba(26,26,26,0.5)' }}
+                  className="text-xs font-bold tracking-widest uppercase mb-2 sm:mb-3 font-sans text-neutral-500"
                 >
                   MIDORI WEDDING
                 </p>
                 <h4
-                  className="text-3xl md:text-4xl font-normal leading-tight uppercase"
-                  style={{ fontFamily: '"IM Fell French Canon", serif', color: '#5D0F12' }}
+                  className="text-2xl sm:text-3xl md:text-4xl font-serif font-normal leading-tight uppercase text-[#5D0F12]"
                   dangerouslySetInnerHTML={{ __html: t.landing.behindEveryTitle }}
                 />
                 <p
-                  className="text-sm mt-4 text-muted-text font-normal"
-                  style={{ fontFamily: '"Istok Web", sans-serif' }}
+                  className="text-sm mt-3 sm:mt-4 text-muted-text font-normal font-sans"
                 >
                   {t.landing.behindEveryDesc}
                 </p>
@@ -684,8 +675,7 @@ export default function WeddingLanding() {
 
               <div>
                 <button
-                  className="px-8 py-3 rounded-full bg-sage-green text-cream font-bold text-sm tracking-wider uppercase hover:bg-sage-active transition-all duration-200 cursor-pointer shadow-md"
-                  style={{ fontFamily: '"Istok Web", sans-serif' }}
+                  className="w-full sm:w-auto px-8 py-3 rounded-full bg-sage-green text-cream font-bold text-sm tracking-wider uppercase hover:bg-sage-active transition-all duration-200 cursor-pointer shadow-md font-sans"
                 >
                   {t.landing.detailBtn}
                 </button>
@@ -693,22 +683,18 @@ export default function WeddingLanding() {
             </div>
           </div>
         </div>
-
-
       </section>
-
-      {/* Testimonials Section */}
       <section id="testimonials" className="relative pt-20 pb-24 bg-sage-green overflow-visible">
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="text-center mb-20">
+          <div className="text-center mb-10 sm:mb-20">
             <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: 'rgba(248,247,245,0.7)' }}>{t.landing.testimonialsTag}</p>
-            <h2 className="text-5xl lg:text-6xl font-serif" style={{ fontFamily: 'var(--font-serif)', color: '#FFEEB5' }}>
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-serif" style={{ fontFamily: 'var(--font-serif)', color: '#FFEEB5' }}>
               {t.landing.testimonialsTitle}
             </h2>
           </div>
 
           {/* Marquee Columns Container */}
-          <div className="relative h-[650px] overflow-hidden pause-hover">
+          <div className="relative h-[480px] sm:h-[650px] overflow-hidden pause-hover">
             {/* Gradient Mask Overlays */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-32 z-20" style={{ background: 'linear-gradient(to bottom, #5D0F12, transparent)' }} />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 z-20" style={{ background: 'linear-gradient(to top, #5D0F12, transparent)' }} />
@@ -720,7 +706,7 @@ export default function WeddingLanding() {
                   {[...activeCol1, ...activeCol1].map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-8 rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[220px]"
+                      className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[200px] sm:min-h-[220px]"
                     >
                       <p className="leading-relaxed mb-6 font-serif italic text-base md:text-lg" style={{ color: '#ffffff' }}>
                         &ldquo;{item.quote}&rdquo;
@@ -745,7 +731,7 @@ export default function WeddingLanding() {
                   {[...activeCol2, ...activeCol2].map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-8 rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[220px]"
+                      className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[200px] sm:min-h-[220px]"
                     >
                       <p className="leading-relaxed mb-6 font-serif italic text-base md:text-lg" style={{ color: '#ffffff' }}>
                         &ldquo;{item.quote}&rdquo;
@@ -770,7 +756,7 @@ export default function WeddingLanding() {
                   {[...activeCol3, ...activeCol3].map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-8 rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[220px]"
+                      className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/20 border border-white/20 shadow-[0_4px_24px_rgba(0,0,0,0.15)] hover:bg-white/30 transition-editorial flex flex-col justify-between min-h-[200px] sm:min-h-[220px]"
                     >
                       <p className="leading-relaxed mb-6 font-serif italic text-base md:text-lg" style={{ color: '#ffffff' }}>
                         &ldquo;{item.quote}&rdquo;
@@ -805,11 +791,11 @@ export default function WeddingLanding() {
       </section>
 
       {/* CTA / Newsletter Section */}
-      <section id="contact" className="relative pt-44 pb-40 bg-cream overflow-visible">
+      <section id="contact" className="relative pt-28 pb-24 sm:pt-44 sm:pb-40 bg-cream overflow-visible">
         <div className="max-w-4xl mx-auto px-6 sm:px-10 flex flex-col items-center text-center">
           {/* PLANORA label */}
           <p
-            className="mb-7 select-none"
+            className="mb-4 sm:mb-7 select-none"
             style={{
               fontFamily: '"Burgues Script W00 Regular", BurguesScriptW00-Regular, cursive',
               letterSpacing: '7%',
@@ -817,7 +803,7 @@ export default function WeddingLanding() {
               WebkitTextStroke: '0.8px #5D0F12',
               paintOrder: 'stroke fill',
               fontWeight: 400,
-              fontSize: '75px',
+              fontSize: 'clamp(48px, 12vw, 75px)',
               lineHeight: 0.9,
             }}
           >
@@ -826,15 +812,14 @@ export default function WeddingLanding() {
 
           {/* Main heading */}
           <h2
-            className="text-4xl sm:text-5xl md:text-6xl leading-[110%] uppercase mb-16"
-            style={{ fontFamily: '"IM Fell French Canon", serif', fontWeight: 400, color: 'var(--color-ink)' }}
+            className="text-2xl sm:text-4xl md:text-6xl font-serif leading-[115%] uppercase mb-8 sm:mb-16 font-normal text-ink"
           >
             {t.landing.ctaTitle}
           </h2>
 
           {/* Email form */}
-          <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-0 shadow-sm mt-5">
-            <div className="flex items-center flex-1 bg-white border border-hairline border-r-0 rounded-l-full px-5 gap-3">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row w-full max-w-md gap-3 sm:gap-0 shadow-sm mt-3 sm:mt-5">
+            <div className="flex items-center flex-1 bg-white border border-hairline rounded-full sm:rounded-r-none sm:border-r-0 px-5 py-1 sm:py-0 gap-3">
               <svg className="w-4 h-4 text-muted-text flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
               </svg>
@@ -843,15 +828,13 @@ export default function WeddingLanding() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t.landing.emailPlaceholder}
-                className="flex-1 py-4 bg-transparent text-sm text-ink placeholder-muted-text focus:outline-none"
-                style={{ fontFamily: '"Istok Web", sans-serif' }}
+                className="flex-1 py-3.5 sm:py-4 bg-transparent text-base sm:text-sm text-ink placeholder-muted-text focus:outline-none font-sans"
                 required
               />
             </div>
             <button
               type="submit"
-              className="px-7 py-4 rounded-r-full bg-sage-green text-cream font-bold text-sm tracking-widest uppercase hover:bg-sage-active transition-all duration-200 cursor-pointer whitespace-nowrap"
-              style={{ fontFamily: '"Istok Web", sans-serif' }}
+              className="px-7 py-3.5 sm:py-4 rounded-full sm:rounded-l-none bg-sage-green text-cream font-bold text-sm tracking-widest uppercase hover:bg-sage-active transition-all duration-200 cursor-pointer whitespace-nowrap shadow-sm font-sans"
             >
               {t.landing.signUpBtn}
             </button>
@@ -863,8 +846,6 @@ export default function WeddingLanding() {
             </p>
           )}
         </div>
-
-
       </section>
 
       {/* Footer */}

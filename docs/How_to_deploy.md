@@ -65,13 +65,14 @@ scp target/planora-0.0.1-SNAPSHOT.jar root@160.191.51.35:/root/planora/target/
 ```
 *(Nhập mật khẩu VPS)*.
 
-#### Bước 3.4: Restart lại Backend trên VPS
+#### Bước 3.4: Rebuild và khởi động lại Backend trên VPS
 SSH vào VPS (hoặc nếu đang mở cửa sổ SSH):
 ```bash
 cd /root/planora
-docker-compose restart backend
+docker rm -f planora-backend
+docker compose up -d --build backend
 ```
-*(Hoặc nếu bạn có thay đổi cấu hình trong `Dockerfile` thì chạy: `docker-compose up -d --build backend`)*.
+*(Nếu server dùng bản docker-compose cũ thì có thể dùng `docker-compose up -d --build backend`).*
 
 Kiểm tra log xem backend đã khởi động xong chưa:
 ```bash

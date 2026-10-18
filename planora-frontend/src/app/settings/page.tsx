@@ -70,28 +70,27 @@ export default function SettingsPage() {
 
         {/* Content Area */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
-          <main className="flex-1 max-w-6xl w-full mx-auto px-6 sm:px-10 py-10">
+          <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-8 lg:px-10 py-6 sm:py-10">
             {/* Page Header */}
-            <div className="border-b border-hairline pb-6 mb-8">
+            <div className="border-b border-hairline pb-5 sm:pb-6 mb-6 sm:mb-8">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                  <SettingsIcon className="w-5 h-5 text-primary" />
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
                 <h1
-                  className="text-2xl sm:text-3xl font-normal text-primary tracking-wide uppercase"
-                  style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                  className="text-xl sm:text-3xl font-serif font-normal text-primary tracking-wide uppercase"
                 >
                   {t.settings.title}
                 </h1>
               </div>
-              <p className="text-sm sm:text-base text-muted-text font-sans">
+              <p className="text-xs sm:text-base text-muted-text font-sans">
                 {t.settings.subtitle}
               </p>
             </div>
 
             {/* Notification Toast */}
             {toastMessage && (
-              <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-sm shadow-sm animate-fade-in">
+              <div className="mb-6 p-3.5 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-xs sm:text-sm shadow-sm animate-fade-in">
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <span className="font-semibold">{toastMessage}</span>
@@ -106,26 +105,25 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* ══════════════════════════════════════════════
                   LANGUAGE SELECTION CARD (Primary Feature)
                   ══════════════════════════════════════════════ */}
-              <div className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-6 sm:p-8">
+              <div className="bg-white rounded-2xl sm:rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-5 sm:p-8">
                 <div className="flex items-center gap-2.5 mb-2">
                   <Globe className="w-5 h-5 text-primary" />
                   <h2
-                    className="text-lg sm:text-xl font-bold uppercase tracking-wider text-[#5D0F12]"
-                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                    className="text-base sm:text-xl font-serif font-bold uppercase tracking-wider text-[#5D0F12]"
                   >
                     {t.settings.languageSectionTitle}
                   </h2>
                 </div>
-                <p className="text-sm text-muted-text mb-6">
+                <p className="text-xs sm:text-sm text-muted-text mb-5 sm:mb-6">
                   {t.settings.languageSectionDesc}
                 </p>
 
                 {/* Language Option Cards Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                   {/* Option: Vietnamese */}
                   <div
                     onClick={() => handleLanguageChange('vi')}
@@ -221,21 +219,20 @@ export default function SettingsPage() {
               {/* ══════════════════════════════════════════════
                   DISPLAY PREFERENCES CARD
                   ══════════════════════════════════════════════ */}
-              <div className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-6 sm:p-8">
+              <div className="bg-white rounded-2xl sm:rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-5 sm:p-8">
                 <div className="flex items-center gap-2.5 mb-2">
                   <Sliders className="w-5 h-5 text-primary" />
                   <h2
-                    className="text-lg sm:text-xl font-bold uppercase tracking-wider text-[#5D0F12]"
-                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                    className="text-base sm:text-xl font-serif font-bold uppercase tracking-wider text-[#5D0F12]"
                   >
                     {t.settings.preferencesSectionTitle}
                   </h2>
                 </div>
-                <p className="text-sm text-muted-text mb-6">
+                <p className="text-xs sm:text-sm text-muted-text mb-5 sm:mb-6">
                   {t.settings.preferencesSectionDesc}
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
                   {/* Currency Format */}
                   <div className="p-4 rounded-xl bg-canvas border border-hairline">
                     <span className="text-xs sm:text-sm font-bold text-ink uppercase tracking-wider block mb-1">
@@ -271,35 +268,34 @@ export default function SettingsPage() {
               {/* ══════════════════════════════════════════════
                   WEDDING PLAN OVERVIEW CARD
                   ══════════════════════════════════════════════ */}
-              <div className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-6 sm:p-8">
+              <div className="bg-white rounded-2xl sm:rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-5 sm:p-8">
                 <div className="flex items-center gap-2.5 mb-2">
                   <Heart className="w-5 h-5 text-primary" />
                   <h2
-                    className="text-lg sm:text-xl font-bold uppercase tracking-wider text-[#5D0F12]"
-                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                    className="text-base sm:text-xl font-serif font-bold uppercase tracking-wider text-[#5D0F12]"
                   >
                     {t.settings.weddingSectionTitle}
                   </h2>
                 </div>
-                <p className="text-sm text-muted-text mb-6">
+                <p className="text-xs sm:text-sm text-muted-text mb-5 sm:mb-6">
                   {t.settings.weddingSectionDesc}
                 </p>
 
                 {plan ? (
-                  <div className="p-5 rounded-2xl bg-canvas border border-hairline space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-canvas border border-hairline space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
                         <span className="text-xs font-bold text-muted-text uppercase tracking-widest block">
                           {t.settings.activeWeddingPlan}
                         </span>
-                        <h4 className="text-lg font-bold text-primary font-display uppercase tracking-wide mt-0.5">
+                        <h4 className="text-base sm:text-lg font-bold text-primary font-display uppercase tracking-wide mt-0.5">
                           {plan.title}
                         </h4>
                       </div>
                       <div className="flex items-center gap-2">
                         <Link
                           href="/onboarding"
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider bg-white border border-neutral-300 text-neutral-800 hover:bg-neutral-50 transition-all shadow-xs"
+                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider bg-white border border-neutral-300 text-neutral-800 hover:bg-neutral-50 transition-all shadow-xs w-full sm:w-auto cursor-pointer"
                         >
                           <Edit3 className="w-3.5 h-3.5 text-primary" />
                           {t.settings.editPlan}
@@ -307,7 +303,7 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-3 border-t border-hairline text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-3 border-t border-hairline text-xs sm:text-sm">
                       <div>
                         <span className="text-muted-text block text-xs">{t.dashboard.styleLabel}:</span>
                         <span className="font-semibold text-ink">{plan.conceptSuggestions?.[0]?.conceptName || 'Modern Rustic'}</span>
@@ -324,10 +320,10 @@ export default function SettingsPage() {
                   </div>
                 ) : (
                   <div className="p-6 rounded-2xl bg-canvas border border-dashed border-neutral-300 text-center space-y-3">
-                    <p className="text-sm text-muted-text">{t.settings.noActivePlan}</p>
+                    <p className="text-xs sm:text-sm text-muted-text">{t.settings.noActivePlan}</p>
                     <Link
                       href="/onboarding"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider bg-primary text-cream hover:bg-primary-active transition-all shadow-sm"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider bg-primary text-cream hover:bg-primary-active transition-all shadow-sm w-full sm:w-auto"
                     >
                       {t.settings.createNewPlan}
                       <ArrowRight className="w-3.5 h-3.5" />

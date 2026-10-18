@@ -47,22 +47,23 @@ export default function AIInsightsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[#1A1A1A] tracking-tight">Insight Thị Trường Cưới & Giám Sát AI</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1A1A1A] tracking-tight">Insight Thị Trường & Giám Sát AI</h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 px-2.5 py-0.5 text-[11px] font-semibold text-[#5D0F12]">
-              <Sparkles className="h-3 w-3" /> Planora Intelligence
+              <Sparkles className="h-3 w-3" /> Intelligence
             </span>
           </div>
-          <p className="text-sm text-stone-500 mt-1">
+          <p className="text-xs sm:text-sm text-stone-500 mt-1">
             Báo cáo phân tích dữ liệu thị hiếu khách hàng, phân khúc ngân sách và hiệu năng kỹ thuật mô hình AI của Planora.
           </p>
         </div>
         <button
           onClick={fetchInsights}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer w-full sm:w-auto"
         >
           <RefreshCw className={`h-4 w-4 text-[#5D0F12] ${loading ? 'animate-spin' : ''}`} />
           <span>{loading ? 'Đang phân tích...' : 'Làm mới số liệu'}</span>
@@ -76,77 +77,77 @@ export default function AIInsightsPage() {
         </div>
       )}
 
-      {/* Row 1: 4 Thẻ Giám Sát Hiệu Năng AI */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Row 1: 4 Thẻ Giám Sát Hiệu Năng AI - 2 cột trên mobile */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {/* Card 1: AI Latency */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Độ Trễ Phản Hồi AI</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <Clock className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Độ Trễ Phản Hồi</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-[#1A1A1A]">
+          <div className="mt-2.5 sm:mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+              <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">
                 {data ? `${(data.aiPerformance.averageLatencyMs / 1000).toFixed(2)}s` : '1.72s'}
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-full border border-emerald-200 w-fit">
                 <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Fast
               </span>
             </div>
-            <p className="mt-1 text-xs text-stone-400">Thời gian trung bình sinh kế hoạch</p>
+            <p className="mt-1 text-[11px] sm:text-xs text-stone-400">Trung bình sinh plan</p>
           </div>
         </div>
 
         {/* Card 2: Total Generations */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Lượt Tạo Kế Hoạch AI</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <Sparkles className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Lượt Tạo Plan</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-[#1A1A1A]">
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">
               {data?.aiPerformance.totalGenerations || 0}
             </span>
-            <p className="mt-1 text-xs text-[#5D0F12] font-semibold">Prompt invocations</p>
+            <p className="mt-1 text-[11px] sm:text-xs text-[#5D0F12] font-semibold">Prompt invocations</p>
           </div>
         </div>
 
         {/* Card 3: AI Success Rate */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Tỷ Lệ Thành Công</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <Cpu className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Tỷ Lệ Thành Công</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <Cpu className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-[#1A1A1A]">
+          <div className="mt-2.5 sm:mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+              <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">
                 {data ? `${data.aiPerformance.successRate}%` : '99.4%'}
               </span>
-              <span className="text-xs text-stone-500 font-medium">Reliable</span>
+              <span className="text-[11px] sm:text-xs text-stone-500 font-medium">Reliable</span>
             </div>
-            <p className="mt-1 text-xs text-stone-400">Không gặp gián đoạn API</p>
+            <p className="mt-1 text-[11px] sm:text-xs text-stone-400">Không gián đoạn API</p>
           </div>
         </div>
 
         {/* Card 4: Estimated Tokens */}
-        <div className="rounded-2xl border border-[#EADCC9] bg-white p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
+        <div className="rounded-2xl border border-[#EADCC9] bg-white p-3.5 sm:p-5 shadow-[0_4px_20px_rgba(93,15,18,0.03)] hover:shadow-md transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Lượng Token Tiêu Thụ</span>
-            <div className="rounded-xl bg-[#5D0F12]/10 p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
-              <TrendingUp className="h-5 w-5" />
+            <span className="text-[10px] sm:text-xs font-semibold text-stone-500 uppercase tracking-wider">Lượng Token</span>
+            <div className="rounded-xl bg-[#5D0F12]/10 p-2 sm:p-2.5 text-[#5D0F12] border border-[#5D0F12]/15">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-bold text-[#1A1A1A]">
+          <div className="mt-2.5 sm:mt-4">
+            <span className="text-2xl sm:text-3xl font-bold text-[#1A1A1A]">
               {data ? `${(data.aiPerformance.estimatedTokens / 1000).toFixed(1)}k` : '14.5k'}
             </span>
-            <p className="mt-1 text-xs text-[#5D0F12] font-semibold">Gemini / OpenAI API Usage</p>
+            <p className="mt-1 text-[11px] sm:text-xs text-[#5D0F12] font-semibold">Gemini API Usage</p>
           </div>
         </div>
       </div>
@@ -259,7 +260,7 @@ export default function AIInsightsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 sm:w-64">
+              <div className="flex items-center gap-4 w-full sm:w-64">
                 <div className="h-2.5 flex-1 rounded-full bg-white border border-[#EADCC9]/60 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-[#5D0F12] transition-all duration-700"

@@ -175,7 +175,7 @@ export default function VendorDetail(props: PageProps) {
       <div className="flex-1 w-full flex flex-col">
         
         {/* Banner Section */}
-        <div className="relative w-full h-[300px] md:h-[400px] bg-slate-900 overflow-hidden">
+        <div className="relative w-full h-[240px] sm:h-[320px] md:h-[400px] bg-slate-900 overflow-hidden">
           <img 
             src={carouselImages[activeImageIndex % carouselImages.length]} 
             alt="Wedding Banner" 
@@ -187,36 +187,36 @@ export default function VendorDetail(props: PageProps) {
           
           {/* Main Visual Couple in Banner */}
           <div className="absolute inset-0 flex items-center justify-center px-4">
-            <div className="relative w-full max-w-4xl h-full flex items-end pb-8">
+            <div className="relative w-full max-w-4xl h-full flex items-end pb-4 sm:pb-8">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200" 
                 alt="Banner Couple" 
-                className="absolute inset-0 w-full h-full object-cover rounded-b-[40px] shadow-2xl border-b-4 border-cream/20"
+                className="absolute inset-0 w-full h-full object-cover rounded-b-[28px] sm:rounded-b-[40px] shadow-2xl border-b-4 border-cream/20"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = carouselImages[0];
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-b-[40px]"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-b-[28px] sm:rounded-b-[40px]"></div>
             </div>
           </div>
         </div>
 
         {/* Floating Profile Info & About Row */}
-        <div className="max-w-6xl w-full mx-auto px-4 md:px-8 relative -mt-24 z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 md:px-8 relative -mt-14 sm:-mt-20 md:-mt-24 z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
             
             {/* Left Floating Card */}
-            <div className="lg:col-span-5 bg-white rounded-3xl p-6 shadow-xl border border-hairline relative text-center">
+            <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xl border border-hairline relative text-center">
               {/* Floating circular icon */}
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-primary border-4 border-white shadow-lg flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full border border-cream/20 flex items-center justify-center text-gold">
-                  <Star className="w-6 h-6 fill-gold text-gold" />
+              <div className="absolute -top-10 sm:-top-12 left-1/2 -translate-x-1/2 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary border-4 border-white shadow-lg flex items-center justify-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-cream/20 flex items-center justify-center text-gold">
+                  <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-gold text-gold" />
                 </div>
               </div>
 
               {/* Title Content */}
-              <div className="pt-10 space-y-4">
+              <div className="pt-7 sm:pt-10 space-y-4">
                 <div className="space-y-1">
                   <h1 className="text-xl md:text-2xl font-semibold text-ink font-display tracking-tight">
                     {vendor.businessName}
@@ -290,7 +290,7 @@ export default function VendorDetail(props: PageProps) {
         ></div>
 
         {/* Two-Column Grid: Portfolio + Pricing on Left, Send Inquiry Sidebar on Right */}
-        <div className="max-w-6xl w-full mx-auto px-4 md:px-8 pb-16">
+        <div className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 md:px-8 pb-24 lg:pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* LEFT AREA: Gallery & Pricing (Col span 8) */}
@@ -304,10 +304,10 @@ export default function VendorDetail(props: PageProps) {
                 </div>
 
                 {/* Arched Framed Carousel */}
-                <div className="relative bg-cream/30 border border-hairline rounded-3xl p-6 shadow-sm overflow-hidden flex flex-col items-center">
+                <div className="relative bg-cream/30 border border-hairline rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm overflow-hidden flex flex-col items-center">
                   
                   {/* Lace overlay frame style */}
-                  <div className="relative w-full aspect-[16/10] max-w-2xl bg-white border-8 border-double border-gold/30 rounded-2xl overflow-hidden shadow-inner p-2">
+                  <div className="relative w-full aspect-[16/10] max-w-2xl bg-white border-4 sm:border-8 border-double border-gold/30 rounded-xl sm:rounded-2xl overflow-hidden shadow-inner p-1 sm:p-2">
                     <div className="w-full h-full relative overflow-hidden rounded-lg">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
@@ -321,7 +321,7 @@ export default function VendorDetail(props: PageProps) {
                       {/* Left Navigation Arrow */}
                       <button 
                         onClick={prevImage}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors"
+                        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors cursor-pointer"
                         aria-label={language === 'vi' ? 'Ảnh trước' : 'Previous image'}
                       >
                         <ChevronLeft className="w-5 h-5" />
@@ -330,7 +330,7 @@ export default function VendorDetail(props: PageProps) {
                       {/* Right Navigation Arrow */}
                       <button 
                         onClick={nextImage}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors"
+                        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors cursor-pointer"
                         aria-label={language === 'vi' ? 'Ảnh tiếp' : 'Next image'}
                       >
                         <ChevronRight className="w-5 h-5" />
@@ -344,7 +344,7 @@ export default function VendorDetail(props: PageProps) {
                       <button
                         key={idx}
                         onClick={() => setActiveImageIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all ${activeImageIndex === idx ? 'bg-primary scale-125' : 'bg-primary/20 hover:bg-primary/50'}`}
+                        className={`w-2 h-2 rounded-full transition-all cursor-pointer ${activeImageIndex === idx ? 'bg-primary scale-125' : 'bg-primary/20 hover:bg-primary/50'}`}
                       />
                     ))}
                   </div>
@@ -447,7 +447,7 @@ export default function VendorDetail(props: PageProps) {
             </div>
 
             {/* RIGHT AREA: Sticky Send Inquiry Sidebar (Col span 4) */}
-            <div id="inquiry-sidebar" className="lg:col-span-4 lg:sticky lg:top-[70px] bg-primary text-cream rounded-[32px] p-6 md:p-8 shadow-xl border border-primary/20 space-y-6">
+            <div id="inquiry-sidebar" className="lg:col-span-4 lg:sticky lg:top-[70px] bg-primary text-cream rounded-[28px] sm:rounded-[32px] p-5 sm:p-8 shadow-xl border border-primary/20 space-y-5 sm:space-y-6">
               <div className="border-b border-cream/15 pb-4 space-y-1">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gold-light" />
@@ -475,9 +475,9 @@ export default function VendorDetail(props: PageProps) {
                       required
                       value={weddingDate}
                       onChange={e => setWeddingDate(e.target.value)}
-                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-xs text-cream focus:outline-none focus:border-gold font-mono"
+                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-base sm:text-xs text-cream focus:outline-none focus:border-gold font-mono cursor-pointer"
                     />
-                    <CalendarIcon className="w-4 h-4 text-cream/50 absolute right-3.5 top-3 pointer-events-none" />
+                    <CalendarIcon className="w-4 h-4 text-cream/50 absolute right-3.5 top-3.5 pointer-events-none" />
                   </div>
                 </div>
 
@@ -489,13 +489,14 @@ export default function VendorDetail(props: PageProps) {
                   <div className="relative">
                     <input 
                       type="number" 
+                      inputMode="numeric"
                       placeholder={language === 'vi' ? 'VD: 150 khách' : 'e.g. 150'}
                       required
                       value={guestCount}
                       onChange={e => setGuestCount(e.target.value)}
-                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-xs text-cream focus:outline-none focus:border-gold font-mono"
+                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-base sm:text-xs text-cream focus:outline-none focus:border-gold font-mono"
                     />
-                    <Users className="w-4 h-4 text-cream/50 absolute right-3.5 top-3 pointer-events-none" />
+                    <Users className="w-4 h-4 text-cream/50 absolute right-3.5 top-3.5 pointer-events-none" />
                   </div>
                 </div>
 
@@ -631,6 +632,34 @@ export default function VendorDetail(props: PageProps) {
           </div>
         </div>
 
+      </div>
+
+      {/* Sticky Mobile Action Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-hairline p-3 px-4 shadow-lg flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={handleToggleShortlist}
+          disabled={isTogglingShortlist}
+          className={`p-3 rounded-full border transition-all cursor-pointer ${
+            isSaved 
+              ? 'bg-red-50 border-red-200 text-red-600' 
+              : 'bg-canvas border-hairline text-neutral-600 hover:text-red-500'
+          }`}
+          title={isSaved ? t.marketplace.shortlistBtnSaved : t.marketplace.shortlistBtnAdd}
+        >
+          <Heart className={`w-5 h-5 ${isSaved ? 'fill-red-600' : ''}`} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="flex-1 py-3 bg-[#5D0F12] text-[#FFFBF5] rounded-full text-xs font-bold uppercase tracking-wider shadow-md hover:bg-[#4A0C0E] transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
+        >
+          <Mail className="w-4 h-4 text-gold-light" />
+          <span>{t.marketplace.sendInquiryTitle || 'Gửi yêu cầu báo giá'}</span>
+        </button>
       </div>
 
       <DashboardFooter />

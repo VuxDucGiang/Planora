@@ -64,10 +64,10 @@ export default function ForgotPassword() {
       </div>
 
       {/* Main Card Container */}
-      <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[420px]">
+      <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-2xl sm:rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[420px]">
         
         {/* Left Column: Form */}
-        <div className="md:col-span-7 px-6 pb-6 pt-16 sm:px-8 sm:pb-8 sm:pt-20 flex flex-col justify-between overflow-visible">
+        <div className="md:col-span-7 px-4 pb-6 pt-12 sm:px-8 sm:pb-8 sm:pt-20 flex flex-col justify-between overflow-visible">
           
           {/* Inner Content Wrapper */}
           <div className="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center">
@@ -76,7 +76,6 @@ export default function ForgotPassword() {
             <div className="mb-6 font-serif text-ink leading-normal">
               <h1 
                 className="text-2xl md:text-3xl italic font-normal mb-2"
-                style={{ fontFamily: '"IM Fell French Canon", serif' }}
               >
                 {t.auth.forgotTitle}
               </h1>
@@ -93,7 +92,6 @@ export default function ForgotPassword() {
                 <label
                   htmlFor="email"
                   className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
-                  style={{ fontFamily: '"Istok Web", sans-serif' }}
                 >
                   {t.auth.emailLabel}
                 </label>
@@ -109,7 +107,7 @@ export default function ForgotPassword() {
                   }}
                   placeholder={t.auth.emailPlaceholder}
                   disabled={isSubmitting}
-                  className={`block w-full h-[44px] pl-6 ${errorMessage ? 'pr-12 border-red-500' : 'pr-6 border-gray-400/80'} bg-transparent border rounded-full text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50`}
+                  className={`block w-full h-[44px] pl-6 ${errorMessage ? 'pr-12 border-red-500' : 'pr-6 border-gray-400/80'} bg-transparent border rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50`}
                 />
                 
                 {errorMessage && (
@@ -141,7 +139,7 @@ export default function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full max-w-[240px] h-[42px] rounded-full bg-[#5D0F12] text-white text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                  className="w-full sm:max-w-[240px] h-[44px] rounded-full bg-[#5D0F12] text-white text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>

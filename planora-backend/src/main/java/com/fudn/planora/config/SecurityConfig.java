@@ -39,7 +39,7 @@ public class SecurityConfig {
                 }))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/google", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/**", "/error").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/vendors/**").permitAll()
                         .requestMatchers("/api/service-categories/**").permitAll()
                         .requestMatchers("/api/wedding-styles/**").permitAll()

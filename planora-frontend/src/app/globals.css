@@ -31,11 +31,11 @@
   --color-gold: #C9A96E;
   --color-gold-light: #E8D5A8;
 
-  --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: var(--font-display), "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-serif: var(--font-serif), serif;
-  --font-hero: var(--font-hero), serif;
-  --font-script: var(--font-script), cursive;
+  --font-sans: var(--font-sans), "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-serif), "EB Garamond", Garamond, Georgia, serif;
+  --font-display: var(--font-serif), "EB Garamond", Garamond, Georgia, serif;
+  --font-hero: var(--font-serif), "EB Garamond", Garamond, Georgia, serif;
+  --font-script: "Burgues Script W00 Regular", var(--font-script), cursive;
 
   --radius-xs: 2px;
   --radius-sm: 6px;
@@ -74,8 +74,8 @@ body {
   h4,
   h5,
   h6 {
-    font-family: var(--font-display);
-    font-weight: 500;
+    font-family: var(--font-serif);
+    font-weight: 600;
     color: var(--color-ink);
     margin: 0;
   }
@@ -171,6 +171,34 @@ body {
 
 .animate-slide-left {
   animation: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-right {
+  animation: slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes scaleUp {

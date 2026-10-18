@@ -10,9 +10,12 @@ import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@reac
 
 export default function Register() {
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -32,8 +35,36 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !password) {
+    if (!fullName.trim()) {
       setErrorMessage(t.auth.fullNameRequired);
+      return;
+    }
+    if (!username.trim()) {
+      setErrorMessage(t.auth.usernameRequired);
+      return;
+    }
+    if (username.trim().length < 3) {
+      setErrorMessage(language === 'vi' ? 'Tên đăng nhập phải có ít nhất 3 ký tự!' : 'Username must be at least 3 characters!');
+      return;
+    }
+    if (!email.trim()) {
+      setErrorMessage(t.auth.emailRequired);
+      return;
+    }
+    if (!password) {
+      setErrorMessage(t.auth.passwordRequired);
+      return;
+    }
+    if (password.length < 8) {
+      setErrorMessage(t.auth.passwordMinLength);
+      return;
+    }
+    if (!confirmPassword) {
+      setErrorMessage(t.auth.confirmPasswordRequired);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage(t.auth.passwordMismatch);
       return;
     }
 
@@ -42,7 +73,14 @@ export default function Register() {
     setIsSubmitting(true);
 
     try {
-      await registerService({ fullName, email, password });
+      await registerService({
+        fullName: fullName.trim(),
+        username: username.trim(),
+        email: email.trim(),
+        password,
+        confirmPassword,
+        role: 'USER',
+      });
       setSuccessMessage(t.auth.registerSuccess);
 
       setTimeout(() => {
@@ -175,18 +213,17 @@ export default function Register() {
         </div>
 
         {/* Main Login Card Container */}
-        <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
+        <div className="relative z-10 w-full max-w-3xl bg-[#FAF5EE] rounded-2xl sm:rounded-[32px] shadow-2xl overflow-visible grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
           
           {/* Floating Accent Badge */}
           <div
-            className="absolute -left-4 top-6 bg-[#5D0F12] text-white px-6 py-2 rounded-full shadow-lg z-20 select-none"
-            style={{ fontFamily: '"IM Fell French Canon", serif', fontSize: '0.95rem', letterSpacing: '0.05em' }}
+            className="absolute left-4 sm:-left-4 top-4 sm:top-6 bg-[#5D0F12] text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-full shadow-lg z-20 select-none text-xs sm:text-sm font-serif tracking-wider"
           >
             {t.auth.registerTag}
           </div>
 
           {/* Left Column: Form */}
-          <div className="md:col-span-7 px-6 pb-6 pt-16 sm:px-8 sm:pb-8 sm:pt-20 flex flex-col justify-between overflow-visible">
+          <div className="md:col-span-7 px-4 pb-6 pt-16 sm:px-8 sm:pb-8 sm:pt-20 flex flex-col justify-between overflow-visible">
             
             {/* Inner Content Wrapper */}
             <div className="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center">
@@ -212,14 +249,13 @@ export default function Register() {
               )}
 
               {/* Input Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3.5">
 
-                {/* Full name input with floating-style label */}
+                {/* 1. Full name input */}
                 <div className="relative">
                   <label
                     htmlFor="fullName"
                     className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
-                    style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
                     {t.auth.fullNameLabel} *
                   </label>
@@ -231,16 +267,35 @@ export default function Register() {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder={t.auth.fullNamePlaceholder}
                     disabled={isSubmitting}
-                    className="block w-full h-[44px] px-6 bg-transparent border border-gray-400/80 rounded-full text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                    className="block w-full h-[44px] px-6 bg-transparent border border-gray-400/80 rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                  />
+                </div>
+
+                {/* 2. Username input */}
+                <div className="relative">
+                  <label
+                    htmlFor="username"
+                    className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
+                  >
+                    {t.auth.usernameLabel} *
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={t.auth.usernamePlaceholder}
+                    disabled={isSubmitting}
+                    className="block w-full h-[44px] px-6 bg-transparent border border-gray-400/80 rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
                   />
                 </div>
                 
-                {/* Email input with floating-style label */}
+                {/* 3. Email input */}
                 <div className="relative">
                   <label
                     htmlFor="email"
                     className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
-                    style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
                     {t.auth.emailLabel} *
                   </label>
@@ -252,40 +307,71 @@ export default function Register() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t.auth.emailPlaceholder}
                     disabled={isSubmitting}
-                    className="block w-full h-[44px] px-6 bg-transparent border border-gray-400/80 rounded-full text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                    className="block w-full h-[44px] px-6 bg-transparent border border-gray-400/80 rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
                   />
                 </div>
 
-                {/* Password input with floating-style label */}
+                {/* 4. Password input (at least 8 char, no complex rules) */}
                 <div className="relative">
                   <label
                     htmlFor="password"
                     className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
-                    style={{ fontFamily: '"Istok Web", sans-serif' }}
                   >
-                    {t.auth.passwordLabel} *
+                    {t.auth.passwordLabel} (≥ 8) *
                   </label>
                   <input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     required
+                    minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t.auth.passwordPlaceholder}
+                    placeholder={language === 'vi' ? 'Tối thiểu 8 ký tự...' : 'At least 8 characters...'}
                     disabled={isSubmitting}
-                    className="block w-full h-[44px] pl-6 pr-12 bg-transparent border border-gray-400/80 rounded-full text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                    className="block w-full h-[44px] pl-6 pr-12 bg-transparent border border-gray-400/80 rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isSubmitting}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink transition-colors cursor-pointer"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink transition-colors cursor-pointer p-1"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
 
-                <p className="text-xs text-center text-ink/70 font-serif italic py-1">
+                {/* 5. Confirm Password input */}
+                <div className="relative">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="absolute top-0 left-6 -translate-y-1/2 bg-[#FAF5EE] px-2 text-xs font-bold text-ink uppercase tracking-wider"
+                  >
+                    {t.auth.confirmPasswordLabel} *
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={t.auth.confirmPasswordPlaceholder}
+                    disabled={isSubmitting}
+                    className="block w-full h-[44px] pl-6 pr-12 bg-transparent border border-gray-400/80 rounded-full text-base sm:text-sm text-ink placeholder-gray-400 focus:outline-none focus:border-[#5D0F12] focus:ring-1 focus:ring-[#5D0F12] transition-colors disabled:opacity-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={isSubmitting}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink transition-colors cursor-pointer p-1"
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                <p className="text-xs text-center text-ink/70 font-serif italic py-0.5">
                   {t.auth.registerHeroLine1} {t.auth.registerHeroLine2}
                 </p>
 
@@ -294,7 +380,7 @@ export default function Register() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full max-w-[170px] h-[42px] rounded-full bg-[#5D0F12] text-white text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                    className="w-full sm:max-w-[200px] h-[44px] rounded-full bg-[#5D0F12] text-white text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-[#460b0d] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>

@@ -35,10 +35,20 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findUserByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+        String identifier = request.getEmail() != null ? request.getEmail().trim() : "";
+        if (identifier.isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập email hoặc tên đăng nhập!");
+        }
+        if (request.getPassword() == null || request.getPassword().isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập mật khẩu!");
+        }
+
+        User user = userRepository.findUserByEmail(identifier.toLowerCase())
+                .or(() -> userRepository.findUserByUsername(identifier))
+                .or(() -> userRepository.findUserByUsername(identifier.toLowerCase()))
+                .orElseThrow(() -> new RuntimeException("Tài khoản hoặc email không tồn tại trong hệ thống!"));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Password is incorrect!");
+            throw new RuntimeException("Mật khẩu không chính xác!");
         }
         String token = jwtService.generateToken(user.getEmail());
         return new LoginResponse(token, "Bearer");
@@ -100,27 +110,43 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginResponse register(RegisterRequest request) {
-        // 1. Kiểm tra xem Email đã tồn tại chưa
-        if (userRepository.existsByEmail(request.getEmail())) {
+        // 1. Kiểm tra username nếu có
+        if (request.getUsername() != null && !request.getUsername().trim().isEmpty()) {
+            if (userRepository.existsByUsername(request.getUsername().trim())) {
+                throw new RuntimeException("Tên đăng nhập đã tồn tại trong hệ thống!");
+            }
+        }
+
+        // 2. Kiểm tra confirm password nếu có
+        if (request.getConfirmPassword() != null && !request.getPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Mật khẩu xác nhận không khớp!");
+        }
+
+        // 3. Kiểm tra xem Email đã tồn tại chưa
+        if (userRepository.existsByEmail(request.getEmail().trim())) {
             throw new RuntimeException("Email đã tồn tại trong hệ thống!");
         }
 
-        // 2. Tìm Role tương ứng từ Request (USER hoặc VENDOR)
-        ERole roleEnum;
-        try {
-            roleEnum = ERole.valueOf(request.getRole().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Vai trò không hợp lệ. Chỉ chấp nhận USER hoặc VENDOR.");
+        // 4. Tìm Role tương ứng từ Request (USER hoặc VENDOR), mặc định là USER
+        ERole targetRole = ERole.USER;
+        if (request.getRole() != null && !request.getRole().trim().isEmpty()) {
+            try {
+                targetRole = ERole.valueOf(request.getRole().trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Vai trò không hợp lệ. Chỉ chấp nhận USER hoặc VENDOR.");
+            }
         }
 
+        final ERole roleEnum = targetRole;
         Role role = roleRepository.findByRoleName(roleEnum)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role " + roleEnum));
 
-        // 3. Tạo mới thực thể User
+        // 5. Tạo mới thực thể User
         User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword())) // Mã hóa
-                .fullname(request.getFullname())
+                .email(request.getEmail().trim().toLowerCase())
+                .username(request.getUsername() != null && !request.getUsername().trim().isEmpty() ? request.getUsername().trim() : null)
+                .password(passwordEncoder.encode(request.getPassword()))
+                .fullname(request.getFullname().trim())
                 .phone(request.getPhone())
                 .role(role)
                 .eUserProvider(EUserProvider.LOCAL)
@@ -129,17 +155,7 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        // Nếu role đăng ký là VENDOR, ta có thể tự động tạo một bản ghi Vendor rỗng
-        // tương ứng
-        if (roleEnum == ERole.VENDOR) {
-            // import com.fudn.planora.repository.VendorRepository; (Inject thêm
-            // vendorRepository vào service)
-            // Vendor vendor =
-            // Vendor.builder().user(user).businessName(user.getFullname()).build();
-            // vendorRepository.save(vendor);
-        }
-
-        // 4. Sinh và trả về Token để Frontend tự động Login
+        // 6. Sinh và trả về Token để Frontend tự động Login
         String token = jwtService.generateToken(user.getEmail());
         return new LoginResponse(token, "Bearer");
     }

@@ -500,6 +500,14 @@ export interface LocaleDictionary {
     registerHeroLine2: string;
     fullNameLabel: string;
     fullNamePlaceholder: string;
+    usernameLabel: string;
+    usernamePlaceholder: string;
+    usernameRequired: string;
+    confirmPasswordLabel: string;
+    confirmPasswordPlaceholder: string;
+    confirmPasswordRequired: string;
+    passwordMismatch: string;
+    passwordMinLength: string;
     signUpBtn: string;
     signingUp: string;
     haveAccountPrompt: string;
