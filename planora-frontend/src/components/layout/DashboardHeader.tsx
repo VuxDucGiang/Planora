@@ -21,10 +21,26 @@ export default function DashboardHeader({ logout, plan, daysLeft = 0 }: Dashboar
     setLanguage(language === 'vi' ? 'en' : 'vi');
   };
 
+  // Format wedding plan title cleanly if it has the old legacy verbose string
+  const getDisplayTitle = (rawTitle?: string) => {
+    if (!rawTitle) return '';
+    const lower = rawTitle.toLowerCase().trim();
+    if (lower.startsWith('kế hoạch đám cưới ngày') || lower.startsWith('wedding plan on')) {
+      return language === 'vi' ? 'Kế hoạch cưới của tôi' : 'My Wedding Plan';
+    }
+    return rawTitle;
+  };
+
+  // Format location cleanly (remove parenthetical like (Bà Rịa - Vũng Tàu))
+  const getDisplayLocation = (rawLocation?: string) => {
+    if (!rawLocation) return '';
+    return rawLocation.replace(/\s*\([^)]*\)/g, '').trim();
+  };
+
   return (
-    <header className="h-[52px] bg-primary text-cream flex items-center justify-between px-3 sm:px-4 shrink-0 z-50 shadow-md relative">
+    <header className="h-[52px] bg-primary text-cream flex items-center justify-between px-3 sm:px-4 lg:px-6 w-full shrink-0 z-50 shadow-md relative">
       {/* Left: Mobile Hamburger Toggle + Logo */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 z-10">
         <button
           type="button"
           onClick={toggleMobileNav}
@@ -47,40 +63,45 @@ export default function DashboardHeader({ logout, plan, daysLeft = 0 }: Dashboar
 
       {/* Center: Wedding Info (chỉ hiện khi có plan) */}
       {plan ? (
-        <div className="flex items-center gap-2 sm:gap-4 md:gap-5 text-cream/90">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 text-cream/90 flex-1 justify-center min-w-0 px-2 sm:px-4 overflow-hidden">
           {/* Wedding Title */}
-          <div className="hidden lg:flex items-center gap-1.5">
-            <span className="text-xs sm:text-sm font-bold tracking-wide uppercase truncate max-w-[200px]">
-              {plan.title}
+          <div className="hidden lg:flex items-center gap-1.5 min-w-0 shrink">
+            <span
+              className="text-xs sm:text-sm font-bold tracking-wide uppercase truncate max-w-[220px] xl:max-w-[320px] 2xl:max-w-none"
+              title={plan.title}
+            >
+              {getDisplayTitle(plan.title)}
             </span>
           </div>
 
           {/* Divider */}
-          <span className="text-cream/30 hidden lg:inline">|</span>
+          <span className="text-cream/30 hidden lg:inline shrink-0 select-none">|</span>
 
           {/* Location */}
-          <div className="hidden md:flex items-center gap-1.5 text-xs font-medium text-cream/80">
+          <div className="hidden md:flex items-center gap-1.5 text-xs font-medium text-cream/80 min-w-0 shrink">
             <MapPin className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate max-w-[140px]">{plan.location}</span>
+            <span className="truncate max-w-[140px] xl:max-w-[200px]" title={plan.location}>
+              {getDisplayLocation(plan.location)}
+            </span>
           </div>
 
           {/* Divider */}
-          <span className="text-cream/30 hidden md:inline">|</span>
+          <span className="text-cream/30 hidden md:inline shrink-0 select-none">|</span>
 
           {/* Date */}
-          <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-cream/80">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-cream/80 shrink-0">
             <Calendar className="w-3.5 h-3.5 shrink-0" />
-            <span>{formatDateDisplay(plan.weddingDate)}</span>
+            <span className="whitespace-nowrap">{formatDateDisplay(plan.weddingDate)}</span>
           </div>
 
           {/* Divider */}
-          <span className="text-cream/30 hidden sm:inline">|</span>
+          <span className="text-cream/30 hidden sm:inline shrink-0 select-none">|</span>
 
           {/* Countdown Badge */}
-          <div className="flex items-center gap-1.5 bg-cream/10 border border-cream/20 rounded-full px-2.5 sm:px-3.5 py-1">
+          <div className="flex items-center gap-1.5 bg-cream/10 border border-cream/20 rounded-full px-2.5 sm:px-3.5 py-1 shrink-0">
             <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gold-light shrink-0" />
             <span className="text-[11px] sm:text-xs font-bold tracking-wide text-cream whitespace-nowrap">
-              {daysLeft} {t.header.daysLeftBadge}
+              {daysLeft} {t.header.daysLeftBadge || (language === 'vi' ? 'ngày' : 'days')}
             </span>
           </div>
         </div>
@@ -91,7 +112,7 @@ export default function DashboardHeader({ logout, plan, daysLeft = 0 }: Dashboar
       )}
 
       {/* Right: Quick Language Switch, Settings & Logout */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 z-10">
         {/* Language Quick Switcher */}
         <button
           type="button"
