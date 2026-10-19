@@ -32,8 +32,7 @@ export interface LiveInsights {
 export function calculateLiveInsights(
   guestCountOrBudget: number, 
   budgetOrGuestCount?: number, 
-  selectedCategoryIds: number[] = [], 
-  _availableCategories: ServiceCategory[] = []
+  selectedCategoryIds: number[] = []
 ): LiveInsights {
   let budget = 200000000;
   let guests = 100;
@@ -126,7 +125,7 @@ export function generateSmartBlueprint(
     ? (requestOrConfig.selectedStyles as WeddingStyle[])
     : [];
 
-  const insights = calculateLiveInsights(totalBudget, guests, priorityCategoryIds, availableCategories);
+  const insights = calculateLiveInsights(totalBudget, guests, priorityCategoryIds);
 
   // Selected Category keywords
   const priorityCategoryNames = availableCategories
@@ -278,7 +277,7 @@ export function generateSmartBlueprint(
 
   return {
     id: 9999,
-    title: requestOrConfig.title || 'Kế hoạch đám cưới của tôi',
+    title: requestOrConfig.title || 'Đám cưới của hai bạn',
     weddingDate: weddingDateStr,
     location: requestOrConfig.location || '',
     guestCount: guests,
