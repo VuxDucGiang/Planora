@@ -1,14 +1,17 @@
 package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.request.AddressRequest;
+import com.fudn.planora.dto.request.ChangePasswordRequest;
 import com.fudn.planora.dto.request.UpdateProfileRequest;
 import com.fudn.planora.dto.response.UserProfileResponse;
 import com.fudn.planora.entity.User;
 import com.fudn.planora.entity.UserAddress;
+import com.fudn.planora.enums.EUserProvider;
 import com.fudn.planora.repository.UserAddressRepository;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,33 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserAddressRepository addressRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng trong hệ thống!"));
+
+        if (user.getEUserProvider() != null && user.getEUserProvider() != EUserProvider.LOCAL) {
+            throw new RuntimeException("Tài khoản đăng nhập qua " + user.getEUserProvider() + " không sử dụng mật khẩu cục bộ!");
+        }
+
+        if (user.getPassword() != null && !passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("Mật khẩu hiện tại không chính xác!");
+        }
+
+        if (request.getNewPassword().equals(request.getCurrentPassword())) {
+            throw new RuntimeException("Mật khẩu mới không được trùng với mật khẩu hiện tại!");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu mới!");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 
     @Override
     public UserProfileResponse getUserProfile(String email) {
