@@ -939,7 +939,7 @@ export default function Checklist() {
                     GỢI Ý TỰ ĐỘNG TỪ HỆ THỐNG
                   </div>
                   <p className="text-xs sm:text-sm text-ink">
-                    Bạn vừa hoàn thành <strong className="text-primary font-serif">"{suggestionData.completedTitle}"</strong>. 
+                    Bạn vừa hoàn thành <strong className="text-primary font-serif">&ldquo;{suggestionData.completedTitle}&rdquo;</strong>. 
                     Dưới đây là các bước tiếp theo bạn có thể thực hiện:
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1.5">
@@ -1069,22 +1069,22 @@ export default function Checklist() {
             </div>
 
             {/* ─── Section 5: Real-time Search & Multi-Filters Toolbar ─── */}
-            <div className="p-4 bg-white border border-hairline rounded-2xl shadow-xs flex flex-wrap gap-3 items-center justify-between">
-              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+            <div className="p-2.5 sm:p-3 bg-white border border-hairline rounded-2xl shadow-xs overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-max w-full">
                 {/* Search input */}
-                <div className="relative flex-1 min-w-[200px] max-w-md">
-                  <Search className="w-4 h-4 text-muted-text absolute left-3 top-1/2 -translate-y-1/2" />
+                <div className="relative w-48 sm:w-64 shrink-0">
+                  <Search className="w-4 h-4 text-muted-text absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                     placeholder="Tìm kiếm công việc realtime..."
-                    className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-canvas border border-hairline rounded-xl focus:outline-none focus:border-primary text-ink"
+                    className="w-full pl-9 pr-8 h-9 text-xs sm:text-sm bg-canvas border border-hairline rounded-xl focus:outline-none focus:border-primary text-ink transition-colors"
                   />
                   {searchTerm && (
                     <button 
                       onClick={() => setSearchTerm('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-text hover:text-ink text-xs"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-text hover:text-ink text-xs p-0.5"
                     >
                       ✕
                     </button>
@@ -1092,8 +1092,8 @@ export default function Checklist() {
                 </div>
 
                 {/* Priority Filter */}
-                <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 py-1.5">
-                  <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2">Ưu tiên</span>
+                <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 h-9 shrink-0 whitespace-nowrap">
+                  <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2 select-none">Ưu tiên</span>
                   <select
                     value={priorityFilter}
                     onChange={e => setPriorityFilter(e.target.value as TaskPriority | 'ALL')}
@@ -1108,8 +1108,8 @@ export default function Checklist() {
 
                 {/* Assignee Filter */}
                 {uniqueAssignees.length > 0 && (
-                  <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 py-1.5">
-                    <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2">Phụ trách</span>
+                  <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 h-9 shrink-0 whitespace-nowrap">
+                    <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2 select-none">Phụ trách</span>
                     <select
                       value={assigneeFilter}
                       onChange={e => setAssigneeFilter(e.target.value)}
@@ -1124,11 +1124,11 @@ export default function Checklist() {
                 )}
 
                 {/* Deadline Filter */}
-                <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 py-1.5">
-                  <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2">Thời hạn</span>
+                <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 h-9 shrink-0 whitespace-nowrap">
+                  <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2 select-none">Thời hạn</span>
                   <select
                     value={deadlineFilter}
-                    onChange={e => setDeadlineFilter(e.target.value as any)}
+                    onChange={e => setDeadlineFilter(e.target.value as 'ALL' | 'OVERDUE' | 'DUE_SOON' | 'THIS_MONTH')}
                     className="text-xs font-semibold text-ink bg-transparent focus:outline-none cursor-pointer"
                   >
                     <option value="ALL">Tất cả hạn</option>
@@ -1139,32 +1139,32 @@ export default function Checklist() {
                 </div>
 
                 {/* Checkbox: Chỉ hiển thị task quá hạn */}
-                <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink cursor-pointer select-none bg-canvas px-3 py-2 border border-hairline rounded-xl hover:bg-primary/5 transition-colors">
+                <label className="inline-flex items-center gap-2 text-xs font-semibold text-ink cursor-pointer select-none bg-canvas px-3 h-9 border border-hairline rounded-xl hover:bg-primary/5 transition-colors shrink-0 whitespace-nowrap">
                   <input
                     type="checkbox"
                     checked={showOnlyOverdue}
                     onChange={e => setShowOnlyOverdue(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded text-primary focus:ring-primary accent-primary"
+                    className="w-3.5 h-3.5 rounded text-primary focus:ring-primary accent-primary cursor-pointer"
                   />
                   <span className={showOnlyOverdue ? 'text-red-700 font-bold' : ''}>Chỉ task quá hạn</span>
                 </label>
-              </div>
 
-              {/* Sort selector */}
-              <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 py-1.5 self-end sm:self-auto">
-                <ArrowUpDown className="w-3.5 h-3.5 text-muted-text" />
-                <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2">Sắp xếp</span>
-                <select
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value as any)}
-                  className="text-xs font-semibold text-ink bg-transparent focus:outline-none cursor-pointer"
-                >
-                  <option value="DUE_DATE_ASC">Hạn chót gần nhất</option>
-                  <option value="DUE_DATE_DESC">Hạn chót xa nhất</option>
-                  <option value="PRIORITY_DESC">Ưu tiên Cao → Thấp</option>
-                  <option value="PRIORITY_ASC">Ưu tiên Thấp → Cao</option>
-                  <option value="CREATED_DESC">Ngày tạo mới nhất</option>
-                </select>
+                {/* Sort selector */}
+                <div className="flex items-center gap-1.5 border border-hairline rounded-xl bg-canvas px-3 h-9 shrink-0 whitespace-nowrap ml-auto">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-muted-text" />
+                  <span className="text-[11px] font-bold text-muted-text uppercase border-r border-hairline pr-2 select-none">Sắp xếp</span>
+                  <select
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value as 'DUE_DATE_ASC' | 'DUE_DATE_DESC' | 'PRIORITY_DESC' | 'PRIORITY_ASC' | 'CREATED_DESC')}
+                    className="text-xs font-semibold text-ink bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value="DUE_DATE_ASC">Hạn chót gần nhất</option>
+                    <option value="DUE_DATE_DESC">Hạn chót xa nhất</option>
+                    <option value="PRIORITY_DESC">Ưu tiên Cao → Thấp</option>
+                    <option value="PRIORITY_ASC">Ưu tiên Thấp → Cao</option>
+                    <option value="CREATED_DESC">Ngày tạo mới nhất</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -1752,7 +1752,7 @@ export default function Checklist() {
                   <Plus className="w-5 h-5 text-primary" />
                   Thêm Công Việc Mới
                 </h3>
-                <span className="text-xs text-muted-text">Mặc định nhiệm vụ sẽ được xếp vào cột "CHƯA LÀM"</span>
+                <span className="text-xs text-muted-text">Mặc định nhiệm vụ sẽ được xếp vào cột &quot;CHƯA LÀM&quot;</span>
               </div>
               <button 
                 onClick={handleCloseAddModal}

@@ -12,9 +12,7 @@ import {
 } from '@/services/weddingPlan';
 import type { WeddingStyle, ServiceCategory, ActivePlanResponse } from '@/types/weddingPlan';
 import { 
-  Calendar, 
   Users, 
-  DollarSign, 
   MapPin, 
   Sparkles, 
   ChevronRight, 
@@ -30,16 +28,12 @@ import {
   Palette,
   ShieldAlert,
   UtensilsCrossed,
-  CheckCircle2,
   CalendarDays,
   Gem,
   Camera,
   Shirt,
-  Sparkle,
   Eye,
   X,
-  Images,
-  Grid,
   Globe,
   ChevronDown,
   Music
@@ -193,7 +187,7 @@ function getCategoryDetails(name: string, lang: 'vi' | 'en') {
 }
 
 export default function Onboarding() {
-  const { logout, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const { refreshPlan } = usePlan();
   const { language } = useLanguage();
   const router = useRouter();
@@ -218,17 +212,15 @@ export default function Onboarding() {
   const [guestCount, setGuestCount] = useState<number>(50);
   const [budget, setBudget] = useState<number>(200000000); // 200,000,000 VND default
 
-  // Auto-generate title for the wedding plan based on date, location, and language
+  // Step 1: Couple Name / Owner State
+  const [coupleName, setCoupleName] = useState('');
+
+  // Auto-generate title in format: "Đám cưới của [Tên]"
   const title = useMemo(() => {
-    if (weddingDate || location) {
-      const datePart = weddingDate ? new Date(weddingDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US') : '';
-      const locPart = location.trim() ? (language === 'vi' ? ` tại ${location.trim()}` : ` in ${location.trim()}`) : '';
-      return language === 'vi'
-        ? `Kế hoạch đám cưới${datePart ? ' ngày ' + datePart : ''}${locPart}`
-        : `Wedding Plan${datePart ? ' on ' + datePart : ''}${locPart}`;
-    }
-    return language === 'vi' ? 'Kế hoạch đám cưới của tôi' : 'My Dream Wedding Plan';
-  }, [weddingDate, location, language]);
+    const rawName = coupleName.trim() || user?.fullName || (user?.email ? user.email.split('@')[0] : '');
+    const cleanName = rawName || (language === 'vi' ? 'hai bạn' : 'the Couple');
+    return language === 'vi' ? `Đám cưới của ${cleanName}` : `Wedding of ${cleanName}`;
+  }, [coupleName, user, language]);
   const [selectedStyles, setSelectedStyles] = useState<number[]>([]);
   const [generatedPlan, setGeneratedPlan] = useState<ActivePlanResponse | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
@@ -741,9 +733,25 @@ export default function Onboarding() {
           </div>
         ) : (
           /* Active Multi-step Survey form */
-          <div className="space-y-8">
-            
-                        {/* Step Indicators */}
+          <div className="space-y-5 sm:space-y-8">
+            {/* Top Navigation Bar: Back to Home / Exit Survey */}
+            <div className="w-full flex items-center justify-between animate-fade-in">
+              <button
+                type="button"
+                onClick={() => router.push('/')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold text-cream bg-black/45 hover:bg-black/65 border border-cream/20 backdrop-blur-md transition-all shadow-sm cursor-pointer group active:scale-95 whitespace-nowrap"
+                title={language === 'vi' ? 'Quay lại trang chính' : 'Return to main dashboard'}
+              >
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+                <span>{language === 'vi' ? 'Quay lại trang chủ' : 'Back to Home'}</span>
+              </button>
+
+              <span className="hidden sm:inline text-xs text-white/80 italic drop-shadow-sm font-serif">
+                {language === 'vi' ? 'Bạn có thể tiếp tục tạo kế hoạch bất cứ lúc nào' : 'You can resume your plan at any time'}
+              </span>
+            </div>
+
+            {/* Step Indicators */}
             {currentStep <= 4 && (
             <div className="max-w-2xl mx-auto mb-6 mt-2 animate-fade-in bg-transparent px-2 sm:px-8">
               <div className="relative">
@@ -825,6 +833,36 @@ export default function Onboarding() {
                   </div>
 
                   <div className="space-y-6">
+                    {/* Tên cặp đôi / Chủ nhân tiệc cưới */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between pl-1">
+                        <label className="block text-xs sm:text-sm font-bold text-primary tracking-wider">
+                          {language === 'vi' ? 'Đám cưới của ai? (Tên cô dâu & chú rể) *' : 'Whose wedding is this? *'}
+                        </label>
+                        <span className="text-xs text-muted-text font-sans">
+                          {language === 'vi' ? 'VD: Nam & Mai, hoặc tên bạn' : 'e.g. John & Jane'}
+                        </span>
+                      </div>
+                      <div className="w-full h-14 rounded-full border border-primary/30 focus-within:border-primary/80 bg-transparent flex items-center px-5 transition-all">
+                        <input
+                          type="text"
+                          value={coupleName}
+                          onChange={(e) => setCoupleName(e.target.value)}
+                          placeholder={
+                            user?.fullName
+                              ? user.fullName
+                              : (language === 'vi' ? 'Nhập tên cô dâu & chú rể hoặc tên bạn...' : 'Enter couple names or your name...')
+                          }
+                          className="w-full bg-transparent border-none outline-none text-base sm:text-sm font-medium text-ink placeholder:text-ink/40 font-sans focus:ring-0 focus:outline-none"
+                        />
+                      </div>
+                      <p className="text-[11px] text-muted-text pl-2 italic">
+                        {language === 'vi'
+                          ? `Tên hiển thị: "${title}"`
+                          : `Plan title: "${title}"`}
+                      </p>
+                    </div>
+
                     {/* Wedding Date Selector (Ngày / Tháng / Năm) */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between pl-1">
@@ -1919,27 +1957,34 @@ export default function Onboarding() {
               )}
 
                             {/* Form Navigation Controls */}
-              <div className="flex justify-between items-center mt-5 pt-4 border-t border-hairline">
+              <div className="flex justify-between items-center mt-5 pt-4 border-t border-hairline gap-3">
                 {currentStep > 1 && currentStep <= 4 ? (
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="px-5 py-2.5 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 sm:px-5 py-2 sm:py-2.5 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer shrink-0"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    {language === 'vi' ? 'Quay lại' : 'Back'}
+                    <span>{language === 'vi' ? 'Quay lại' : 'Back'}</span>
                   </button>
                 ) : currentStep === 5 ? (
                   <button
                     type="button"
                     onClick={() => setCurrentStep(4)}
-                    className="px-5 py-2.5 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 sm:px-5 py-2 sm:py-2.5 border border-primary/30 text-primary hover:bg-primary/5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer shrink-0"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    {language === 'vi' ? 'Tùy chỉnh lại' : 'Re-customize'}
+                    <span>{language === 'vi' ? 'Tùy chỉnh lại' : 'Re-customize'}</span>
                   </button>
                 ) : (
-                  <div />
+                  <button
+                    type="button"
+                    onClick={() => router.push('/')}
+                    className="px-4 sm:px-5 py-2 sm:py-2.5 border border-neutral-300 text-neutral-600 hover:text-primary hover:border-primary/40 hover:bg-primary/5 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>{language === 'vi' ? 'Quay lại' : 'Back'}</span>
+                  </button>
                 )}
 
                 {currentStep < 4 ? (
