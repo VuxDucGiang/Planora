@@ -11,6 +11,7 @@ import {
   LogOut,
   Sparkles,
   UserX,
+  Mail,
   Menu,
   X
 } from 'lucide-react';
@@ -121,6 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Tổng quan (KPI & Funnel)', href: '/admin', icon: LayoutDashboard },
+    { name: 'Gửi Email Người Dùng', href: '/admin/email', icon: Mail },
     { name: 'Insight Thị Trường & AI', href: '/admin/ai-insights', icon: Sparkles },
     { name: 'Tài khoản Ngủ đông', href: '/admin/dormant', icon: UserX },
     { name: 'Nhật ký Tracking (Logs)', href: '/admin/activities', icon: Activity },

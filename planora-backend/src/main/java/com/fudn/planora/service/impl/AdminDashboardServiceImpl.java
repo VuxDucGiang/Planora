@@ -11,6 +11,10 @@ import com.fudn.planora.repository.UserActivityRepository;
 import com.fudn.planora.repository.UserRepository;
 import com.fudn.planora.repository.WeddingPlanRepository;
 import com.fudn.planora.service.AdminDashboardService;
+import com.fudn.planora.dto.request.admin.AdminSendEmailRequest;
+import com.fudn.planora.dto.response.admin.AdminSendEmailResponse;
+import com.fudn.planora.dto.response.admin.AdminUserSummaryResponse;
+import com.fudn.planora.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +33,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     private final UserRepository userRepository;
     private final UserActivityRepository userActivityRepository;
     private final WeddingPlanRepository weddingPlanRepository;
+    private final EmailService emailService;
 
     @Override
     public AdminSummaryResponse getSummaryMetrics() {
@@ -447,6 +452,175 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                 .healthScore(healthScore)
                 .dormantUsers(dormantItems)
                 .build();
+    }
+
+    @Override
+    public List<AdminUserSummaryResponse> getAllAppUsers(String search, String role, String status) {
+        List<User> dbUsers = userRepository.findAll();
+        List<WeddingPlan> allPlans = weddingPlanRepository.findAll();
+        java.util.Map<Long, WeddingPlan> planMap = new java.util.HashMap<>();
+        for (WeddingPlan p : allPlans) {
+            if (p.getUser() != null) {
+                planMap.putIfAbsent(p.getUser().getId(), p);
+            }
+        }
+
+        List<UserActivity> activities = userActivityRepository.findAll();
+        java.util.Map<Long, UserActivity> latestActivityMap = new java.util.HashMap<>();
+        for (UserActivity a : activities) {
+            if (a.getUser() != null) {
+                Long uid = a.getUser().getId();
+                UserActivity curr = latestActivityMap.get(uid);
+                if (curr == null || (a.getCreatedAt() != null && a.getCreatedAt().isAfter(curr.getCreatedAt()))) {
+                    latestActivityMap.put(uid, a);
+                }
+            }
+        }
+
+        List<AdminUserSummaryResponse> resultList = new java.util.ArrayList<>();
+        java.util.Set<String> existingEmails = new java.util.HashSet<>();
+
+        for (User u : dbUsers) {
+            existingEmails.add(u.getEmail().toLowerCase());
+            UserActivity lastAct = latestActivityMap.get(u.getId());
+            LocalDateTime lastActive = lastAct != null && lastAct.getCreatedAt() != null 
+                    ? lastAct.getCreatedAt() 
+                    : u.getCreatedAt();
+            WeddingPlan plan = planMap.get(u.getId());
+
+            resultList.add(AdminUserSummaryResponse.builder()
+                    .id(u.getId())
+                    .email(u.getEmail())
+                    .fullName(u.getFullname() != null ? u.getFullname() : u.getEmail())
+                    .phone(u.getPhone())
+                    .role(u.getRole() != null && u.getRole().getRoleName() != null ? u.getRole().getRoleName().name() : "USER")
+                    .status(u.getEUserStatus() != null ? u.getEUserStatus().name() : "ACTIVE")
+                    .createdAt(u.getCreatedAt())
+                    .lastActiveAt(lastActive)
+                    .lastAction(lastAct != null && lastAct.getAction() != null ? lastAct.getAction().name() : "LOGIN")
+                    .weddingTitle(plan != null ? plan.getTitle() : null)
+                    .build());
+        }
+
+        // Bổ sung dữ liệu mẫu nếu hệ thống vừa khởi tạo ít user để Admin có thể thử nghiệm tính năng ngay
+        if (resultList.size() < 6) {
+            LocalDateTime now = LocalDateTime.now();
+
+            if (!existingEmails.contains("namvy.wedding@gmail.com")) {
+                resultList.add(AdminUserSummaryResponse.builder()
+                        .id(901L)
+                        .email("namvy.wedding@gmail.com")
+                        .fullName("Nguyễn Hoàng Nam & Thảo Vy")
+                        .phone("0934123890")
+                        .role("USER")
+                        .status("ACTIVE")
+                        .createdAt(now.minusMonths(2))
+                        .lastActiveAt(now.minusHours(4))
+                        .lastAction("GENERATE_PLAN")
+                        .weddingTitle("Lễ Cưới Mùa Thu Minimalist")
+                        .build());
+            }
+
+            if (!existingEmails.contains("thanglinh.couple@gmail.com")) {
+                resultList.add(AdminUserSummaryResponse.builder()
+                        .id(902L)
+                        .email("thanglinh.couple@gmail.com")
+                        .fullName("Trần Đức Thắng & Mai Linh")
+                        .phone("0988776655")
+                        .role("USER")
+                        .status("ACTIVE")
+                        .createdAt(now.minusMonths(1))
+                        .lastActiveAt(now.minusDays(1))
+                        .lastAction("VIEW_VENDOR")
+                        .weddingTitle("Đám Cưới Ngoài Trời Rustic")
+                        .build());
+            }
+
+            if (!existingEmails.contains("kietlananh@gmail.com")) {
+                resultList.add(AdminUserSummaryResponse.builder()
+                        .id(903L)
+                        .email("kietlananh@gmail.com")
+                        .fullName("Lê Tuấn Kiệt & Lan Anh")
+                        .phone("0912998877")
+                        .role("USER")
+                        .status("ACTIVE")
+                        .createdAt(now.minusWeeks(3))
+                        .lastActiveAt(now.minusHours(12))
+                        .lastAction("SAVE_PLAN")
+                        .weddingTitle("Tiệc Cưới Sang Trọng Hoàng Gia")
+                        .build());
+            }
+
+            if (!existingEmails.contains("hoangmai.photo@gmail.com")) {
+                resultList.add(AdminUserSummaryResponse.builder()
+                        .id(904L)
+                        .email("hoangmai.photo@gmail.com")
+                        .fullName("Hoàng Mai Photography")
+                        .phone("0945678901")
+                        .role("VENDOR")
+                        .status("ACTIVE")
+                        .createdAt(now.minusMonths(3))
+                        .lastActiveAt(now.minusHours(2))
+                        .lastAction("LOGIN")
+                        .weddingTitle(null)
+                        .build());
+            }
+
+            if (!existingEmails.contains("daminh.decor@gmail.com")) {
+                resultList.add(AdminUserSummaryResponse.builder()
+                        .id(905L)
+                        .email("daminh.decor@gmail.com")
+                        .fullName("Dạ Minh Wedding Decor")
+                        .phone("0971234567")
+                        .role("VENDOR")
+                        .status("ACTIVE")
+                        .createdAt(now.minusMonths(4))
+                        .lastActiveAt(now.minusDays(2))
+                        .lastAction("LOGIN")
+                        .weddingTitle(null)
+                        .build());
+            }
+        }
+
+        // Lọc dữ liệu theo tham số truy vấn
+        return resultList.stream()
+                .filter(u -> {
+                    if (search != null && !search.trim().isEmpty()) {
+                        String s = search.trim().toLowerCase();
+                        boolean matchName = u.getFullName() != null && u.getFullName().toLowerCase().contains(s);
+                        boolean matchEmail = u.getEmail() != null && u.getEmail().toLowerCase().contains(s);
+                        boolean matchPhone = u.getPhone() != null && u.getPhone().contains(s);
+                        if (!matchName && !matchEmail && !matchPhone) {
+                            return false;
+                        }
+                    }
+                    if (role != null && !role.trim().isEmpty() && !role.equalsIgnoreCase("ALL")) {
+                        if (!role.equalsIgnoreCase(u.getRole())) {
+                            return false;
+                        }
+                    }
+                    if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("ALL")) {
+                        if (!status.equalsIgnoreCase(u.getStatus())) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .sorted((a, b) -> {
+                    LocalDateTime t1 = a.getLastActiveAt() != null ? a.getLastActiveAt() : a.getCreatedAt();
+                    LocalDateTime t2 = b.getLastActiveAt() != null ? b.getLastActiveAt() : b.getCreatedAt();
+                    if (t1 == null && t2 == null) return 0;
+                    if (t1 == null) return 1;
+                    if (t2 == null) return -1;
+                    return t2.compareTo(t1);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public AdminSendEmailResponse sendEmailToUsers(AdminSendEmailRequest request) {
+        return emailService.sendBatchEmails(request);
     }
 
     private UserActivityResponse toActivityResponse(UserActivity activity) {

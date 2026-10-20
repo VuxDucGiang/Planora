@@ -10,7 +10,8 @@ import {
   UserCheck, 
   RefreshCw,
   Eye,
-  ArrowRight
+  ArrowRight,
+  Mail
 } from 'lucide-react';
 import { getAdminSummary, getAdminFunnel, getAdminActivities } from '@/services/admin';
 import type { AdminSummaryResponse, AdminFunnelResponse, UserActivityItem } from '@/types/admin';
@@ -75,14 +76,23 @@ export default function AdminDashboardPage() {
             Theo dõi hành vi người dùng, phễu chuyển đổi và tương tác AI trên sàn Planora theo thời gian thực.
           </p>
         </div>
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer w-full sm:w-auto"
-        >
-          <RefreshCw className={`h-4 w-4 text-[#5D0F12] ${loading ? 'animate-spin' : ''}`} />
-          <span>{loading ? 'Đang cập nhật...' : 'Làm mới số liệu'}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/email"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5D0F12] px-4 py-2.5 text-xs font-semibold text-[#FFFBF5] shadow-sm hover:bg-[#4A0C0E] transition cursor-pointer w-full sm:w-auto"
+          >
+            <Mail className="h-4 w-4" />
+            <span>Gửi Email Người Dùng</span>
+          </Link>
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#EADCC9] bg-white px-4 py-2.5 text-xs font-semibold text-stone-700 shadow-sm hover:bg-[#FAF8F5] hover:text-[#5D0F12] transition cursor-pointer w-full sm:w-auto"
+          >
+            <RefreshCw className={`h-4 w-4 text-[#5D0F12] ${loading ? 'animate-spin' : ''}`} />
+            <span>{loading ? 'Đang cập nhật...' : 'Làm mới'}</span>
+          </button>
+        </div>
       </div>
 
       {error && (
