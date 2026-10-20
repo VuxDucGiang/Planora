@@ -4,7 +4,10 @@ import type {
   PaginatedActivities, 
   UserJourneyResponse,
   AIInsightResponse,
-  DormantAnalysisResponse
+  DormantAnalysisResponse,
+  AdminUserItem,
+  AdminSendEmailRequest,
+  AdminSendEmailResponse
 } from '@/types/admin';
 
 function getAuthHeaders(): HeadersInit {
@@ -80,3 +83,33 @@ export async function getDormantAnalysis(): Promise<DormantAnalysisResponse> {
   }
   return res.json();
 }
+
+export async function getAdminUsers(search?: string, role?: string, status?: string): Promise<AdminUserItem[]> {
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+  if (role) params.append('role', role);
+  if (status) params.append('status', status);
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetch(`/api/admin/dashboard/users${queryString}`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error('Không thể tải danh sách người dùng');
+  }
+  return res.json();
+}
+
+export async function sendAdminEmail(request: AdminSendEmailRequest): Promise<AdminSendEmailResponse> {
+  const res = await fetch('/api/admin/dashboard/send-email', {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(request),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => null);
+    throw new Error(errData?.message || 'Không thể gửi email đến người dùng');
+  }
+  return res.json();
+}
+

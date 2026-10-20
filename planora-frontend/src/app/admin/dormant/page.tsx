@@ -17,8 +17,7 @@ import {
   X, 
   Copy, 
   Check, 
-  Heart,
-  ShieldAlert
+  Heart
 } from 'lucide-react';
 import { getDormantAnalysis } from '@/services/admin';
 import type { DormantAnalysisResponse, DormantUserItem } from '@/types/admin';
@@ -399,11 +398,18 @@ Hãy truy cập lại Planora để tiếp tục chuẩn bị chu đáo nhé!
 Trân trọng, Đội ngũ Planora.`
                   )
                 }
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#5D0F12] px-4 py-2 text-xs font-semibold text-[#FFFBF5] hover:bg-[#4A0C0E] transition cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EADCC9] bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-[#FAF8F5] transition cursor-pointer"
               >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Đã sao chép!' : 'Sao chép nội dung email'}
+                {copied ? 'Đã sao chép!' : 'Sao chép'}
               </button>
+              <Link
+                href={`/admin/email?email=${encodeURIComponent(selectedUser.email)}&template=dormant`}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#5D0F12] px-4 py-2 text-xs font-semibold text-[#FFFBF5] hover:bg-[#4A0C0E] transition cursor-pointer shadow-sm shadow-[#5D0F12]/20 text-center"
+              >
+                <Send className="h-3.5 w-3.5" />
+                <span>Soạn & Gửi email này ngay</span>
+              </Link>
             </div>
           </div>
         </div>
