@@ -14,6 +14,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.fudn.planora.dto.request.admin.AdminSendEmailRequest;
+import com.fudn.planora.dto.response.admin.AdminSendEmailResponse;
+import com.fudn.planora.dto.response.admin.AdminUserSummaryResponse;
+import jakarta.validation.Valid;
+
+import java.util.List;
+
 @RestController
 @RequestMapping({"/api/v1/admin/dashboard", "/api/admin/dashboard"})
 @RequiredArgsConstructor
@@ -52,4 +59,19 @@ public class AdminDashboardController {
     public ResponseEntity<com.fudn.planora.dto.response.admin.DormantAnalysisResponse> getDormantAnalysis() {
         return ResponseEntity.ok(adminDashboardService.getDormantAnalysis());
     }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<AdminUserSummaryResponse>> getAppUsers(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status) {
+        return ResponseEntity.ok(adminDashboardService.getAllAppUsers(search, role, status));
+    }
+
+    @PostMapping("/send-email")
+    public ResponseEntity<AdminSendEmailResponse> sendEmail(
+            @Valid @RequestBody AdminSendEmailRequest request) {
+        return ResponseEntity.ok(adminDashboardService.sendEmailToUsers(request));
+    }
 }
+

@@ -24,7 +24,7 @@ export interface UserActivityItem {
   action: string;
   entityType: string | null;
   entityId: string | null;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
 }
 
@@ -101,4 +101,32 @@ export interface DormantAnalysisResponse {
   dormantCount: number;
   healthScore: number;
   dormantUsers: DormantUserItem[];
+}
+
+export interface AdminUserItem {
+  id: number;
+  email: string;
+  fullName: string;
+  phone?: string;
+  role: string;
+  status: string;
+  createdAt: string;
+  lastActiveAt?: string;
+  lastAction?: string;
+  weddingTitle?: string;
+}
+
+export interface AdminSendEmailRequest {
+  recipientEmails: string[];
+  subject: string;
+  content: string;
+  sendNotification?: boolean;
+}
+
+export interface AdminSendEmailResponse {
+  totalRecipients: number;
+  successCount: number;
+  failedCount: number;
+  failedEmails: string[];
+  message: string;
 }
