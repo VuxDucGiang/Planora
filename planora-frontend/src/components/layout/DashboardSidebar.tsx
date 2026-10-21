@@ -10,6 +10,7 @@ import {
   DollarSign,
   ListTodo,
   Building,
+  MessageSquare,
   Users,
   Sliders,
   Calendar,
@@ -61,6 +62,7 @@ export default function DashboardSidebar({ hasPlan, isOpen, onClose }: Dashboard
       title: t.nav.sectionDiscover,
       items: [
         { icon: <Building className="w-5 h-5" />, label: t.nav.vendors, href: '/marketplace' },
+        { icon: <MessageSquare className="w-5 h-5" />, label: t.nav.messages || 'Tin nhắn', href: '/messages' },
         { icon: <Users className="w-5 h-5" />, label: t.nav.guests, href: '#', disabled: true },
       ],
     },

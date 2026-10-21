@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Calendar, Clock, Sparkles, LogOut, Sliders, Globe, Menu, X, Store } from 'lucide-react';
+import { MapPin, Calendar, Clock, Sparkles, LogOut, Sliders, Globe, Menu, X, Store, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -137,6 +137,16 @@ export default function DashboardHeader({ logout, plan, daysLeft = 0 }: Dashboar
             <span className="hidden md:inline text-[11px] uppercase tracking-wider">Kênh Vendor</span>
           </Link>
         )}
+
+        {/* Messages Inbox Shortcut Link */}
+        <Link
+          href="/messages"
+          title="Hộp thư tin nhắn (Messages)"
+          className="flex items-center gap-1.5 h-8 px-2 sm:px-2.5 rounded-md text-xs font-semibold text-cream/90 bg-cream/10 border border-cream/15 hover:bg-cream/20 transition-all cursor-pointer"
+        >
+          <MessageSquare className="w-3.5 h-3.5 text-gold-light" />
+          <span className="hidden xl:inline text-[11px] font-bold uppercase tracking-wider">Tin nhắn</span>
+        </Link>
 
         {/* Settings Shortcut Link */}
         <Link
