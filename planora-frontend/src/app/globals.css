@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./marketplace-vendor.css";
 
 @theme {
   --color-primary: #5D0F12;
