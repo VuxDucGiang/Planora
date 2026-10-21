@@ -768,9 +768,11 @@ export default function VendorDetail(props: PageProps) {
               chatMessages.map(msg => {
                 const isMe = msg.senderRole === 'USER';
                 return (
-                  <div key={msg.id} className={lex flex-col }>
+                  <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                     <span className="text-[9px] text-stone-400 mb-0.5 px-1">{isMe ? 'Bạn' : vendor.businessName}</span>
-                    <div className={p-3 rounded-2xl max-w-[85%] leading-relaxed }>
+                    <div className={`p-3 rounded-2xl max-w-[85%] leading-relaxed ${
+                      isMe ? 'bg-[#5D0F12] text-white rounded-br-none shadow-sm' : 'bg-white border border-[#EADCC9] text-stone-800 rounded-bl-none shadow-sm'
+                    }`}>
                       {msg.message}
                     </div>
                   </div>
