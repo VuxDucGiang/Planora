@@ -1,4 +1,4 @@
-package com.fudn.planora.config;
+﻿package com.fudn.planora.config;
 
 import com.fudn.planora.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/service-categories/**").permitAll()
                         .requestMatchers("/api/wedding-styles/**").permitAll()
                         .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/vendor/**").hasAnyRole("VENDOR", "ADMIN")
+                        .requestMatchers("/api/upload/**").authenticated()
                         .requestMatchers("/api/*").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

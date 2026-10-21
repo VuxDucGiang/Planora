@@ -16,5 +16,7 @@ public class ReviewResponse {
     private String customerAvatar;
     private Integer rating;
     private String comment;
+    private String vendorReply;
+    private LocalDateTime repliedAt;
     private LocalDateTime createdAt;
 }

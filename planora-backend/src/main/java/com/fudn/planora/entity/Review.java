@@ -32,6 +32,12 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "vendor_reply", columnDefinition = "TEXT")
+    private String vendorReply;
+
+    @Column(name = "replied_at")
+    private LocalDateTime repliedAt;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

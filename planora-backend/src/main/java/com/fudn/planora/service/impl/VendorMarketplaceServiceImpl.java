@@ -1,4 +1,4 @@
-package com.fudn.planora.service.impl;
+﻿package com.fudn.planora.service.impl;
 
 import com.fudn.planora.dto.request.CreateReviewRequest;
 import com.fudn.planora.dto.response.*;
@@ -338,6 +338,8 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
                 .customerAvatar(customerAvatar)
                 .rating(review.getRating())
                 .comment(review.getComment())
+                .vendorReply(review.getVendorReply())
+                .repliedAt(review.getRepliedAt())
                 .createdAt(review.getCreatedAt())
                 .build();
     }
