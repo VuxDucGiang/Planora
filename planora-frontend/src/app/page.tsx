@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getRoleRedirectPath } from '@/services/auth';
 import { getActivePlan, deleteActivePlan } from '@/services/weddingPlan';
 import { getShortlist } from '@/services/vendor';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
@@ -124,8 +125,13 @@ export default function Home() {
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.replace('/landing');
+    } else if (!authLoading && isAuthenticated && user) {
+      const redirectPath = getRoleRedirectPath(user.role, user.email);
+      if (redirectPath !== '/') {
+        router.replace(redirectPath);
+      }
     }
-  }, [authLoading, isAuthenticated, router]);
+  }, [authLoading, isAuthenticated, user, router]);
 
   // Load saved vendors when plan changes
   useEffect(() => {

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { register as registerService } from '@/services/auth';
+import { register as registerService, parseToken, getRoleRedirectPath } from '@/services/auth';
 import { Eye, EyeOff, Loader2, CheckCircle2, Globe } from 'lucide-react';
 import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google';
 
@@ -20,7 +20,7 @@ export default function Register() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { user, login, isAuthenticated, isLoading } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const router = useRouter();
 
@@ -28,10 +28,11 @@ export default function Register() {
 
   // Redirection check if already authenticated
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.replace('/');
+    if (!isLoading && isAuthenticated && user) {
+      const redirectPath = getRoleRedirectPath(user.role, user.email);
+      router.replace(redirectPath);
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,11 +121,13 @@ export default function Register() {
       }
 
       login(jwtToken);
+      const parsedGoogle = parseToken(jwtToken);
+      const redirectPath = getRoleRedirectPath(parsedGoogle?.role, parsedGoogle?.email);
       setSuccessMessage(t.auth.googleSuccess);
 
       setTimeout(() => {
-        router.replace('/');
-      }, 1200);
+        router.replace(redirectPath);
+      }, 1000);
     } catch (error) {
       console.error('Google Sign In Error:', error);
       const errorMsg = error instanceof Error ? error.message : t.auth.googleError;
