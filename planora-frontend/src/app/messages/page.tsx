@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useTransition, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -10,22 +10,16 @@ import {
   Users,
   Coins,
   MapPin,
-  Clock,
-  Phone,
-  Mail,
   Loader2,
   Paperclip,
   Search,
   Sparkles,
   ArrowLeft,
-  ArrowRight,
   ExternalLink,
   Store,
-  Filter,
   Info,
   X,
   Maximize2,
-  CheckCircle2,
   ShieldCheck,
   ChevronRight,
 } from 'lucide-react';
@@ -34,7 +28,6 @@ import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 import {
   getMyCustomerInquiries,
   getCustomerInquiryDetail,
@@ -44,7 +37,6 @@ import { uploadImage } from '@/services/vendorProfile';
 import type {
   InquirySummary,
   InquiryDetail,
-  InquiryStatus,
 } from '@/types/inquiry';
 
 type FilterType = 'ALL' | 'PENDING' | 'RESPONDED' | 'CLOSED';
@@ -55,7 +47,6 @@ function MessagesContent() {
 
   const { logout, user } = useAuth();
   const { plan, daysLeft } = usePlan();
-  const { language, t } = useLanguage();
 
   // Inquiries & Chat State
   const [inquiries, setInquiries] = useState<InquirySummary[]>([]);
@@ -127,17 +118,17 @@ function MessagesContent() {
 
   // 2. Load and Poll Active Inquiry Details
   useEffect(() => {
-    if (!selectedInquiryId) {
-      setActiveInquiry(null);
-      return;
-    }
-
     let isMounted = true;
 
     async function loadDetail() {
+      if (!selectedInquiryId) {
+        if (isMounted) setActiveInquiry(null);
+        return;
+      }
+
       try {
         setIsLoadingChat(true);
-        const detail = await getCustomerInquiryDetail(selectedInquiryId!);
+        const detail = await getCustomerInquiryDetail(selectedInquiryId);
         if (isMounted) {
           setActiveInquiry(detail);
         }
@@ -975,3 +966,4 @@ export default function MessagesPage() {
     </Suspense>
   );
 }
+
