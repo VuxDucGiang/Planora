@@ -51,6 +51,31 @@ export function parseToken(token: string): User | null {
   }
 }
 
+export function getRoleRedirectPath(role?: string, email?: string): string {
+  const normalizedRole = (role || '').toUpperCase();
+  const normalizedEmail = (email || '').toLowerCase();
+
+  if (
+    normalizedRole === 'ADMIN' ||
+    normalizedRole === 'ROLE_ADMIN' ||
+    normalizedEmail === 'admin@planora.com' ||
+    normalizedEmail.includes('admin@')
+  ) {
+    return '/admin';
+  }
+
+  if (
+    normalizedRole === 'VENDOR' ||
+    normalizedRole === 'ROLE_VENDOR' ||
+    normalizedEmail === 'vendor@planora.com' ||
+    normalizedEmail.includes('vendor@')
+  ) {
+    return '/vendor/profile';
+  }
+
+  return '/';
+}
+
 export async function register(request: RegisterRequest): Promise<LoginResponse> {
   const payload = {
     ...request,
