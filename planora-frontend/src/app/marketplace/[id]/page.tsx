@@ -585,10 +585,13 @@ export default function VendorDetail(props: PageProps) {
 
             {/* Services & Packages Section */}
             <section className="services-section" id="services">
-              <SectionTitle
-                eyebrow="Dịch vụ & chi phí"
-                title="Chọn trải nghiệm phù hợp"
-              />
+              <div className="section-heading">
+                <span className="eyebrow">BẢNG GIÁ DỊCH VỤ</span>
+                <h2>Dịch vụ & chi phí</h2>
+                <p className="section-subtitle">
+                  Chọn gói trải nghiệm phù hợp cho ngày trọng đại của hai bạn
+                </p>
+              </div>
               <div className="service-grid">
                 {vendor.packages && vendor.packages.length > 0 ? (
                   vendor.packages.map((pkg, idx) => {
@@ -700,15 +703,13 @@ export default function VendorDetail(props: PageProps) {
 
             {/* Customer Reviews Section */}
             <section className="reviews-section" id="reviews">
-              <SectionTitle
-                eyebrow="Lời nhắn từ khách hàng"
-                title="Những câu chuyện đã nở hoa"
-                action={
-                  <span className="review-count">
-                    {vendor.ratingAverage ? Number(vendor.ratingAverage).toFixed(1) : '4.9'} / 5 · {vendor.totalReviews || 122} đánh giá
-                  </span>
-                }
-              />
+              <div className="section-heading">
+                <span className="eyebrow">ĐÁNH GIÁ TỪ CẶP ĐÔI</span>
+                <h2>Lời nhắn từ khách hàng</h2>
+                <p className="section-subtitle">
+                  Những câu chuyện đã nở hoa · {vendor.ratingAverage ? Number(vendor.ratingAverage).toFixed(1) : '4.9'} / 5 sao ({vendor.totalReviews || 122} đánh giá)
+                </p>
+              </div>
 
               {vendor.reviews && vendor.reviews.length > 0 ? (
                 <div className="space-y-5">
