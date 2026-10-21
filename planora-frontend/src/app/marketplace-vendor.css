@@ -374,6 +374,39 @@
   margin-bottom: 88px;
 }
 
+/* Centered & Enlarged Headings for Services and Reviews */
+.vendor-showcase-page .services-section .section-heading,
+.vendor-showcase-page .reviews-section .section-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.vendor-showcase-page .services-section .section-heading h2,
+.vendor-showcase-page .reviews-section .section-heading h2 {
+  font-size: clamp(34px, 4.2vw, 48px);
+  font-weight: 600;
+  color: var(--wine);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+.vendor-showcase-page .services-section .section-heading .section-subtitle,
+.vendor-showcase-page .reviews-section .section-heading .section-subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  font-family: var(--sans);
+  margin-top: 8px;
+  max-width: 520px;
+  line-height: 1.6;
+  text-align: center;
+}
+
 /* Portfolio Gallery */
 .vendor-showcase-page .gallery {
   background: var(--cream);
@@ -479,7 +512,7 @@
   grid-template-columns: repeat(2, 1fr);
 }
 
-.vendor-showcase-page .service-card {
+.vendor-showcase-page .services-section .service-card {
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -489,26 +522,30 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  align-items: center;
+  text-align: center;
 }
 
-.vendor-showcase-page .service-card.featured {
+.vendor-showcase-page .services-section .service-card.featured {
   background: var(--wine);
   border-color: var(--wine);
   color: var(--white);
   box-shadow: 0 10px 30px rgba(113, 18, 24, 0.25);
 }
 
-.vendor-showcase-page .service-topline {
+.vendor-showcase-page .services-section .service-topline {
   align-items: center;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
 }
 
-.vendor-showcase-page .featured .eyebrow {
+.vendor-showcase-page .services-section .featured .eyebrow {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.vendor-showcase-page .popular {
+.vendor-showcase-page .services-section .popular {
   background: var(--gold);
   border-radius: 999px;
   color: var(--white);
@@ -519,78 +556,100 @@
   text-transform: uppercase;
 }
 
-.vendor-showcase-page .service-card h3 {
+.vendor-showcase-page .services-section .service-card h3 {
   font-family: var(--serif);
   font-size: 25px;
   font-weight: 500;
   margin: 18px 0 10px;
+  text-align: center;
 }
 
-.vendor-showcase-page .service-card .price {
+.vendor-showcase-page .services-section .service-card .price {
   border-bottom: 1px solid var(--line);
   color: var(--wine);
   font-family: var(--serif);
   font-size: 23px;
   margin: 0 0 18px;
   padding-bottom: 18px;
+  text-align: center;
+  width: 100%;
 }
 
-.vendor-showcase-page .featured .price {
+.vendor-showcase-page .services-section .featured .price {
   border-color: rgba(255, 255, 255, 0.18);
   color: var(--white);
 }
 
-.vendor-showcase-page .price span,
-.vendor-showcase-page .price small {
+.vendor-showcase-page .services-section .price span,
+.vendor-showcase-page .services-section .price small {
   font-family: var(--sans);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.05em;
 }
 
-.vendor-showcase-page .service-card > div > p:not(.price),
-.vendor-showcase-page .service-card li {
+.vendor-showcase-page .services-section .service-card > div > p:not(.price),
+.vendor-showcase-page .services-section .service-card li {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.65;
+  text-align: center;
 }
 
-.vendor-showcase-page .featured > div > p:not(.price),
-.vendor-showcase-page .featured li {
+.vendor-showcase-page .services-section .featured > div > p:not(.price),
+.vendor-showcase-page .services-section .featured li {
   color: rgba(255, 255, 255, 0.72);
 }
 
-.vendor-showcase-page .service-card ul {
-  display: grid;
+.vendor-showcase-page .services-section .service-card ul {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 7px;
   list-style: none;
-  margin: 16px 0 25px;
+  margin: 16px auto 25px;
   padding: 0;
+  text-align: left;
 }
 
-.vendor-showcase-page .service-card li::before {
+.vendor-showcase-page .services-section .service-card li::before {
   color: var(--gold);
   content: "—";
   margin-right: 8px;
 }
 
-.vendor-showcase-page .service-link {
+.vendor-showcase-page .services-section .service-link {
   align-items: center;
   color: var(--wine);
-  display: flex;
+  display: inline-flex;
   font-size: 10px;
   font-weight: 600;
   gap: 7px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   background: transparent;
-  border: 0;
+  border: 1px solid var(--wine);
+  border-radius: 999px;
+  padding: 10px 20px;
   cursor: pointer;
-  padding: 0;
+  justify-content: center;
+  width: 100%;
+  transition: all 180ms ease;
 }
 
-.vendor-showcase-page .featured .service-link {
+.vendor-showcase-page .services-section .service-link:hover {
+  background: var(--wine);
   color: var(--white);
+}
+
+.vendor-showcase-page .services-section .featured .service-link {
+  background: var(--white);
+  color: var(--wine);
+  border-color: var(--white);
+}
+
+.vendor-showcase-page .services-section .featured .service-link:hover {
+  background: var(--ivory);
 }
 
 /* Reviews Section */
@@ -599,37 +658,53 @@
   font-size: 11px;
 }
 
-.vendor-showcase-page .review-card {
-  align-items: flex-start;
+.vendor-showcase-page .reviews-section .review-card {
+  align-items: center;
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 16px;
-  display: grid;
-  gap: 24px;
-  grid-template-columns: auto 1fr;
-  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 18px;
+  padding: 38px 30px;
 }
 
-.vendor-showcase-page .quote-mark {
+.vendor-showcase-page .reviews-section .quote-mark {
   color: var(--wine);
   font-family: var(--serif);
   font-size: 76px;
   line-height: 0.7;
+  text-align: center;
 }
 
-.vendor-showcase-page .review-card blockquote {
+.vendor-showcase-page .reviews-section .stars {
+  justify-content: center;
+  display: flex;
+  color: var(--gold);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.vendor-showcase-page .reviews-section .review-card blockquote {
   font-family: var(--serif);
-  font-size: 18px;
+  font-size: 19px;
   font-style: italic;
   line-height: 1.65;
-  margin: 15px 0 24px;
+  margin: 10px auto 20px;
   color: var(--ink);
+  max-width: 580px;
+  text-align: center;
 }
 
-.vendor-showcase-page .review-author {
+.vendor-showcase-page .reviews-section .review-author {
   align-items: center;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
 }
 
 .vendor-showcase-page .author-avatar {
@@ -1130,3 +1205,4 @@
     min-height: 330px;
   }
 }
+
