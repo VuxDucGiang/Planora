@@ -1,4 +1,4 @@
-import type { LoginRequest, LoginResponse, User, RegisterRequest } from '@/types/auth';
+﻿import type { LoginRequest, LoginResponse, User, RegisterRequest } from '@/types/auth';
 
 export async function login(request: LoginRequest): Promise<LoginResponse> {
   const response = await fetch('/api/auth/login', {
@@ -43,7 +43,7 @@ export function parseToken(token: string): User | null {
     return {
       email: payload.sub || '',
       fullName: payload.sub ? payload.sub.split('@')[0] : 'User',
-      role: 'USER', // Default fallback role
+      role: payload.role || 'USER',
     };
   } catch (e) {
     console.error('Error parsing token:', e);

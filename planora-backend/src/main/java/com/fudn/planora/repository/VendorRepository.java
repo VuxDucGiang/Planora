@@ -45,4 +45,8 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
     List<Vendor> findTop6ByVerifiedTrueOrderByRatingAverageDescTotalReviewsDesc();
 
     List<Vendor> findByIdIn(List<Long> ids);
+
+    java.util.Optional<Vendor> findByUserId(Long userId);
+
+    java.util.Optional<Vendor> findByUserEmail(String email);
 }

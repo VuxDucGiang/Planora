@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Calendar, Clock, Sparkles, LogOut, Sliders, Globe, Menu, X } from 'lucide-react';
+import { MapPin, Calendar, Clock, Sparkles, LogOut, Sliders, Globe, Menu, X, Store } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -16,6 +17,7 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ logout, plan, daysLeft = 0 }: DashboardHeaderProps) {
   const { language, setLanguage, t, formatDateDisplay } = useLanguage();
   const { isMobileNavOpen, toggleMobileNav } = useNavigation();
+  const { user } = useAuth();
 
   const toggleLanguage = () => {
     setLanguage(language === 'vi' ? 'en' : 'vi');
@@ -123,6 +125,18 @@ export default function DashboardHeader({ logout, plan, daysLeft = 0 }: Dashboar
           <Globe className="w-3.5 h-3.5 text-gold-light" />
           <span>{language === 'vi' ? 'VI' : 'EN'}</span>
         </button>
+
+        {/* Vendor Hub Quick Link (cho VENDOR hoặc ADMIN) */}
+        {(user?.role === 'VENDOR' || user?.role === 'ADMIN' || user?.email?.includes('vendor')) && (
+          <Link
+            href="/vendor/profile"
+            title="Kênh Nhà Cung Cấp (Vendor Hub)"
+            className="flex items-center gap-1.5 h-8 px-2 sm:px-2.5 rounded-md text-xs font-bold text-cream bg-cream/20 border border-cream/30 hover:bg-cream/30 transition-all cursor-pointer"
+          >
+            <Store className="w-3.5 h-3.5 text-gold-light" />
+            <span className="hidden md:inline text-[11px] uppercase tracking-wider">Kênh Vendor</span>
+          </Link>
+        )}
 
         {/* Settings Shortcut Link */}
         <Link

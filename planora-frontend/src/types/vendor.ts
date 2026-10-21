@@ -1,4 +1,4 @@
-export interface VendorResponse {
+﻿export interface VendorResponse {
   id: number;
   businessName: string;
   description: string;
@@ -38,6 +38,8 @@ export interface ReviewResponse {
   customerAvatar?: string;
   rating: number;
   comment: string;
+  vendorReply?: string;
+  repliedAt?: string;
   createdAt: string;
 }
 
@@ -89,4 +91,126 @@ export interface VendorFilters {
   priceTo?: number;
   page?: number;
   size?: number;
+}
+
+
+export interface VendorProfileResponse {
+  id: number;
+  userId: number;
+  email: string;
+  businessName: string;
+  description?: string;
+  experienceYears?: number;
+  city?: string;
+  district?: string;
+  phone?: string;
+  avatarUrl?: string;
+  verified: boolean;
+  ratingAverage: number;
+  totalReviews: number;
+  styleIds: number[];
+  styles: string[];
+  portfolios: PortfolioResponse[];
+}
+
+export interface UpdateVendorProfileRequest {
+  businessName: string;
+  description?: string;
+  experienceYears?: number;
+  city?: string;
+  district?: string;
+  phone?: string;
+  avatarUrl?: string;
+  styleIds?: number[];
+}
+
+export interface CreatePortfolioRequest {
+  imageUrl: string;
+  title?: string;
+  description?: string;
+}
+
+export interface FileUploadResponse {
+  url: string;
+  publicId: string;
+  format?: string;
+  bytes?: number;
+}
+
+
+export interface VendorServiceDetailResponse {
+  id: number;
+  vendorId: number;
+  categoryId: number;
+  categoryName: string;
+  serviceName: string;
+  description?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  active: boolean;
+  packages: PackageResponse[];
+}
+
+export interface CreateVendorServiceRequest {
+  categoryId: number;
+  serviceName: string;
+  description?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  active?: boolean;
+}
+
+export interface CreatePackageRequest {
+  packageName: string;
+  description?: string;
+  price: number;
+}
+
+
+export interface VendorReviewStatsResponse {
+  totalReviews: number;
+  ratingAverage: number;
+  fiveStarCount: number;
+  fourStarCount: number;
+  threeStarCount: number;
+  twoStarCount: number;
+  oneStarCount: number;
+  reviews: ReviewResponse[];
+}
+
+export interface ReplyReviewRequest {
+  reply: string;
+}
+
+export interface VendorLeadResponse {
+  id: number;
+  weddingPlanId?: number;
+  customerName: string;
+  customerAvatar?: string;
+  matchingScore: number;
+  reason?: string;
+  weddingDate?: string;
+  guestCount?: number;
+  budget?: number;
+  location?: string;
+}
+
+export interface VendorAnalyticsResponse {
+  totalReviews: number;
+  ratingAverage: number;
+  fiveStarCount: number;
+  fourStarCount: number;
+  threeStarCount: number;
+  twoStarCount: number;
+  oneStarCount: number;
+  totalInquiries: number;
+  pendingInquiries: number;
+  respondedInquiries: number;
+  closedInquiries: number;
+  totalShortlists: number;
+  activeServicesCount: number;
+  totalPackagesCount: number;
+  portfolioImagesCount: number;
+  potentialLeadsCount: number;
+  recentMatchingLeads: VendorLeadResponse[];
 }

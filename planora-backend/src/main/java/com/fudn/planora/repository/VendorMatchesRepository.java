@@ -6,4 +6,8 @@ import java.util.List;
 
 public interface VendorMatchesRepository extends JpaRepository<VendorMatches, Long> {
     List<VendorMatches> findByWeddingPlanIdOrderByMatchingScoreDesc(Long weddingPlanId);
+
+    List<VendorMatches> findByVendorIdOrderByMatchingScoreDesc(Long vendorId);
+
+    Long countByVendorId(Long vendorId);
 }

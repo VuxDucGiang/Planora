@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, use } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,8 +19,11 @@ import {
   Loader2,
   Check,
   Mail,
-  Send
+  Send,
+  X
 } from 'lucide-react';
+import { createOrGetInquiry, getCustomerInquiryDetail, sendCustomerMessage } from '@/services/inquiryService';
+import type { InquiryMessage } from '@/types/inquiry';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -53,6 +56,13 @@ export default function VendorDetail(props: PageProps) {
 
   // Carousel State
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Live Chat Drawer States
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
+  const [activeInquiryId, setActiveInquiryId] = useState<number | null>(null);
+  const [chatMessages, setChatMessages] = useState<InquiryMessage[]>([]);
+  const [chatInputText, setChatInputText] = useState('');
+  const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
 
   // Load Vendor Detail
   useEffect(() => {
@@ -110,18 +120,79 @@ export default function VendorDetail(props: PageProps) {
     }
   };
 
-  // Handle Submit Inquiry
-  const handleSubmitInquiry = (e: React.FormEvent) => {
+  // Handle Submit Inquiry via Backend API
+  const handleSubmitInquiry = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!weddingDate || !guestCount) return;
+    if (!weddingDate || !guestCount || !vendor) return;
     setIsSubmittingInquiry(true);
-    setTimeout(() => {
-      setIsSubmittingInquiry(false);
+    try {
+      const inq = await createOrGetInquiry({
+        vendorId: vendor.id,
+        weddingPlanId: plan?.id,
+        title: Tư vấn tiệc cưới ngày ${weddingDate},
+        message: Xin chào ${vendor.businessName}! Tôi dự định tổ chức vào ngày ${weddingDate} với khoảng ${guestCount} khách mời. Rất mong nhận được tư vấn chi tiết từ bạn.,
+      });
       setInquirySuccess(true);
+      setActiveInquiryId(inq.id);
+      setChatMessages(inq.messages || []);
+      setIsChatDrawerOpen(true);
       setWeddingDate('');
       setGuestCount('');
       setTimeout(() => setInquirySuccess(false), 5000);
-    }, 1500);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Không thể gửi yêu cầu tư vấn');
+    } finally {
+      setIsSubmittingInquiry(false);
+    }
+  };
+
+  // Handle Direct Live Chat
+  const handleOpenDirectChat = async () => {
+    if (!vendor) return;
+    try {
+      const inq = await createOrGetInquiry({
+        vendorId: vendor.id,
+        weddingPlanId: plan?.id,
+        title: Tư vấn trực tiếp với ${vendor.businessName},
+        message: Xin chào ${vendor.businessName}, tôi đang xem trang dịch vụ của bạn trên Planora và muốn được tư vấn thêm.,
+      });
+      setActiveInquiryId(inq.id);
+      setChatMessages(inq.messages || []);
+      setIsChatDrawerOpen(true);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Không thể kết nối trò chuyện');
+    }
+  };
+
+  // Poll chat messages when drawer is open
+  useEffect(() => {
+    if (!isChatDrawerOpen || !activeInquiryId) return;
+    const interval = setInterval(async () => {
+      try {
+        const detail = await getCustomerInquiryDetail(activeInquiryId);
+        setChatMessages(detail.messages || []);
+      } catch {
+        // silent catch
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isChatDrawerOpen, activeInquiryId]);
+
+  // Handle Send Customer Message in Drawer
+  const handleSendCustomerMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInputText.trim() || !activeInquiryId || isSendingChatMessage) return;
+    const text = chatInputText.trim();
+    setChatInputText('');
+    setIsSendingChatMessage(true);
+    try {
+      const newMsg = await sendCustomerMessage(activeInquiryId, text);
+      setChatMessages(prev => [...prev, newMsg]);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Không thể gửi tin nhắn');
+    } finally {
+      setIsSendingChatMessage(false);
+    }
   };
 
   if (authLoading || !isAuthenticated) {
@@ -532,7 +603,7 @@ export default function VendorDetail(props: PageProps) {
               <div className="space-y-2.5">
                 <button
                   type="button"
-                  onClick={() => alert(language === 'vi' ? 'Chức năng Chat trực tiếp đang được kết nối với trung tâm tin nhắn...' : 'Live Chat is currently connecting to the messaging center...')}
+                  onClick={handleOpenDirectChat}
                   className="w-full py-2 bg-cream/15 border border-cream/20 hover:bg-cream/25 text-cream text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <MessageSquare className="w-3.5 h-3.5 text-gold-light" />
@@ -661,6 +732,72 @@ export default function VendorDetail(props: PageProps) {
           <span>{t.marketplace.sendInquiryTitle || 'Gửi yêu cầu báo giá'}</span>
         </button>
       </div>
+
+      {/* Live Chat Drawer */}
+      {isChatDrawerOpen && (
+        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-96 bg-white rounded-t-3xl sm:rounded-3xl border border-[#EADCC9] shadow-2xl flex flex-col h-[520px] max-h-[85vh] overflow-hidden animate-fade-in">
+          {/* Drawer Header */}
+          <div className="bg-[#5D0F12] text-[#FFFBF5] p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs uppercase">
+                {vendor.businessName.charAt(0)}
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider line-clamp-1">{vendor.businessName}</h4>
+                <span className="text-[10px] text-cream/70 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Đang trực tuyến
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsChatDrawerOpen(false)}
+              className="p-1 rounded-full text-cream/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Messages Thread */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#FAF8F5]/60 text-xs">
+            {chatMessages.length === 0 ? (
+              <div className="text-center py-12 text-stone-400 font-serif italic text-xs">
+                Gửi lời chào để bắt đầu cuộc trò chuyện với {vendor.businessName}...
+              </div>
+            ) : (
+              chatMessages.map(msg => {
+                const isMe = msg.senderRole === 'USER';
+                return (
+                  <div key={msg.id} className={lex flex-col }>
+                    <span className="text-[9px] text-stone-400 mb-0.5 px-1">{isMe ? 'Bạn' : vendor.businessName}</span>
+                    <div className={p-3 rounded-2xl max-w-[85%] leading-relaxed }>
+                      {msg.message}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Chat Input Bar */}
+          <form onSubmit={handleSendCustomerMessage} className="p-3 border-t border-[#EADCC9] bg-white flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Nhập tin nhắn..."
+              value={chatInputText}
+              onChange={e => setChatInputText(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-xl border border-[#EADCC9] bg-[#FAF8F5]/50 text-xs focus:outline-none focus:ring-1 focus:ring-[#5D0F12]"
+            />
+            <button
+              type="submit"
+              disabled={!chatInputText.trim() || isSendingChatMessage}
+              className="p-2 rounded-xl bg-[#5D0F12] text-[#FFFBF5] hover:bg-[#4A0C0E] transition disabled:opacity-40 cursor-pointer"
+            >
+              {isSendingChatMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            </button>
+          </form>
+        </div>
+      )}
 
       <DashboardFooter />
     </div>

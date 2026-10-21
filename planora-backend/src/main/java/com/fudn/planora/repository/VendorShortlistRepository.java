@@ -1,4 +1,4 @@
-package com.fudn.planora.repository;
+﻿package com.fudn.planora.repository;
 
 import com.fudn.planora.entity.VendorShortlist;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +16,6 @@ public interface VendorShortlistRepository extends JpaRepository<VendorShortlist
 
     Optional<VendorShortlist> findByWeddingPlanIdAndVendorId(Long weddingPlanId, Long vendorId);
     boolean existsByWeddingPlanIdAndVendorId(Long weddingPlanId, Long vendorId);
+
+    Long countByVendorId(Long vendorId);
 }
