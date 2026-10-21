@@ -370,7 +370,7 @@ export default function VendorDetail(props: PageProps) {
 
   // Consistent photography & fallback data
   const photos = vendor.portfolios && vendor.portfolios.length > 0
-    ? vendor.portfolios.map((p, idx) => ({
+    ? vendor.portfolios.map((p) => ({
         src: p.imageUrl,
         alt: p.title || vendor.businessName,
         caption: p.title || 'Không gian tác nghiệp',
@@ -458,7 +458,7 @@ export default function VendorDetail(props: PageProps) {
               <div className="pills">
                 <span>{category}</span>
                 <span className="choice">
-                  <Icon name="sparkle" size={11} /> Planora's choice
+                  <Icon name="sparkle" size={11} /> Planora&apos;s choice
                 </span>
               </div>
               <h2>{vendor.businessName}</h2>
