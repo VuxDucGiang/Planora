@@ -1,4 +1,4 @@
-﻿package com.fudn.planora.config;
+package com.fudn.planora.config;
 
 import com.fudn.planora.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;

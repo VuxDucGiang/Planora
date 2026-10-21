@@ -1,4 +1,4 @@
-﻿package com.fudn.planora.repository;
+package com.fudn.planora.repository;
 
 import com.fudn.planora.entity.VendorShortlist;
 import org.springframework.data.jpa.repository.JpaRepository;
