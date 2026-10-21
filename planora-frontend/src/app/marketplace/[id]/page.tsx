@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, use } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
 import { getVendorDetail, getShortlist, addToShortlist, removeFromShortlist } from '@/services/vendor';
@@ -20,7 +21,14 @@ import {
   Check,
   Mail,
   Send,
-  X
+  X,
+  ShieldCheck,
+  Share2,
+  Clock,
+  Sparkles,
+  Phone,
+  CheckCircle2,
+  ChevronRight as ChevronBreadcrumb
 } from 'lucide-react';
 import { createOrGetInquiry, getCustomerInquiryDetail, sendCustomerMessage } from '@/services/inquiryService';
 import type { InquiryMessage } from '@/types/inquiry';
@@ -195,6 +203,14 @@ export default function VendorDetail(props: PageProps) {
     }
   };
 
+  // Copy URL Share
+  const handleShare = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href);
+      alert(language === 'vi' ? 'Đã sao chép liên kết trang dịch vụ!' : 'Link copied to clipboard!');
+    }
+  };
+
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center">
@@ -239,296 +255,542 @@ export default function VendorDetail(props: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#FFFBF5] text-stone-800 font-sans flex flex-col relative w-full overflow-x-hidden">
       <DashboardHeader logout={logout} plan={plan} daysLeft={daysLeft} />
 
       {/* Main Container */}
       <div className="flex-1 w-full flex flex-col">
         
-        {/* Banner Section */}
-        <div className="relative w-full h-[240px] sm:h-[320px] md:h-[400px] bg-slate-900 overflow-hidden">
+        {/* Editorial Cinematic Hero Banner */}
+        <div className="relative w-full h-[300px] sm:h-[380px] md:h-[440px] bg-stone-900 overflow-hidden">
           <img 
-            src={carouselImages[activeImageIndex % carouselImages.length]} 
-            alt="Wedding Banner" 
+            src={carouselImages[activeImageIndex % carouselImages.length] || '/landing/landing-1.png'} 
+            alt={vendor.businessName} 
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover opacity-60 filter blur-xs scale-105"
+            className="w-full h-full object-cover object-center opacity-80 filter brightness-95 scale-100 transition-all duration-1000 ease-out"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
-          
-          {/* Main Visual Couple in Banner */}
-          <div className="absolute inset-0 flex items-center justify-center px-4">
-            <div className="relative w-full max-w-4xl h-full flex items-end pb-4 sm:pb-8">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200" 
-                alt="Banner Couple" 
-                className="absolute inset-0 w-full h-full object-cover rounded-b-[28px] sm:rounded-b-[40px] shadow-2xl border-b-4 border-cream/20"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = carouselImages[0];
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-b-[28px] sm:rounded-b-[40px]"></div>
+          {/* Subtle gradient vignette */}
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/30 to-black/30"></div>
+
+          {/* Breadcrumb & Top Bar */}
+          <div className="absolute top-6 left-0 right-0 max-w-6xl mx-auto px-4 sm:px-6 md:px-8 flex items-center justify-between text-xs text-white/90 z-10">
+            <nav className="flex items-center gap-2 font-medium tracking-wider text-[11px] uppercase bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15">
+              <Link href="/marketplace" className="hover:text-cream transition">Marketplace</Link>
+              <ChevronBreadcrumb className="w-3.5 h-3.5 text-white/40" />
+              <span className="text-white/60">{category}</span>
+              <ChevronBreadcrumb className="w-3.5 h-3.5 text-white/40" />
+              <span className="text-white font-semibold truncate max-w-[140px] sm:max-w-none">{vendor.businessName}</span>
+            </nav>
+
+            <div className="flex items-center gap-2">
+              <button 
+                type="button" 
+                onClick={handleShare}
+                className="p-2 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/15 text-white transition active:scale-95 cursor-pointer"
+                title={language === 'vi' ? 'Chia sẻ liên kết' : 'Share profile'}
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+              <button 
+                type="button" 
+                onClick={handleToggleShortlist}
+                disabled={isTogglingShortlist}
+                className="p-2 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/15 text-white transition active:scale-95 cursor-pointer"
+                title={isSaved ? 'Đã lưu vào danh sách yêu thích' : 'Lưu vào danh sách'}
+              >
+                <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500 text-rose-500' : 'text-white'}`} />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Floating Profile Info & About Row */}
-        <div className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 md:px-8 relative -mt-14 sm:-mt-20 md:-mt-24 z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-            
-            {/* Left Floating Card */}
-            <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xl border border-hairline relative text-center">
-              {/* Floating circular icon */}
-              <div className="absolute -top-10 sm:-top-12 left-1/2 -translate-x-1/2 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary border-4 border-white shadow-lg flex items-center justify-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-cream/20 flex items-center justify-center text-gold">
-                  <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-gold text-gold" />
+        {/* Floating Vendor Identity & Overview Card */}
+        <div className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 md:px-8 relative -mt-16 sm:-mt-20 md:-mt-24 z-10">
+          <div className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-[0_15px_40px_rgba(0,0,0,0.06)] border border-[#EADCC9]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+              
+              {/* Left Identity Column */}
+              <div className="lg:col-span-5 flex flex-col sm:flex-row lg:flex-col items-center sm:items-start text-center sm:text-left gap-5">
+                {/* Vendor Avatar / Monogram */}
+                <div className="relative shrink-0">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-[#FAF8F5] flex items-center justify-center">
+                    {vendor.avatarUrl ? (
+                      <img 
+                        src={vendor.avatarUrl} 
+                        alt={vendor.businessName} 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[#5D0F12] text-[#FFFBF5] font-serif text-3xl font-bold tracking-widest">
+                        {vendor.businessName.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  {vendor.verified && (
+                    <div className="absolute bottom-1 right-1 bg-emerald-600 text-white p-1 rounded-full shadow-md" title="Đã xác thực bởi Planora">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Title Content */}
-              <div className="pt-7 sm:pt-10 space-y-4">
-                <div className="space-y-1">
-                  <h1 className="text-xl md:text-2xl font-semibold text-ink font-display tracking-tight">
+                {/* Name, Badges & Rating */}
+                <div className="space-y-2 flex-1">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <span className="inline-block bg-[#FAF8F5] border border-[#EADCC9] text-stone-700 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                      {category}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                      <Sparkles className="w-3 h-3 text-amber-600" />
+                      {t.marketplace.aiChoice}
+                    </span>
+                  </div>
+
+                  <h1 
+                    className="text-2xl sm:text-3xl font-bold uppercase tracking-wide text-[#5D0F12] font-serif leading-tight"
+                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                  >
                     {vendor.businessName}
                   </h1>
-                  <div className="inline-block bg-gold/15 border border-gold/30 text-primary text-[9px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full">
-                    {t.marketplace.aiChoice}
-                  </div>
-                </div>
 
-                {/* Rating */}
-                <div className="flex flex-col items-center justify-center gap-0.5 border-y border-hairline py-3 my-2">
-                  <div className="flex items-center gap-1 justify-center">
-                    <div className="flex text-gold">
+                  {/* Rating Stars */}
+                  <div className="flex items-center justify-center sm:justify-start gap-2 pt-0.5">
+                    <div className="flex text-amber-500">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < Math.round(vendor.ratingAverage) ? 'fill-gold text-gold' : 'text-slate-200'}`} />
+                        <Star 
+                          key={i} 
+                          className={`w-4 h-4 ${i < Math.round(vendor.ratingAverage) ? 'fill-amber-400 text-amber-400' : 'text-stone-200'}`} 
+                        />
                       ))}
                     </div>
-                    <span className="text-xs font-bold text-ink">({vendor.ratingAverage})</span>
-                  </div>
-                  <span className="text-[10px] text-muted-text font-bold uppercase tracking-wide">
-                    [{vendor.totalReviews} {t.marketplace.reviewsText}]
-                  </span>
-                </div>
-
-                {/* Meta details list */}
-                <div className="space-y-3.5 text-left text-xs max-w-xs mx-auto">
-                  <div className="flex items-center gap-3.5 text-body-text">
-                    <MapPin className="w-4 h-4 text-primary shrink-0" />
-                    <span>{vendor.district}, {vendor.city}, {language === 'vi' ? 'Việt Nam' : 'Vietnam'}</span>
-                  </div>
-                  <div className="flex items-center gap-3.5 text-body-text">
-                    <Camera className="w-4 h-4 text-primary shrink-0" />
-                    <span className="capitalize">
-                      {language === 'vi' 
-                        ? `${category.toLowerCase().includes('ảnh') || category.toLowerCase().includes('photo') ? 'Nhiếp ảnh' : category} & Quay phim`
-                        : `${category} & Videography`}
+                    <span className="text-xs font-bold text-stone-800">
+                      {vendor.ratingAverage ? Number(vendor.ratingAverage).toFixed(1) : '5.0'}
+                    </span>
+                    <span className="text-xs text-stone-400">
+                      ({vendor.totalReviews || 0} {t.marketplace.reviewsText})
                     </span>
                   </div>
-                  <div className="flex items-center gap-3.5 text-body-text">
-                    <Coins className="w-4 h-4 text-primary shrink-0" />
-                    <span className="font-mono font-semibold text-primary">
-                      {formatCurrency(min)} - {formatCurrency(max)}
-                    </span>
+
+                  {/* Meta Info List */}
+                  <div className="pt-3 space-y-2 text-xs text-stone-600">
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <MapPin className="w-4 h-4 text-[#5D0F12] shrink-0" />
+                      <span>{vendor.district ? `${vendor.district}, ` : ''}{vendor.city}, {language === 'vi' ? 'Việt Nam' : 'Vietnam'}</span>
+                    </div>
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <Clock className="w-4 h-4 text-[#5D0F12] shrink-0" />
+                      <span>{vendor.experienceYears || 5} {language === 'vi' ? 'năm kinh nghiệm trong ngành cưới' : 'years of wedding experience'}</span>
+                    </div>
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <Coins className="w-4 h-4 text-[#5D0F12] shrink-0" />
+                      <span className="font-mono font-semibold text-[#5D0F12]">
+                        {formatCurrency(min)} – {formatCurrency(max)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Right About Info */}
-            <div className="lg:col-span-7 pt-4 lg:pt-16 space-y-4">
-              <div className="inline-block bg-primary text-cream text-[10px] font-bold uppercase tracking-[0.2em] px-5 py-2 rounded-full">
-                {t.marketplace.aboutVendorTitle}
               </div>
-              <p className="text-sm text-body-text leading-relaxed font-serif">
-                {vendor.description || (language === 'vi' 
-                  ? `Với hơn ${vendor.experienceYears} năm kinh nghiệm ghi lại những khoảnh khắc tình yêu đẹp nhất, ${vendor.businessName} tự hào mang đến phong cách dịch vụ cưới chuyên nghiệp, tinh tế hàng đầu tại Việt Nam.`
-                  : `With over ${vendor.experienceYears} years of experience capturing the most beautiful love stories, ${vendor.businessName} proudly delivers premier, sophisticated wedding services.`)}
-              </p>
-            </div>
 
+              {/* Right About & Style Column */}
+              <div className="lg:col-span-7 space-y-5 lg:pl-6 lg:border-l lg:border-[#EADCC9]/60">
+                <div className="space-y-2">
+                  <div className="inline-block text-[#5D0F12] text-[11px] font-bold uppercase tracking-[0.2em]">
+                    {t.marketplace.aboutVendorTitle}
+                  </div>
+                  <p className="text-sm text-stone-700 leading-relaxed font-serif">
+                    {vendor.description || (language === 'vi' 
+                      ? `Với hơn ${vendor.experienceYears || 5} năm kinh nghiệm kiến tạo những khoảnh khắc tình yêu đẹp nhất, ${vendor.businessName} tự hào mang đến phong cách dịch vụ cưới chuyên nghiệp, tinh tế hàng đầu.`
+                      : `With over ${vendor.experienceYears || 5} years of experience capturing the most beautiful love stories, ${vendor.businessName} proudly delivers premier, sophisticated wedding services.`)}
+                  </p>
+                </div>
+
+                {/* Style Tags */}
+                {vendor.styles && vendor.styles.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+                      {language === 'vi' ? 'PHONG CÁCH CHỦ ĐẠO' : 'SIGNATURE STYLES'}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {vendor.styles.map((st, idx) => (
+                        <span 
+                          key={idx}
+                          className="bg-[#FAF8F5] text-stone-700 border border-[#EADCC9] text-xs font-medium px-3.5 py-1 rounded-full"
+                        >
+                          ✦ {st}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick contact tags */}
+                <div className="flex flex-wrap gap-4 pt-2 text-xs text-stone-500">
+                  {vendor.phone && (
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-stone-400" />
+                      <span className="font-mono">{vendor.phone}</span>
+                    </div>
+                  )}
+                  {vendor.email && (
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-stone-400" />
+                      <span>{vendor.email}</span>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+            </div>
           </div>
         </div>
 
-        {/* Horizontal Scalloped Lace Divider */}
-        <div className="w-full my-12 relative h-5 select-none opacity-80"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='16' viewBox='0 0 40 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,16 C10,16 10,2 20,2 C30,2 30,16 40,16' stroke='%23FAF5EE' stroke-width='2' fill='none'/%3E%3Cpath d='M0,16 C10,16 10,6 20,6 C30,6 30,16 40,16' stroke='%235D0F12' stroke-width='1.5' fill='none' opacity='0.2'/%3E%3Ccircle cx='20' cy='9' r='1.5' fill='%235D0F12' opacity='0.3'/%3E%3Ccircle cx='10' cy='13' r='1' fill='%235D0F12' opacity='0.2'/%3E%3Ccircle cx='30' cy='13' r='1' fill='%235D0F12' opacity='0.2'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat-x',
-            backgroundSize: '40px 16px'
-          }}
-        ></div>
+        {/* Subtle Editorial Divider (Clean Luxury without Lace) */}
+        <div className="w-full max-w-5xl mx-auto my-12 flex items-center justify-center gap-4 px-6 select-none">
+          <div className="h-px bg-gradient-to-r from-transparent via-[#EADCC9] to-[#EADCC9] flex-1"></div>
+          <div className="flex items-center gap-2 text-[#D4B896] text-xs font-serif tracking-widest">
+            <span>✦</span>
+            <span className="text-[10px] uppercase font-sans tracking-[0.25em] text-stone-400 font-semibold">PLANORA CURATED</span>
+            <span>✦</span>
+          </div>
+          <div className="h-px bg-gradient-to-l from-transparent via-[#EADCC9] to-[#EADCC9] flex-1"></div>
+        </div>
 
-        {/* Two-Column Grid: Portfolio + Pricing on Left, Send Inquiry Sidebar on Right */}
+        {/* Main Showcase: Left Side (Gallery, Packages, Reviews) & Right Side (Inquiry Sidebar) */}
         <div className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 md:px-8 pb-24 lg:pb-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* LEFT AREA: Gallery & Pricing (Col span 8) */}
+            {/* LEFT AREA: Gallery & Pricing & Reviews (Col span 8) */}
             <div className="lg:col-span-8 space-y-12">
               
-              {/* Portfolio / Gallery */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 border-b border-hairline pb-3">
-                  <Camera className="w-5 h-5 text-primary" />
-                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">{t.marketplace.portfolioTitle}</h3>
+              {/* Portfolio / Gallery Showcase */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-[#EADCC9] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <Camera className="w-5 h-5 text-[#5D0F12]" />
+                    <h3 className="text-xs font-bold text-stone-900 uppercase tracking-widest font-sans">
+                      {t.marketplace.portfolioTitle}
+                    </h3>
+                  </div>
+                  <span className="text-xs text-stone-400 font-mono">
+                    {activeImageIndex + 1} / {carouselImages.length}
+                  </span>
                 </div>
 
-                {/* Arched Framed Carousel */}
-                <div className="relative bg-cream/30 border border-hairline rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm overflow-hidden flex flex-col items-center">
-                  
-                  {/* Lace overlay frame style */}
-                  <div className="relative w-full aspect-[16/10] max-w-2xl bg-white border-4 sm:border-8 border-double border-gold/30 rounded-xl sm:rounded-2xl overflow-hidden shadow-inner p-1 sm:p-2">
-                    <div className="w-full h-full relative overflow-hidden rounded-lg">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={carouselImages[activeImageIndex % carouselImages.length]} 
-                        alt="Portfolio Slide" 
-                        loading="lazy"
-                        decoding="async"
-                        className="object-cover w-full h-full transition-all duration-700 ease-in-out hover:scale-105"
-                      />
-                      
-                      {/* Left Navigation Arrow */}
-                      <button 
-                        onClick={prevImage}
-                        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors cursor-pointer"
-                        aria-label={language === 'vi' ? 'Ảnh trước' : 'Previous image'}
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
+                {/* Modern Framed Carousel (Clean Editorial Border) */}
+                <div className="bg-white border border-[#EADCC9] rounded-3xl p-3 sm:p-4 shadow-sm overflow-hidden flex flex-col items-center">
+                  <div className="relative w-full aspect-[16/10] bg-stone-100 rounded-2xl overflow-hidden group">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={carouselImages[activeImageIndex % carouselImages.length]} 
+                      alt="Portfolio Showcase" 
+                      loading="lazy"
+                      decoding="async"
+                      className="object-cover w-full h-full transition-all duration-700 ease-out group-hover:scale-102"
+                    />
+                    
+                    {/* Left Navigation Arrow */}
+                    <button 
+                      onClick={prevImage}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#5D0F12] text-stone-800 hover:text-white shadow-md flex items-center justify-center transition-all active:scale-90 cursor-pointer backdrop-blur-sm"
+                      aria-label="Ảnh trước"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
 
-                      {/* Right Navigation Arrow */}
-                      <button 
-                        onClick={nextImage}
-                        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors cursor-pointer"
-                        aria-label={language === 'vi' ? 'Ảnh tiếp' : 'Next image'}
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </div>
+                    {/* Right Navigation Arrow */}
+                    <button 
+                      onClick={nextImage}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#5D0F12] text-stone-800 hover:text-white shadow-md flex items-center justify-center transition-all active:scale-90 cursor-pointer backdrop-blur-sm"
+                      aria-label="Ảnh tiếp"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
 
-                  {/* Carousel Indicators Dots */}
-                  <div className="flex gap-2 mt-4">
-                    {carouselImages.map((_, idx) => (
+                  {/* Thumbnail Strip */}
+                  <div className="flex items-center gap-2.5 mt-4 overflow-x-auto max-w-full pb-1 px-1">
+                    {carouselImages.map((img, idx) => (
                       <button
                         key={idx}
                         onClick={() => setActiveImageIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all cursor-pointer ${activeImageIndex === idx ? 'bg-primary scale-125' : 'bg-primary/20 hover:bg-primary/50'}`}
-                      />
+                        className={`relative w-14 h-10 sm:w-16 sm:h-12 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                          activeImageIndex === idx ? 'border-[#5D0F12] scale-105 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                      </button>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Services & Pricing */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 border-b border-hairline pb-3">
-                  <Coins className="w-5 h-5 text-primary" />
-                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">{t.marketplace.servicesPricingTitle}</h3>
+              {/* Services & Pricing Packages */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5 border-b border-[#EADCC9] pb-3">
+                  <Coins className="w-5 h-5 text-[#5D0F12]" />
+                  <h3 className="text-xs font-bold text-stone-900 uppercase tracking-widest font-sans">
+                    {t.marketplace.servicesPricingTitle}
+                  </h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
-                  {/* Premium Package Card */}
-                  <div className="bg-primary text-cream rounded-[24px] p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
-                    <div className="absolute top-0 right-0 bg-gold text-primary font-bold text-[8px] uppercase tracking-wider py-1 px-3.5 rounded-bl-lg">
-                      {t.marketplace.popularTag}
-                    </div>
-                    <div className="space-y-4">
-                      <div className="border-b border-cream/15 pb-4 space-y-1">
-                        <span className="text-[10px] font-bold text-gold-light uppercase tracking-wider block">Premium</span>
-                        <h4 className="text-3xl font-bold font-mono">
-                          {formatCurrency(max)}
-                        </h4>
-                        <p className="text-xs text-cream/70 font-display">
-                          {language === 'vi' ? 'Gói trọn gói Ngày cưới & Phóng sự' : 'Comprehensive Pre-Wedding & Ceremony'}
-                        </p>
-                      </div>
-                      <ul className="space-y-2.5 text-xs text-cream/90">
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính + 1 Quay phim' : '1 Lead Photographer + 1 Videographer'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>{language === 'vi' ? 'Tác nghiệp 10 giờ / Toàn bộ file gốc + Album' : '10-hour coverage / All files + Album'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>{language === 'vi' ? 'Chỉnh màu cao cấp & Quay flycam' : 'Premium photo editing & drone footage'}</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setWeddingDate(new Date().toISOString().split('T')[0]);
-                        setGuestCount('150');
-                        document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="w-full mt-6 py-2.5 bg-cream hover:bg-warm-white text-primary text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
-                    >
-                      {t.marketplace.inquireNow}
-                    </button>
-                  </div>
+                {/* If vendor has registered packages */}
+                {vendor.packages && vendor.packages.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {vendor.packages.map((pkg, idx) => {
+                      const isFeatured = idx === 0;
+                      return (
+                        <div 
+                          key={pkg.id || idx}
+                          className={`rounded-[24px] p-6 flex flex-col justify-between border transition-all duration-300 relative ${
+                            isFeatured 
+                              ? 'bg-[#5D0F12] text-[#FFFBF5] border-[#5D0F12] shadow-xl' 
+                              : 'bg-white text-stone-800 border-[#EADCC9] shadow-sm hover:shadow-md'
+                          }`}
+                        >
+                          {isFeatured && (
+                            <div className="absolute top-0 right-0 bg-[#D4B896] text-[#5D0F12] font-bold text-[9px] uppercase tracking-wider py-1 px-3.5 rounded-bl-xl">
+                              {t.marketplace.popularTag}
+                            </div>
+                          )}
 
-                  {/* Basic Package Card */}
-                  <div className="bg-[#FFFBF5] text-body-text border border-hairline rounded-[24px] p-6 flex flex-col justify-between shadow-md hover:scale-[1.01] transition-transform duration-300">
-                    <div className="space-y-4">
-                      <div className="border-b border-hairline pb-4 space-y-1">
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Basic</span>
-                        <h4 className="text-3xl font-bold font-mono text-ink">
-                          {formatCurrency(min)}
-                        </h4>
-                        <p className="text-xs text-muted-text">
-                          {language === 'vi' ? 'Phóng sự cưới ngày chính lễ' : 'Journalistic Wedding Day'}
-                        </p>
-                      </div>
-                      <ul className="space-y-2.5 text-xs text-body-text">
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính' : '1 Lead Photographer'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{language === 'vi' ? 'Tác nghiệp 4 giờ / File số chất lượng cao' : '4-hour coverage / High-res digital files'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{language === 'vi' ? 'Hậu kỳ cơ bản 150 hình ảnh chọn lọc' : 'Basic retouching of 150 select photos'}</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setWeddingDate(new Date().toISOString().split('T')[0]);
-                        setGuestCount('50');
-                        document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="w-full mt-6 py-2.5 bg-primary hover:bg-primary-active text-cream text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
-                    >
-                      {t.marketplace.inquireNow}
-                    </button>
-                  </div>
+                          <div className="space-y-4">
+                            <div className={`border-b pb-4 space-y-1 ${isFeatured ? 'border-white/15' : 'border-[#EADCC9]'}`}>
+                              <span className={`text-[10px] font-bold uppercase tracking-wider block ${isFeatured ? 'text-[#D4B896]' : 'text-[#5D0F12]'}`}>
+                                Gói #{idx + 1}
+                              </span>
+                              <h4 className="text-lg font-bold font-serif leading-tight">
+                                {pkg.packageName}
+                              </h4>
+                              <div className={`text-2xl font-bold font-mono pt-1 ${isFeatured ? 'text-white' : 'text-[#5D0F12]'}`}>
+                                {formatCurrency(pkg.price)}
+                              </div>
+                            </div>
 
+                            {pkg.description && (
+                              <p className={`text-xs leading-relaxed whitespace-pre-line ${isFeatured ? 'text-white/80' : 'text-stone-600'}`}>
+                                {pkg.description}
+                              </p>
+                            )}
+                          </div>
+
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              setWeddingDate(new Date().toISOString().split('T')[0]);
+                              setGuestCount('150');
+                              document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className={`w-full mt-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-full shadow-sm transition-all cursor-pointer ${
+                              isFeatured 
+                                ? 'bg-[#FFFBF5] text-[#5D0F12] hover:bg-white' 
+                                : 'bg-[#5D0F12] text-[#FFFBF5] hover:bg-[#4A0C0E]'
+                            }`}
+                          >
+                            {t.marketplace.inquireNow}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Fallback Mock Packages (Quiet Luxury Ivory & Burgundy) */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Premium Card */}
+                    <div className="bg-[#5D0F12] text-[#FFFBF5] rounded-[24px] p-6 flex flex-col justify-between shadow-xl relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 bg-[#D4B896] text-[#5D0F12] font-bold text-[9px] uppercase tracking-wider py-1 px-3.5 rounded-bl-xl">
+                        {t.marketplace.popularTag}
+                      </div>
+                      <div className="space-y-4">
+                        <div className="border-b border-white/15 pb-4 space-y-1">
+                          <span className="text-[10px] font-bold text-[#D4B896] uppercase tracking-wider block">PREMIUM PACKAGE</span>
+                          <h4 className="text-3xl font-bold font-mono">
+                            {formatCurrency(max)}
+                          </h4>
+                          <p className="text-xs text-white/70">
+                            {language === 'vi' ? 'Gói trọn gói Ngày cưới & Phóng sự' : 'Comprehensive Pre-Wedding & Ceremony'}
+                          </p>
+                        </div>
+                        <ul className="space-y-2.5 text-xs text-white/90">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-[#D4B896] shrink-0" />
+                            <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính + 1 Quay phim' : '1 Lead Photographer + 1 Videographer'}</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-[#D4B896] shrink-0" />
+                            <span>{language === 'vi' ? 'Tác nghiệp 10 giờ / Toàn bộ file gốc + Album' : '10-hour coverage / All files + Album'}</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-[#D4B896] shrink-0" />
+                            <span>{language === 'vi' ? 'Chỉnh màu cao cấp & Quay flycam' : 'Premium photo editing & drone footage'}</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setWeddingDate(new Date().toISOString().split('T')[0]);
+                          setGuestCount('150');
+                          document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full mt-6 py-2.5 bg-[#FFFBF5] hover:bg-white text-[#5D0F12] text-xs font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
+                      >
+                        {t.marketplace.inquireNow}
+                      </button>
+                    </div>
+
+                    {/* Basic Card */}
+                    <div className="bg-white text-stone-800 border border-[#EADCC9] rounded-[24px] p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
+                      <div className="space-y-4">
+                        <div className="border-b border-[#EADCC9] pb-4 space-y-1">
+                          <span className="text-[10px] font-bold text-[#5D0F12] uppercase tracking-wider block">BASIC PACKAGE</span>
+                          <h4 className="text-3xl font-bold font-mono text-stone-900">
+                            {formatCurrency(min)}
+                          </h4>
+                          <p className="text-xs text-stone-500">
+                            {language === 'vi' ? 'Phóng sự cưới ngày chính lễ' : 'Journalistic Wedding Day'}
+                          </p>
+                        </div>
+                        <ul className="space-y-2.5 text-xs text-stone-700">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-[#5D0F12] shrink-0" />
+                            <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính' : '1 Lead Photographer'}</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-[#5D0F12] shrink-0" />
+                            <span>{language === 'vi' ? 'Tác nghiệp 4 giờ / File số chất lượng cao' : '4-hour coverage / High-res digital files'}</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-[#5D0F12] shrink-0" />
+                            <span>{language === 'vi' ? 'Hậu kỳ cơ bản 150 hình ảnh chọn lọc' : 'Basic retouching of 150 select photos'}</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setWeddingDate(new Date().toISOString().split('T')[0]);
+                          setGuestCount('50');
+                          document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="w-full mt-6 py-2.5 bg-[#5D0F12] hover:bg-[#4A0C0E] text-[#FFFBF5] text-xs font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
+                      >
+                        {t.marketplace.inquireNow}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Reviews Section: Real Reviews & Replies */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-[#EADCC9] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+                    <h3 className="text-xs font-bold text-stone-900 uppercase tracking-widest font-sans">
+                      {t.marketplace.clientFeedbackTitle}
+                    </h3>
+                  </div>
+                  <span className="text-xs text-stone-500 font-medium">
+                    {vendor.totalReviews || 0} {t.marketplace.reviewsText}
+                  </span>
                 </div>
+
+                {/* Reviews List */}
+                {vendor.reviews && vendor.reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {vendor.reviews.map((rev) => (
+                      <div 
+                        key={rev.id} 
+                        className="bg-white rounded-2xl border border-[#EADCC9] p-5 shadow-sm space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#FAF8F5] border border-[#EADCC9] flex items-center justify-center font-bold text-[#5D0F12] text-xs">
+                              {rev.customerName ? rev.customerName.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div>
+                              <h5 className="text-xs font-bold text-stone-900 font-sans">{rev.customerName}</h5>
+                              <span className="text-[10px] text-stone-400 font-mono">
+                                {new Date(rev.createdAt).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex text-amber-500">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star 
+                                key={i} 
+                                className={`w-3.5 h-3.5 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-stone-200'}`} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-stone-700 leading-relaxed font-serif italic">
+                          &ldquo;{rev.comment}&rdquo;
+                        </p>
+
+                        {/* Vendor Reply */}
+                        {rev.vendorReply && (
+                          <div className="bg-[#FAF8F5] border-l-2 border-[#5D0F12] rounded-r-xl p-3.5 text-xs space-y-1">
+                            <div className="flex items-center gap-1.5 font-bold text-[#5D0F12] text-[11px]">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#5D0F12]" />
+                              <span>{language === 'vi' ? `Phản hồi từ ${vendor.businessName}` : `Reply from ${vendor.businessName}`}</span>
+                            </div>
+                            <p className="text-stone-600 text-xs leading-relaxed font-sans">
+                              {rev.vendorReply}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Editorial Default Testimonial Card */
+                  <div className="bg-white rounded-3xl border border-[#EADCC9] p-6 sm:p-8 shadow-sm space-y-5 text-center">
+                    <p className="text-xs sm:text-sm font-serif italic leading-relaxed text-stone-700 max-w-xl mx-auto">
+                      {language === 'vi'
+                        ? '“Lên kế hoạch cưới ban đầu thật sự choáng ngợp, nhưng phong cách làm việc chuyên nghiệp, chu đáo của đối tác trên Planora đã giúp ngày trọng đại của chúng mình diễn ra trọn vẹn và tràn đầy cảm xúc.”'
+                        : '“Planning our wedding felt overwhelming at first, but the professional and thoughtful service from Planora partners ensured our special day was seamless and emotional.”'}
+                    </p>
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex text-amber-500">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <span className="text-xs font-bold text-stone-900 uppercase tracking-widest font-sans pt-1">
+                        Emily &amp; James
+                      </span>
+                      <span className="text-[10px] text-stone-400">Tiệc cưới tại Planora, 2026</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>
 
             {/* RIGHT AREA: Sticky Send Inquiry Sidebar (Col span 4) */}
-            <div id="inquiry-sidebar" className="lg:col-span-4 lg:sticky lg:top-[70px] bg-primary text-cream rounded-[28px] sm:rounded-[32px] p-5 sm:p-8 shadow-xl border border-primary/20 space-y-5 sm:space-y-6">
-              <div className="border-b border-cream/15 pb-4 space-y-1">
+            <div 
+              id="inquiry-sidebar" 
+              className="lg:col-span-4 lg:sticky lg:top-24 bg-white rounded-[2rem] p-6 sm:p-7 shadow-[0_15px_35px_rgba(0,0,0,0.06)] border border-[#EADCC9] space-y-5 text-stone-800"
+            >
+              <div className="border-b border-[#EADCC9] pb-4 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-gold-light" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-gold-light font-display">{t.marketplace.sendInquiryTitle}</h3>
+                  <Mail className="w-4 h-4 text-[#5D0F12]" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#5D0F12] font-sans">
+                    {t.marketplace.sendInquiryTitle}
+                  </h3>
                 </div>
-                <h4 className="text-lg font-semibold tracking-tight text-cream mt-2 font-display">
+                <h4 
+                  className="text-lg font-bold tracking-tight text-stone-900 mt-2 font-serif"
+                  style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+                >
                   {vendor.businessName}
                 </h4>
-                <p className="text-[10px] text-cream/60">
-                  {t.marketplace.startingFrom}: {formatCurrency(min)} / Premium: {formatCurrency(max)}
+                <p className="text-xs text-stone-500">
+                  {t.marketplace.startingFrom}: <span className="font-mono font-semibold text-[#5D0F12]">{formatCurrency(min)}</span>
                 </p>
               </div>
 
@@ -537,7 +799,7 @@ export default function VendorDetail(props: PageProps) {
                 
                 {/* Date Input */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-cream/70 uppercase tracking-wider block">
+                  <label className="text-[10px] font-bold text-stone-600 uppercase tracking-wider block">
                     {t.marketplace.selectWeddingDate}
                   </label>
                   <div className="relative">
@@ -546,15 +808,15 @@ export default function VendorDetail(props: PageProps) {
                       required
                       value={weddingDate}
                       onChange={e => setWeddingDate(e.target.value)}
-                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-base sm:text-xs text-cream focus:outline-none focus:border-gold font-mono cursor-pointer"
+                      className="w-full bg-[#FAF8F5] border border-[#EADCC9] rounded-xl pl-4 pr-10 py-2.5 text-xs text-stone-800 focus:outline-none focus:border-[#5D0F12] focus:bg-white font-mono cursor-pointer transition"
                     />
-                    <CalendarIcon className="w-4 h-4 text-cream/50 absolute right-3.5 top-3.5 pointer-events-none" />
+                    <CalendarIcon className="w-4 h-4 text-stone-400 absolute right-3.5 top-3 pointer-events-none" />
                   </div>
                 </div>
 
                 {/* Guest Count Input */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-cream/70 uppercase tracking-wider block">
+                  <label className="text-[10px] font-bold text-stone-600 uppercase tracking-wider block">
                     {t.marketplace.estimatedGuests}
                   </label>
                   <div className="relative">
@@ -565,16 +827,17 @@ export default function VendorDetail(props: PageProps) {
                       required
                       value={guestCount}
                       onChange={e => setGuestCount(e.target.value)}
-                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-base sm:text-xs text-cream focus:outline-none focus:border-gold font-mono"
+                      className="w-full bg-[#FAF8F5] border border-[#EADCC9] rounded-xl pl-4 pr-10 py-2.5 text-xs text-stone-800 focus:outline-none focus:border-[#5D0F12] focus:bg-white font-mono transition"
                     />
-                    <Users className="w-4 h-4 text-cream/50 absolute right-3.5 top-3.5 pointer-events-none" />
+                    <Users className="w-4 h-4 text-stone-400 absolute right-3.5 top-3 pointer-events-none" />
                   </div>
                 </div>
 
                 {/* Form Message States */}
                 {inquirySuccess && (
-                  <div className="p-3 bg-green-500/20 border border-green-500/30 text-green-200 text-[11px] rounded-lg animate-fade-in leading-relaxed">
-                    {t.marketplace.inquirySuccessMsg}
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl leading-relaxed flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{t.marketplace.inquirySuccessMsg}</span>
                   </div>
                 )}
 
@@ -582,7 +845,7 @@ export default function VendorDetail(props: PageProps) {
                 <button
                   type="submit"
                   disabled={isSubmittingInquiry}
-                  className="w-full py-2.5 bg-gold hover:bg-gold-light disabled:bg-gold/40 disabled:cursor-not-allowed text-primary font-bold text-[10px] uppercase tracking-wider rounded-full shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 bg-[#5D0F12] hover:bg-[#4A0C0E] disabled:bg-stone-300 disabled:cursor-not-allowed text-[#FFFBF5] font-bold text-xs uppercase tracking-wider rounded-full shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   {isSubmittingInquiry ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -597,16 +860,16 @@ export default function VendorDetail(props: PageProps) {
               </form>
 
               {/* Divider line */}
-              <div className="border-t border-cream/10 my-4"></div>
+              <div className="border-t border-[#EADCC9] my-4"></div>
 
               {/* Action buttons */}
               <div className="space-y-2.5">
                 <button
                   type="button"
                   onClick={handleOpenDirectChat}
-                  className="w-full py-2 bg-cream/15 border border-cream/20 hover:bg-cream/25 text-cream text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 bg-[#FAF8F5] border border-[#EADCC9] hover:bg-[#F4EFE8] text-[#5D0F12] text-xs font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <MessageSquare className="w-3.5 h-3.5 text-gold-light" />
+                  <MessageSquare className="w-3.5 h-3.5 text-[#5D0F12]" />
                   {t.marketplace.directChatBtn}
                 </button>
                 
@@ -614,9 +877,9 @@ export default function VendorDetail(props: PageProps) {
                   type="button"
                   onClick={handleToggleShortlist}
                   disabled={isTogglingShortlist}
-                  className="w-full py-2 bg-cream/15 border border-cream/20 hover:bg-cream/25 text-cream text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  className="w-full py-2.5 bg-[#FAF8F5] border border-[#EADCC9] hover:bg-[#F4EFE8] text-stone-700 text-xs font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
-                  <Heart className={`w-3.5 h-3.5 text-gold-light ${isSaved ? 'fill-gold-light' : ''}`} />
+                  <Heart className={`w-3.5 h-3.5 ${isSaved ? 'text-rose-600 fill-rose-600' : 'text-stone-400'}`} />
                   {isSaved ? t.marketplace.shortlistBtnSaved : t.marketplace.shortlistBtnAdd}
                 </button>
               </div>
@@ -626,63 +889,19 @@ export default function VendorDetail(props: PageProps) {
           </div>
         </div>
 
-        {/* Reviews Section: Client Feedback */}
-        <div className="w-full py-16 bg-primary text-cream relative">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-8">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gold-light uppercase tracking-widest block">{t.marketplace.servicesTag}</span>
-              <h3 className="text-xl sm:text-2xl font-semibold tracking-tight uppercase font-display">
-                {t.marketplace.clientFeedbackTitle}
-              </h3>
-            </div>
-
-            {/* Testimonial Card */}
-            <div className="bg-white text-body-text rounded-[28px] p-8 max-w-2xl mx-auto shadow-2xl space-y-6 relative border border-hairline/10 animate-fade-in">
-              <p className="text-xs sm:text-sm font-serif italic leading-relaxed text-ink/90">
-                {language === 'vi'
-                  ? '"Lên kế hoạch cưới ban đầu thật sự choáng ngợp, nhưng Planora đã khiến mọi thứ trở nên nhẹ nhàng hơn rất nhiều. Danh sách việc cần làm được cá nhân hóa giúp chúng tôi luôn chuẩn bị đúng hạn, và các gợi ý nhà cung cấp hoàn toàn đúng gu của hai vợ chồng. Tính năng lên kế hoạch thông minh đã tiết kiệm cho chúng tôi vô số thời gian."'
-                  : '"Planning our wedding felt overwhelming at first, but Planora made everything so much easier. The personalized checklist kept us organized, and the vendor recommendations matched our style perfectly. The AI planning features saved us countless hours of research. From budgeting to finding the right photographer and florist, Planora helped us map out every step of the way!"'}
-              </p>
-              
-              <div className="flex flex-col items-center justify-center gap-2">
-                <div className="flex text-gold justify-center">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-gold text-gold" />
-                  ))}
-                </div>
-                <span className="text-xs font-bold text-ink uppercase tracking-wider font-display block">
-                  Emily &amp; James
-                </span>
-              </div>
-            </div>
-
-            {/* Feedback Page Dots */}
-            <div className="flex justify-center gap-1.5 pt-2">
-              <div className="w-2 h-2 rounded-full bg-cream"></div>
-              <div className="w-2 h-2 rounded-full bg-cream/30"></div>
-              <div className="w-2 h-2 rounded-full bg-cream/30"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Scalloped Lace Divider */}
-        <div className="w-full relative h-5 select-none opacity-80 bg-primary"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='16' viewBox='0 0 40 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,16 C10,16 10,2 20,2 C30,2 30,16 40,16' stroke='%23FFFBF5' stroke-width='2' fill='none'/%3E%3Ccircle cx='20' cy='9' r='1.5' fill='%23FFFBF5' opacity='0.3'/%3E%3Ccircle cx='10' cy='13' r='1' fill='%23FFFBF5' opacity='0.2'/%3E%3Ccircle cx='30' cy='13' r='1' fill='%23FFFBF5' opacity='0.2'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat-x',
-            backgroundSize: '40px 16px',
-            transform: 'rotate(180deg) translateY(-2px)'
-          }}
-        ></div>
-
-        {/* Bottom CTA Newsletter Section */}
-        <div className="w-full py-16 bg-[#FFFBF5] text-center space-y-6">
+        {/* Bottom Editorial Banner (Subtle Warm Linen without Lace) */}
+        <div className="w-full py-16 bg-[#FAF8F5] border-t border-[#EADCC9] text-center space-y-6">
           <div className="space-y-1">
-            <span className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] block">Planora</span>
-            <h3 className="text-2xl font-serif text-ink tracking-wide">
+            <span className="text-[10px] font-bold text-[#5D0F12] uppercase tracking-[0.25em] block">
+              PLANORA WEDDING EDITORIAL
+            </span>
+            <h3 
+              className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-wide font-normal"
+              style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
+            >
               {t.landing.ctaTitle.toUpperCase()}
             </h3>
-            <p className="text-[11px] text-muted-text max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed font-sans">
               {t.landing.howItWorksSubtitle}
             </p>
           </div>
@@ -691,68 +910,42 @@ export default function VendorDetail(props: PageProps) {
             <input 
               type="email" 
               placeholder={t.landing.emailPlaceholder}
-              className="flex-1 bg-white border border-hairline rounded-sm px-4 py-2.5 text-xs text-ink focus:outline-none focus:border-primary shadow-xs"
+              className="flex-1 bg-white border border-[#EADCC9] rounded-full px-4 py-2.5 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#5D0F12] shadow-xs"
             />
             <button 
               type="button"
               onClick={() => alert(language === 'vi' ? 'Cảm ơn bạn đã đăng ký nhận thông tin từ Planora!' : 'Thank you for subscribing to Planora updates!')}
-              className="px-6 py-2.5 bg-primary hover:bg-primary-active text-cream text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors shadow-sm cursor-pointer"
+              className="px-6 py-2.5 bg-[#5D0F12] hover:bg-[#4A0C0E] text-[#FFFBF5] text-[11px] font-bold uppercase tracking-wider rounded-full transition-colors shadow-sm cursor-pointer"
             >
-              {t.landing.signUpBtn}
+              Đăng ký
             </button>
           </div>
         </div>
 
       </div>
 
-      {/* Sticky Mobile Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-hairline p-3 px-4 shadow-lg flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={handleToggleShortlist}
-          disabled={isTogglingShortlist}
-          className={`p-3 rounded-full border transition-all cursor-pointer ${
-            isSaved 
-              ? 'bg-red-50 border-red-200 text-red-600' 
-              : 'bg-canvas border-hairline text-neutral-600 hover:text-red-500'
-          }`}
-          title={isSaved ? t.marketplace.shortlistBtnSaved : t.marketplace.shortlistBtnAdd}
-        >
-          <Heart className={`w-5 h-5 ${isSaved ? 'fill-red-600' : ''}`} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="flex-1 py-3 bg-[#5D0F12] text-[#FFFBF5] rounded-full text-xs font-bold uppercase tracking-wider shadow-md hover:bg-[#4A0C0E] transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
-        >
-          <Mail className="w-4 h-4 text-gold-light" />
-          <span>{t.marketplace.sendInquiryTitle || 'Gửi yêu cầu báo giá'}</span>
-        </button>
-      </div>
-
-      {/* Live Chat Drawer */}
+      {/* Floating Live Chat Drawer */}
       {isChatDrawerOpen && (
-        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-96 bg-white rounded-t-3xl sm:rounded-3xl border border-[#EADCC9] shadow-2xl flex flex-col h-[520px] max-h-[85vh] overflow-hidden animate-fade-in">
-          {/* Drawer Header */}
-          <div className="bg-[#5D0F12] text-[#FFFBF5] p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs uppercase">
+        <div className="fixed bottom-4 right-4 z-50 w-[92vw] sm:w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl border border-[#EADCC9] flex flex-col overflow-hidden animate-slide-up">
+          {/* Header */}
+          <div className="p-3.5 bg-[#5D0F12] text-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
                 {vendor.businessName.charAt(0)}
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider line-clamp-1">{vendor.businessName}</h4>
-                <span className="text-[10px] text-cream/70 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Đang trực tuyến
+                <h4 className="text-xs font-bold leading-tight truncate max-w-[200px]">
+                  {vendor.businessName}
+                </h4>
+                <span className="text-[10px] text-white/70 block">
+                  Trò chuyện trực tiếp &bull; Trực tuyến
                 </span>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setIsChatDrawerOpen(false)}
-              className="p-1 rounded-full text-cream/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
