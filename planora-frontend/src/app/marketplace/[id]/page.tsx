@@ -129,8 +129,8 @@ export default function VendorDetail(props: PageProps) {
       const inq = await createOrGetInquiry({
         vendorId: vendor.id,
         weddingPlanId: plan?.id,
-        title: Tư vấn tiệc cưới ngày ${weddingDate},
-        message: Xin chào ${vendor.businessName}! Tôi dự định tổ chức vào ngày ${weddingDate} với khoảng ${guestCount} khách mời. Rất mong nhận được tư vấn chi tiết từ bạn.,
+        title: `Tư vấn tiệc cưới ngày ${weddingDate}`,
+        message: `Xin chào ${vendor.businessName}! Tôi dự định tổ chức vào ngày ${weddingDate} với khoảng ${guestCount} khách mời. Rất mong nhận được tư vấn chi tiết từ bạn.`,
       });
       setInquirySuccess(true);
       setActiveInquiryId(inq.id);
@@ -153,8 +153,8 @@ export default function VendorDetail(props: PageProps) {
       const inq = await createOrGetInquiry({
         vendorId: vendor.id,
         weddingPlanId: plan?.id,
-        title: Tư vấn trực tiếp với ${vendor.businessName},
-        message: Xin chào ${vendor.businessName}, tôi đang xem trang dịch vụ của bạn trên Planora và muốn được tư vấn thêm.,
+        title: `Tư vấn trực tiếp với ${vendor.businessName}`,
+        message: `Xin chào ${vendor.businessName}, tôi đang xem trang dịch vụ của bạn trên Planora và muốn được tư vấn thêm.`,
       });
       setActiveInquiryId(inq.id);
       setChatMessages(inq.messages || []);
