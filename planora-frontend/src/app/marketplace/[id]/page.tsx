@@ -11,7 +11,7 @@ import type { InquiryMessage } from '@/types/inquiry';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Loader2, X, Send } from 'lucide-react';
+import { Loader2, X, Send, ExternalLink } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -920,13 +920,24 @@ export default function VendorDetail(props: PageProps) {
                 </span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsChatDrawerOpen(false)}
-              className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              {activeInquiryId && (
+                <Link
+                  href={`/messages?inquiryId=${activeInquiryId}`}
+                  title="Mở toàn màn hình trong Hộp Thư Tin Nhắn"
+                  className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsChatDrawerOpen(false)}
+                className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages Thread */}

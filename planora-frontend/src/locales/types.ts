@@ -45,6 +45,7 @@ export interface LocaleDictionary {
     checklist: string;
     timeline: string;
     vendors: string;
+    messages?: string;
     guests: string;
     setup: string;
     settings: string;
