@@ -297,13 +297,13 @@
   color: var(--wine);
 }
 
-/* Two Column Content Grid */
+/* Two Column Content Grid (Story & Gallery + Inquiry Sidebar) */
 .vendor-showcase-page .content-grid {
   align-items: start;
   display: grid;
   gap: 48px;
   grid-template-columns: minmax(0, 1fr) 350px;
-  padding-block: 84px 110px;
+  padding-block: 84px 60px;
 }
 
 .vendor-showcase-page .main-content {
@@ -505,11 +505,19 @@
   width: 100%;
 }
 
-/* Service & Packages Grid */
-.vendor-showcase-page .service-grid {
+/* Service & Packages Section (Full Page-Width Centered) */
+.vendor-showcase-page .services-section {
+  margin-bottom: 96px;
+  width: 100%;
+}
+
+.vendor-showcase-page .services-section .service-grid {
   display: grid;
-  gap: 16px;
+  gap: 24px;
   grid-template-columns: repeat(2, 1fr);
+  max-width: 900px;
+  margin-inline: auto;
+  width: 100%;
 }
 
 .vendor-showcase-page .services-section .service-card {
@@ -652,7 +660,12 @@
   background: var(--ivory);
 }
 
-/* Reviews Section */
+/* Customer Reviews Section (Full Page-Width Centered) */
+.vendor-showcase-page .reviews-section {
+  margin-bottom: 96px;
+  width: 100%;
+}
+
 .vendor-showcase-page .review-count {
   color: var(--muted);
   font-size: 11px;
@@ -668,6 +681,9 @@
   text-align: center;
   gap: 18px;
   padding: 38px 30px;
+  max-width: 820px;
+  margin-inline: auto;
+  width: 100%;
 }
 
 .vendor-showcase-page .reviews-section .quote-mark {

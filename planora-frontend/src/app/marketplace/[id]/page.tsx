@@ -583,8 +583,120 @@ export default function VendorDetail(props: PageProps) {
               </div>
             </section>
 
-            {/* Services & Packages Section */}
-            <section className="services-section" id="services">
+                      </div>
+
+          {/* RIGHT: INQUIRY SIDEBAR (FIGMA TEMPLATE) */}
+          <aside className="inquiry-card" id="inquiry">
+            <div className="inquiry-header">
+              <span className="eyebrow">Gửi yêu cầu</span>
+              <h2>Hãy bắt đầu từ ngày cưới của bạn</h2>
+              <p>{vendor.businessName} thường phản hồi trong vòng 2 giờ.</p>
+            </div>
+            <div className="starting-price">
+              <span>Chi phí từ</span>
+              <strong>{formatCurrency(minPrice)}</strong>
+            </div>
+
+            <form onSubmit={handleSubmitInquiry}>
+              <label>
+                Ngày cưới dự kiến
+                <span className="input-wrap">
+                  <Icon name="calendar" size={17} />
+                  <input 
+                    aria-label="Ngày cưới dự kiến" 
+                    required 
+                    type="date"
+                    value={weddingDate}
+                    onChange={(e) => setWeddingDate(e.target.value)}
+                  />
+                </span>
+              </label>
+
+              <label>
+                Số lượng khách
+                <span className="input-wrap">
+                  <Icon name="guests" size={17} />
+                  <select 
+                    aria-label="Số lượng khách" 
+                    value={guestCount}
+                    onChange={(e) => setGuestCount(e.target.value)}
+                    required
+                  >
+                    <option disabled value="">
+                      Chọn quy mô tiệc
+                    </option>
+                    <option value="Dưới 100 khách">Dưới 100 khách</option>
+                    <option value="100–200 khách">100–200 khách</option>
+                    <option value="200–400 khách">200–400 khách</option>
+                    <option value="Trên 400 khách">Trên 400 khách</option>
+                  </select>
+                </span>
+              </label>
+
+              <label>
+                Số điện thoại
+                <span className="input-wrap">
+                  <Icon name="phone" size={17} />
+                  <input
+                    aria-label="Số điện thoại"
+                    placeholder="Nhập số điện thoại"
+                    required
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                </span>
+              </label>
+
+              <button 
+                className="primary-button" 
+                type="submit"
+                disabled={isSubmittingInquiry}
+              >
+                {isSubmittingInquiry ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Icon name="send" size={17} />
+                    {submitted ? 'Đã gửi yêu cầu' : 'Yêu cầu báo giá'}
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="or-divider">
+              <span>hoặc</span>
+            </div>
+
+            <button 
+              className="secondary-button" 
+              type="button"
+              onClick={handleOpenDirectChat}
+            >
+              <Icon name="chat" size={17} /> Trò chuyện trực tiếp
+            </button>
+
+            <button
+              className={isSaved ? 'save-button saved' : 'save-button'}
+              onClick={handleToggleShortlist}
+              disabled={isTogglingShortlist}
+              type="button"
+            >
+              <Icon name="heart" size={17} />
+              {isSaved ? 'Đã lưu vào danh sách' : 'Lưu nhà cung cấp'}
+            </button>
+
+            <div className="assurance">
+              <Icon name="verified" size={18} />
+              <span>
+                Thông tin của bạn được bảo mật và chỉ chia sẻ với {vendor.businessName}.
+              </span>
+            </div>
+          </aside>
+        </div>
+
+        {/* Services & Packages Section */}
+            <section className="services-section page-width" id="services">
               <div className="section-heading">
                 <span className="eyebrow">BẢNG GIÁ DỊCH VỤ</span>
                 <h2>Dịch vụ & chi phí</h2>
@@ -702,7 +814,7 @@ export default function VendorDetail(props: PageProps) {
             </section>
 
             {/* Customer Reviews Section */}
-            <section className="reviews-section" id="reviews">
+            <section className="reviews-section page-width" id="reviews">
               <div className="section-heading">
                 <span className="eyebrow">ĐÁNH GIÁ TỪ CẶP ĐÔI</span>
                 <h2>Lời nhắn từ khách hàng</h2>
@@ -766,117 +878,7 @@ export default function VendorDetail(props: PageProps) {
                 </article>
               )}
             </section>
-          </div>
 
-          {/* RIGHT: INQUIRY SIDEBAR (FIGMA TEMPLATE) */}
-          <aside className="inquiry-card" id="inquiry">
-            <div className="inquiry-header">
-              <span className="eyebrow">Gửi yêu cầu</span>
-              <h2>Hãy bắt đầu từ ngày cưới của bạn</h2>
-              <p>{vendor.businessName} thường phản hồi trong vòng 2 giờ.</p>
-            </div>
-            <div className="starting-price">
-              <span>Chi phí từ</span>
-              <strong>{formatCurrency(minPrice)}</strong>
-            </div>
-
-            <form onSubmit={handleSubmitInquiry}>
-              <label>
-                Ngày cưới dự kiến
-                <span className="input-wrap">
-                  <Icon name="calendar" size={17} />
-                  <input 
-                    aria-label="Ngày cưới dự kiến" 
-                    required 
-                    type="date"
-                    value={weddingDate}
-                    onChange={(e) => setWeddingDate(e.target.value)}
-                  />
-                </span>
-              </label>
-
-              <label>
-                Số lượng khách
-                <span className="input-wrap">
-                  <Icon name="guests" size={17} />
-                  <select 
-                    aria-label="Số lượng khách" 
-                    value={guestCount}
-                    onChange={(e) => setGuestCount(e.target.value)}
-                    required
-                  >
-                    <option disabled value="">
-                      Chọn quy mô tiệc
-                    </option>
-                    <option value="Dưới 100 khách">Dưới 100 khách</option>
-                    <option value="100–200 khách">100–200 khách</option>
-                    <option value="200–400 khách">200–400 khách</option>
-                    <option value="Trên 400 khách">Trên 400 khách</option>
-                  </select>
-                </span>
-              </label>
-
-              <label>
-                Số điện thoại
-                <span className="input-wrap">
-                  <Icon name="phone" size={17} />
-                  <input
-                    aria-label="Số điện thoại"
-                    placeholder="Nhập số điện thoại"
-                    required
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                  />
-                </span>
-              </label>
-
-              <button 
-                className="primary-button" 
-                type="submit"
-                disabled={isSubmittingInquiry}
-              >
-                {isSubmittingInquiry ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Icon name="send" size={17} />
-                    {submitted ? 'Đã gửi yêu cầu' : 'Yêu cầu báo giá'}
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="or-divider">
-              <span>hoặc</span>
-            </div>
-
-            <button 
-              className="secondary-button" 
-              type="button"
-              onClick={handleOpenDirectChat}
-            >
-              <Icon name="chat" size={17} /> Trò chuyện trực tiếp
-            </button>
-
-            <button
-              className={isSaved ? 'save-button saved' : 'save-button'}
-              onClick={handleToggleShortlist}
-              disabled={isTogglingShortlist}
-              type="button"
-            >
-              <Icon name="heart" size={17} />
-              {isSaved ? 'Đã lưu vào danh sách' : 'Lưu nhà cung cấp'}
-            </button>
-
-            <div className="assurance">
-              <Icon name="verified" size={18} />
-              <span>
-                Thông tin của bạn được bảo mật và chỉ chia sẻ với {vendor.businessName}.
-              </span>
-            </div>
-          </aside>
-        </div>
 
         {/* EDITORIAL CTA SECTION (FIGMA TEMPLATE) */}
         <section className="editorial-cta">
