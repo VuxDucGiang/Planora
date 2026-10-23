@@ -4,9 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRoleRedirectPath } from '@/services/auth';
-import { getActivePlan, deleteActivePlan } from '@/services/weddingPlan';
 import { getShortlist } from '@/services/vendor';
-import type { ActivePlanResponse } from '@/types/weddingPlan';
 import type { VendorResponse } from '@/types/vendor';
 import {
   Calendar,
@@ -24,6 +22,7 @@ import {
   AlertCircle,
   Send,
   CheckCircle2,
+  LayoutDashboard,
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
@@ -38,8 +37,8 @@ function CircularProgress({
   percent,
   size = 96,
   stroke = 6,
-  color = 'var(--color-primary)',
-  bgColor = 'var(--color-hairline)',
+  color = '#5D0F12',
+  bgColor = '#F3EFEA',
   children,
 }: {
   percent: number;
@@ -84,14 +83,13 @@ function CircularProgress({
   );
 }
 
-
 // ─── Main Dashboard Page ─────────────────────────────────────────
 export default function Home() {
   const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
   const { language, t, formatCurrency } = useLanguage();
   const router = useRouter();
 
-  const { plan, daysLeft, isLoadingPlan, setPlan, deletePlan: contextDeletePlan } = usePlan();
+  const { plan, isLoadingPlan, deletePlan: contextDeletePlan } = usePlan();
   const [savedVendors, setSavedVendors] = useState<VendorResponse[]>([]);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
 
@@ -195,10 +193,10 @@ export default function Home() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
+      <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-text">{t.dashboard.loadingSession}</span>
+          <Loader2 className="w-8 h-8 animate-spin text-[#5D0F12]" />
+          <span className="text-sm text-neutral-500 font-serif italic">{t.dashboard.loadingSession}</span>
         </div>
       </div>
     );
@@ -214,7 +212,7 @@ export default function Home() {
   const timelinePercent = totalTasks > 0 ? Math.min(Math.round((completedTasks / totalTasks) * 50) + 10, 100) : 0;
 
   return (
-    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full">
+    <div className="min-h-screen bg-[#FFFBF5] text-neutral-800 font-sans flex flex-col w-full selection:bg-[#5D0F12]/15 selection:text-[#5D0F12]">
       {/* Top Info Bar */}
       <div className="sticky top-0 z-50">
         <DashboardHeader logout={logout} plan={plan} daysLeft={timeLeft.days} />
@@ -226,36 +224,47 @@ export default function Home() {
         <DashboardSidebar hasPlan={!!plan} />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5]">
           {isLoadingPlan ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <span className="text-sm text-muted-text font-display">{t.dashboard.loadingPlan}</span>
+              <Loader2 className="w-8 h-8 animate-spin text-[#5D0F12]" />
+              <span className="text-sm text-neutral-500 font-serif italic">{t.dashboard.loadingPlan}</span>
             </div>
           ) : (
             <>
               <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-8 lg:px-10 py-6 sm:py-8">
-                {/* ── Greeting Section ───────────────────────── */}
-                <div className={`mb-6 sm:mb-8 animate-fade-in ${!plan ? 'text-center' : ''}`}>
-                  <h1
-                    className="text-xl sm:text-2xl text-primary mb-1 font-serif font-normal"
+                {/* ─── Breadcrumbs Badge & Subtitle Row (Marketplace Style) ─── */}
+                <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5 mb-6 sm:mb-8 animate-fade-in ${!plan ? 'text-center md:text-left' : ''}`}>
+                  <div>
+                    {/* Clean, Elegant Breadcrumb Pill Badge */}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-neutral-200/90 shadow-xs">
+                      <LayoutDashboard className="w-4 h-4 text-[#5D0F12]" />
+                      <span className="font-serif tracking-widest text-xs font-bold uppercase text-[#5D0F12]">
+                        {t.nav.dashboard || 'TỔNG QUAN KẾ HOẠCH CƯỚI'}
+                      </span>
+                    </div>
+
+                    {/* Subtitle */}
+                    <h2 className="text-xs sm:text-base font-serif italic text-neutral-800 mt-1.5 pl-1">
+                      {getGreeting()}, {displayName}! {plan ? t.dashboard.overviewSubtitle : t.dashboard.welcomeSubtitle}
+                    </h2>
+                  </div>
+
+                  {/* Explore Marketplace Pill Button */}
+                  <Link
+                    href="/marketplace"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-neutral-300 bg-white hover:bg-[#FAF8F5] text-neutral-800 text-xs font-semibold shadow-xs transition-all cursor-pointer"
                   >
-                    {getGreeting()}, {displayName}!
-                  </h1>
-                  <p
-                    className="text-sm sm:text-base text-primary font-serif font-normal"
-                  >
-                    {plan
-                      ? t.dashboard.overviewSubtitle
-                      : t.dashboard.welcomeSubtitle}
-                  </p>
+                    <Sparkles className="w-3.5 h-3.5 text-[#5D0F12]" />
+                    <span>{t.dashboard.exploreVendorsBtn || 'Khám phá đối tác cưới'}</span>
+                  </Link>
                 </div>
 
                 {/* Notification Banner */}
                 {notificationMessage && (
-                  <div className={`mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-xs shadow-xs animate-fade-in ${!plan ? 'max-w-2xl mx-auto' : ''}`}>
+                  <div className={`mb-6 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-xs shadow-xs animate-fade-in ${!plan ? 'max-w-2xl mx-auto' : ''}`}>
                     <div className="flex items-center gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span className="font-medium">{notificationMessage}</span>
                     </div>
                     <button
@@ -274,19 +283,19 @@ export default function Home() {
                      ══════════════════════════════════════════════ */
                   <div className="space-y-8 animate-fade-in">
                     {/* Wedding Summary Card - Empty */}
-                    <div className="bg-white border border-hairline rounded-xl p-8 shadow-sm vintage-card flex flex-col items-center justify-center text-center space-y-5">
-                      <div className="inline-flex p-4 rounded-full bg-primary/10 border border-primary/20">
-                        <Heart className="w-8 h-8 text-primary animate-pulse" />
+                    <div className="bg-[#FAF8F5] border border-neutral-200/60 rounded-[1.75rem] sm:rounded-[2rem] p-8 sm:p-12 shadow-xs flex flex-col items-center justify-center text-center space-y-5">
+                      <div className="inline-flex p-4 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20">
+                        <Heart className="w-8 h-8 text-[#5D0F12] animate-pulse" />
                       </div>
-                      <h2 className="text-xl font-display font-medium text-ink text-center">
+                      <h2 className="text-xl sm:text-2xl font-serif font-bold uppercase tracking-wide text-[#5D0F12] text-center">
                         {t.dashboard.emptyCardTitle}
                       </h2>
-                      <p className="text-sm text-muted-text max-w-md mx-auto text-center leading-relaxed">
+                      <p className="text-xs sm:text-sm text-neutral-600 max-w-md mx-auto text-center leading-relaxed font-serif italic">
                         {t.dashboard.emptyCardDesc}
                       </p>
                       <Link
                         href="/onboarding"
-                        className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-cream rounded-lg text-sm font-semibold hover:bg-primary-active transition-all shadow-md uppercase tracking-wider"
+                        className="inline-flex items-center gap-2 px-7 py-3 bg-[#5D0F12] hover:bg-[#4A0C0E] !text-[#FFFBF5] rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
                       >
                         <Plus className="w-4 h-4" />
                         {t.dashboard.emptyCardBtn}
@@ -301,11 +310,13 @@ export default function Home() {
                         { icon: <Calendar className="w-5 h-5" />, title: t.dashboard.featTimelineTitle, desc: t.dashboard.featTimelineDesc },
                         { icon: <Sparkles className="w-5 h-5" />, title: t.dashboard.featConceptTitle, desc: t.dashboard.featConceptDesc },
                       ].map((feat) => (
-                        <div key={feat.title} className="bg-white border border-hairline rounded-lg p-5 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="p-2 rounded-md bg-primary/10 text-primary shrink-0">{feat.icon}</div>
+                        <div key={feat.title} className="bg-white border border-neutral-100 rounded-[1.5rem] p-5 flex items-start gap-3.5 shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:shadow-md transition-all">
+                          <div className="w-10 h-10 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 flex items-center justify-center text-[#5D0F12] shrink-0">
+                            {feat.icon}
+                          </div>
                           <div>
-                            <h4 className="text-sm font-bold text-ink">{feat.title}</h4>
-                            <p className="text-xs text-muted-text mt-0.5">{feat.desc}</p>
+                            <h4 className="text-xs sm:text-sm font-bold text-neutral-900 font-sans">{feat.title}</h4>
+                            <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">{feat.desc}</p>
                           </div>
                         </div>
                       ))}
@@ -317,21 +328,31 @@ export default function Home() {
                      ══════════════════════════════════════════════ */
                   <div className="space-y-8">
 
-                    {/* ── Wedding Summary Card ─────────────────── */}
-                    <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-1">
-                      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                        <h2
-                          className="text-xl sm:text-2xl font-serif font-medium text-ink uppercase tracking-wider flex items-center gap-2"
-                        >
-                          <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
-                          {t.dashboard.summaryCardTitle}
-                        </h2>
+                    {/* ── Wedding Summary Card (Marketplace standard rounded-[1.75rem]) ─────────────────── */}
+                    <div className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-6 sm:p-7 animate-fade-in-delay-1">
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 flex items-center justify-center text-[#5D0F12] shrink-0">
+                            <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-[#5D0F12]" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg sm:text-xl font-serif font-bold uppercase tracking-wide text-[#5D0F12]">
+                              {t.dashboard.summaryCardTitle}
+                            </h2>
+                            {plan.title && (
+                              <p className="text-xs text-neutral-500 font-serif italic truncate max-w-xs sm:max-w-md">
+                                {plan.title}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
                         <div className="flex items-center gap-2">
                           <Link
                             href="/onboarding"
-                            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary border border-primary/20 bg-primary/5 hover:bg-primary/10 px-3.5 py-1.5 rounded-full transition-colors uppercase tracking-wider"
+                            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-neutral-800 bg-white border border-neutral-300 hover:bg-neutral-50 px-4 py-2 rounded-full transition-all shadow-xs uppercase tracking-wider active:scale-95 cursor-pointer"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-3.5 h-3.5 text-[#5D0F12]" />
                             {t.dashboard.editPlanBtn}
                           </Link>
                           <button
@@ -340,7 +361,7 @@ export default function Home() {
                               setDeleteError(null);
                               setShowDeleteModal(true);
                             }}
-                            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-rose-700 border border-rose-200 bg-rose-50 hover:bg-rose-100 hover:border-rose-300 px-3.5 py-1.5 rounded-full transition-all shadow-xs cursor-pointer uppercase tracking-wider"
+                            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-rose-700 border border-rose-200/80 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-full transition-all shadow-xs cursor-pointer uppercase tracking-wider active:scale-95"
                             title={t.dashboard.deletePlanBtn}
                           >
                             <Trash2 className="w-3.5 h-3.5 text-rose-600" />
@@ -349,40 +370,48 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Info Row */}
-                      <div className="flex flex-wrap gap-x-8 gap-y-2.5 text-sm sm:text-base text-body-text mb-5 pb-4 border-b border-hairline">
+                      {/* Info Badges Row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 p-4 rounded-2xl bg-[#FAF8F5] border border-neutral-200/60">
                         <div>
-                          <span className="text-muted-text">{t.dashboard.styleLabel}: </span>
-                          <span className="font-semibold text-ink">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block">
+                            {t.dashboard.styleLabel}
+                          </span>
+                          <span className="font-serif font-bold text-base text-[#5D0F12] mt-0.5 block">
                             {plan.conceptSuggestions?.[0]?.conceptName || 'Modern Rustic'}
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-text">{t.dashboard.budgetLabel}: </span>
-                          <span className="font-semibold text-ink font-mono">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block">
+                            {t.dashboard.budgetLabel}
+                          </span>
+                          <span className="font-bold text-base text-neutral-900 mt-0.5 block">
                             {formatCurrency(plan.budget)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-text">{t.dashboard.guestsLabel}: </span>
-                          <span className="font-semibold text-ink">{plan.guestCount}</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block">
+                            {t.dashboard.guestsLabel}
+                          </span>
+                          <span className="font-bold text-base text-neutral-900 mt-0.5 block">
+                            {plan.guestCount} {language === 'vi' ? 'khách' : 'guests'}
+                          </span>
                         </div>
                       </div>
 
                       {/* Countdown Bar */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm sm:text-base font-semibold text-ink flex items-center gap-1.5">
-                            <Clock className="w-4 h-4 text-muted-text" />
+                          <span className="text-xs sm:text-sm font-semibold text-neutral-800 flex items-center gap-1.5 uppercase tracking-wider">
+                            <Clock className="w-4 h-4 text-[#5D0F12]" />
                             {t.dashboard.countdownLabel}
                           </span>
-                          <span className="text-base sm:text-lg font-bold text-primary">
+                          <span className="text-sm sm:text-base font-bold text-[#5D0F12]">
                             {t.dashboard.daysRemainingFormat.replace('{days}', String(timeLeft.days))}
                           </span>
                         </div>
-                        <div className="w-full h-[18px] bg-lace rounded-full overflow-hidden border border-lace-dark/30">
+                        <div className="w-full h-3 bg-neutral-100 rounded-full overflow-hidden border border-neutral-200/60">
                           <div
-                            className="h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-all duration-1000 ease-out animate-pulse-glow"
+                            className="h-full bg-gradient-to-r from-[#5D0F12] to-[#8F3035] rounded-full transition-all duration-1000 ease-out"
                             style={{
                               width: `${Math.max(5, Math.min(100, plan.weddingDate
                                 ? 100 - (timeLeft.days / (Math.max(1, Math.ceil((+new Date(plan.weddingDate) - +new Date('2024-01-01')) / (1000 * 60 * 60 * 24))))) * 100
@@ -398,118 +427,156 @@ export default function Home() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                       {/* Progress Tracker */}
-                      <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-2">
-                        <h3
-                          className="text-xl sm:text-2xl font-serif font-medium text-ink uppercase tracking-wider mb-5 flex items-center gap-2"
-                        >
-                          <ListTodo className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
-                          {t.dashboard.progressTrackerTitle}
-                        </h3>
-
-                        <div className="space-y-4">
-                          {/* Checklist Tasks */}
-                          <div>
-                            <div className="flex justify-between text-sm sm:text-base mb-1.5">
-                              <span className="font-semibold text-ink">
-                                {t.dashboard.checklistProgressFormat.replace('{percent}', String(checklistPercent))}
-                              </span>
+                      <div className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-6 sm:p-7 flex flex-col justify-between animate-fade-in-delay-2">
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-5">
+                            <div className="w-9 h-9 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 flex items-center justify-center text-[#5D0F12] shrink-0">
+                              <ListTodo className="w-4 h-4 text-[#5D0F12]" />
                             </div>
-                            <div className="w-full h-3 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
-                              <div
-                                className="h-full bg-primary rounded-full transition-all duration-700"
-                                style={{ width: `${checklistPercent}%` }}
-                              />
-                            </div>
-                            <p className="text-sm text-muted-text mt-1.5 italic">
-                              {t.dashboard.checklistCompletedFormat
-                                .replace('{completed}', String(completedTasks))
-                                .replace('{total}', String(totalTasks))}
-                            </p>
+                            <h3 className="text-base sm:text-lg font-serif font-bold uppercase tracking-wide text-[#5D0F12]">
+                              {t.dashboard.progressTrackerTitle}
+                            </h3>
                           </div>
 
-                          {/* Timeline Milestones */}
-                          <div>
-                            <div className="flex justify-between text-sm sm:text-base mb-1.5">
-                              <span className="font-semibold text-ink">
-                                {t.dashboard.timelineProgressFormat.replace('{percent}', String(timelinePercent))}
-                              </span>
+                          <div className="space-y-5">
+                            {/* Checklist Tasks */}
+                            <div>
+                              <div className="flex justify-between items-center text-xs sm:text-sm mb-1.5">
+                                <span className="font-semibold text-neutral-800">
+                                  {t.dashboard.checklistProgressFormat.replace('{percent}', String(checklistPercent))}
+                                </span>
+                                <span className="text-xs text-neutral-500 font-serif italic">
+                                  {t.dashboard.checklistCompletedFormat
+                                    .replace('{completed}', String(completedTasks))
+                                    .replace('{total}', String(totalTasks))}
+                                </span>
+                              </div>
+                              <div className="w-full h-3 bg-neutral-100 rounded-full overflow-hidden border border-neutral-200/60">
+                                <div
+                                  className="h-full bg-[#5D0F12] rounded-full transition-all duration-700"
+                                  style={{ width: `${checklistPercent}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="w-full h-3 bg-lace rounded-full overflow-hidden border border-lace-dark/20">
-                              <div
-                                className="h-full bg-gold rounded-full transition-all duration-700"
-                                style={{ width: `${timelinePercent}%` }}
-                              />
+
+                            {/* Timeline Milestones */}
+                            <div>
+                              <div className="flex justify-between items-center text-xs sm:text-sm mb-1.5">
+                                <span className="font-semibold text-neutral-800">
+                                  {t.dashboard.timelineProgressFormat.replace('{percent}', String(timelinePercent))}
+                                </span>
+                                <span className="text-xs text-neutral-500 font-serif italic">
+                                  {language === 'vi' ? 'Tiến độ thời gian' : 'Timeline Progress'}
+                                </span>
+                              </div>
+                              <div className="w-full h-3 bg-neutral-100 rounded-full overflow-hidden border border-neutral-200/60">
+                                <div
+                                  className="h-full bg-amber-600 rounded-full transition-all duration-700"
+                                  style={{ width: `${timelinePercent}%` }}
+                                />
+                              </div>
                             </div>
                           </div>
+                        </div>
+
+                        <div className="pt-5 mt-5 border-t border-neutral-100 flex items-center justify-between">
+                          <Link
+                            href="/checklist"
+                            className="text-xs font-bold uppercase tracking-wider text-[#5D0F12] hover:underline cursor-pointer"
+                          >
+                            {t.nav.checklist} &rarr;
+                          </Link>
+                          <Link
+                            href="/timeline"
+                            className="text-xs font-bold uppercase tracking-wider text-neutral-600 hover:text-[#5D0F12] hover:underline cursor-pointer"
+                          >
+                            {t.nav.timeline} &rarr;
+                          </Link>
                         </div>
                       </div>
 
                       {/* Budget & Spending */}
-                      <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-2">
-                        <h3
-                          className="text-xl sm:text-2xl font-serif font-medium text-ink uppercase tracking-wider mb-4 flex items-center gap-2"
-                        >
-                          <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
-                          {t.dashboard.budgetOverviewTitle}
-                        </h3>
-
-                        <div className="flex flex-col sm:flex-row items-center sm:items-start md:items-center gap-5 sm:gap-6">
-                          {/* Circular Progress */}
-                          <div className="shrink-0">
-                            <CircularProgress
-                              percent={plan.budget > 0 ? Math.round((totalSpent / plan.budget) * 100) : 0}
-                              size={105}
-                              stroke={7}
-                              color="var(--color-primary)"
-                            >
-                              <div className="text-center px-1">
-                                <span className="text-xs sm:text-sm font-bold text-ink block">
-                                  {language === 'vi' ? 'Tổng' : 'Total'}
-                                </span>
-                                <span className="text-[11px] sm:text-xs font-bold text-primary font-mono truncate max-w-[80px] block">
-                                  {formatCurrency(plan.budget)}
-                                </span>
-                              </div>
-                            </CircularProgress>
+                      <div className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-6 sm:p-7 flex flex-col justify-between animate-fade-in-delay-2">
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-5">
+                            <div className="w-9 h-9 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 flex items-center justify-center text-[#5D0F12] shrink-0">
+                              <DollarSign className="w-4 h-4 text-[#5D0F12]" />
+                            </div>
+                            <h3 className="text-base sm:text-lg font-serif font-bold uppercase tracking-wide text-[#5D0F12]">
+                              {t.dashboard.budgetOverviewTitle}
+                            </h3>
                           </div>
 
-                          {/* Legend */}
-                          <div className="space-y-3 w-full sm:flex-1">
-                            <div className="flex items-center justify-between text-sm sm:text-base">
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-primary" />
-                                <span className="text-body-text">{t.dashboard.budgetSpent}</span>
-                              </div>
-                              <span className="font-bold text-ink font-mono">
-                                {formatCurrency(totalSpent)}
-                              </span>
+                          <div className="flex flex-col sm:flex-row items-center sm:items-start md:items-center gap-5 sm:gap-6">
+                            {/* Circular Progress */}
+                            <div className="shrink-0">
+                              <CircularProgress
+                                percent={plan.budget > 0 ? Math.round((totalSpent / plan.budget) * 100) : 0}
+                                size={105}
+                                stroke={7}
+                                color="#5D0F12"
+                                bgColor="#F3EFEA"
+                              >
+                                <div className="text-center px-1">
+                                  <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block">
+                                    {language === 'vi' ? 'Tổng chi' : 'Spent'}
+                                  </span>
+                                  <span className="text-xs font-bold text-[#5D0F12] truncate max-w-[80px] block">
+                                    {plan.budget > 0 ? `${Math.round((totalSpent / plan.budget) * 100)}%` : '0%'}
+                                  </span>
+                                </div>
+                              </CircularProgress>
                             </div>
-                            <div className="flex items-center justify-between text-sm sm:text-base">
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-gold" />
-                                <span className="text-body-text">{t.dashboard.budgetAllocated}</span>
+
+                            {/* Legend */}
+                            <div className="space-y-2.5 w-full sm:flex-1">
+                              <div className="flex items-center justify-between text-xs sm:text-sm">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-[#5D0F12]" />
+                                  <span className="text-neutral-700 font-medium">{t.dashboard.budgetSpent}</span>
+                                </div>
+                                <span className="font-bold text-neutral-900">
+                                  {formatCurrency(totalSpent)}
+                                </span>
                               </div>
-                              <span className="font-bold text-ink font-mono">
-                                {formatCurrency(totalAllocated)}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm sm:text-base">
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-hairline" />
-                                <span className="text-body-text">{t.dashboard.budgetRemaining}</span>
+                              <div className="flex items-center justify-between text-xs sm:text-sm">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-amber-600" />
+                                  <span className="text-neutral-700 font-medium">{t.dashboard.budgetAllocated}</span>
+                                </div>
+                                <span className="font-bold text-neutral-900">
+                                  {formatCurrency(totalAllocated)}
+                                </span>
                               </div>
-                              <span className="font-bold text-ink font-mono">
-                                {formatCurrency(Math.max(0, budgetRemaining))}
-                              </span>
+                              <div className="flex items-center justify-between text-xs sm:text-sm">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-neutral-300" />
+                                  <span className="text-neutral-700 font-medium">{t.dashboard.budgetRemaining}</span>
+                                </div>
+                                <span className="font-bold text-[#5D0F12]">
+                                  {formatCurrency(Math.max(0, budgetRemaining))}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                        </div>
+
+                        <div className="pt-5 mt-5 border-t border-neutral-100 flex items-center justify-end">
+                          <Link
+                            href="/budget"
+                            className="text-xs font-bold uppercase tracking-wider text-[#5D0F12] hover:underline cursor-pointer"
+                          >
+                            {t.nav.budget} &rarr;
+                          </Link>
                         </div>
                       </div>
                     </div>
 
-                    {/* ── Decorative Lace Divider ──────────────── */}
-                    <div className="ornament-divider text-lace-dark py-2">
-                      <span className="text-lg">✦</span>
+                    {/* ── Quiet Luxury Accent Divider ──────────────── */}
+                    <div className="flex items-center justify-center gap-4 py-2 text-neutral-300 select-none">
+                      <div className="h-px bg-neutral-200/80 flex-1 max-w-[120px]" />
+                      <span className="text-amber-700 text-sm">✦</span>
+                      <div className="h-px bg-neutral-200/80 flex-1 max-w-[120px]" />
                     </div>
 
                     {/* ── Saved Vendors Section ────────────────── */}
@@ -518,46 +585,43 @@ export default function Home() {
                     </div>
 
                     {/* ── Inquiry Status Section ───────────────── */}
-                    <div className="bg-white border border-hairline rounded-xl p-6 shadow-sm vintage-card animate-fade-in-delay-4">
-                      <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-primary" />
-                        {language === 'vi' ? 'TRẠNG THÁI YÊU CẦU' : 'INQUIRY STATUS'}
-                      </h3>
+                    <div className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-6 sm:p-7 animate-fade-in-delay-4">
+                      <div className="flex items-center gap-2.5 mb-5">
+                        <div className="w-9 h-9 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 flex items-center justify-center text-[#5D0F12] shrink-0">
+                          <MessageCircle className="w-4 h-4 text-[#5D0F12]" />
+                        </div>
+                        <h3 className="text-base sm:text-lg font-serif font-bold uppercase tracking-wide text-[#5D0F12]">
+                          {language === 'vi' ? 'TRẠNG THÁI TƯ VẤN & HỘP THƯ' : 'INQUIRY STATUS & MESSAGES'}
+                        </h3>
+                      </div>
 
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
+                      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
                         {/* Open Message Center Button */}
                         <Link
-                          href="#messages"
-                          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-cream rounded-lg text-xs font-semibold hover:bg-primary-active transition-colors shadow-sm uppercase tracking-wider"
+                          href="/messages"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#5D0F12] hover:bg-[#4A0C0E] !text-[#FFFBF5] rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
                         >
                           <Mail className="w-3.5 h-3.5" />
-                          {language === 'vi' ? 'MỞ TRUNG TÂM TIN NHẮN' : 'OPEN MESSAGE CENTER'}
+                          <span>{language === 'vi' ? 'MỞ TRUNG TÂM TIN NHẮN' : 'OPEN MESSAGE CENTER'}</span>
                         </Link>
 
-                        {/* Stats */}
-                        <div className="flex gap-6 text-xs">
-                          <div className="flex items-center gap-2">
-                            <Send className="w-3.5 h-3.5 text-muted-text" />
-                            <span className="text-body-text">
-                              {language === 'vi' ? 'Yêu cầu đã gửi' : 'Sent Requests'}
+                        {/* Stat Pills */}
+                        <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-neutral-200/60">
+                            <Send className="w-3.5 h-3.5 text-neutral-500" />
+                            <span className="text-neutral-600 font-medium">
+                              {language === 'vi' ? 'Yêu cầu đã lưu' : 'Saved Vendors'}:
                             </span>
-                            <span className="font-bold text-ink">{savedVendors.length}</span>
+                            <span className="font-bold text-neutral-900">{savedVendors.length}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-body-text">
-                              {language === 'vi' ? 'Phản hồi từ đối tác' : 'Vendor Responses'}
+                          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="text-emerald-800 font-medium">
+                              {language === 'vi' ? 'Tin nhắn' : 'Messages'}:
                             </span>
-                            <span className="font-bold text-primary">
-                              {language === 'vi' ? '0 MỚI' : '0 NEW'}
+                            <span className="font-bold text-emerald-700">
+                              {language === 'vi' ? 'SẴN SÀNG' : 'READY'}
                             </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <AlertCircle className="w-3.5 h-3.5 text-gold" />
-                            <span className="text-body-text">
-                              {language === 'vi' ? 'Chưa phản hồi' : 'No Reply Yet'}
-                            </span>
-                            <span className="font-bold text-ink">0</span>
                           </div>
                         </div>
                       </div>
@@ -570,34 +634,34 @@ export default function Home() {
               {/* Delete Plan Confirmation Modal */}
               {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-                  <div className="bg-white rounded-t-3xl sm:rounded-2xl border border-hairline p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 animate-slide-up sm:animate-scale-up">
+                  <div className="bg-white rounded-t-3xl sm:rounded-[1.75rem] border border-neutral-200/80 p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 animate-slide-up sm:animate-scale-up">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                         <Trash2 className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-ink">{t.dashboard.deleteModalTitle}</h3>
-                        <p className="text-xs text-muted-text mt-0.5">{t.dashboard.deleteModalWarning}</p>
+                        <h3 className="text-base font-bold text-neutral-900">{t.dashboard.deleteModalTitle}</h3>
+                        <p className="text-xs text-neutral-500 mt-0.5">{t.dashboard.deleteModalWarning}</p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-body-text leading-relaxed bg-rose-50/60 p-3.5 rounded-xl border border-rose-100">
+                    <p className="text-xs text-neutral-700 leading-relaxed bg-rose-50/60 p-3.5 rounded-2xl border border-rose-100">
                       {t.dashboard.deleteModalNotice}
                     </p>
 
                     {deleteError && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                         <span>{deleteError}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-hairline">
+                    <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-neutral-100">
                       <button
                         type="button"
                         disabled={isDeleting}
                         onClick={() => setShowDeleteModal(false)}
-                        className="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-semibold text-body-text hover:bg-canvas rounded-lg border border-hairline transition-all cursor-pointer min-h-[44px] flex items-center justify-center"
+                        className="flex-1 sm:flex-initial px-5 py-2.5 text-xs font-semibold text-neutral-800 bg-white border border-neutral-300 hover:bg-neutral-50 rounded-full transition-all shadow-xs cursor-pointer min-h-[42px] flex items-center justify-center"
                       >
                         {t.dashboard.deleteModalCancel}
                       </button>
@@ -605,7 +669,7 @@ export default function Home() {
                         type="button"
                         disabled={isDeleting}
                         onClick={handleDeletePlan}
-                        className="flex-1 sm:flex-initial px-4 py-2.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 min-h-[44px]"
+                        className="flex-1 sm:flex-initial px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-full transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 min-h-[42px]"
                       >
                         {isDeleting ? (
                           <>

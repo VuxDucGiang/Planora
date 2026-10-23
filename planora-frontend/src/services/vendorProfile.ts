@@ -4,6 +4,11 @@ import type {
   CreatePortfolioRequest,
   PortfolioResponse,
   FileUploadResponse,
+  CollectionResponse,
+  CollectionImageResponse,
+  CreateCollectionRequest,
+  UpdateCollectionRequest,
+  AddCollectionImageRequest,
 } from '@/types/vendor';
 
 function getAuthHeaders(isMultipart = false): HeadersInit {
@@ -46,6 +51,29 @@ export async function updateVendorProfile(
 
   if (!response.ok) {
     let msg = 'Không thể cập nhật hồ sơ nhà cung cấp';
+    try {
+      const err = await response.json();
+      if (err.message) msg = err.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
+export async function updateVendorAvatar(
+  avatarUrl: string | null
+): Promise<VendorProfileResponse> {
+  const response = await fetch('/api/vendor/avatar', {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ avatarUrl: avatarUrl || '' }),
+  });
+
+  if (!response.ok) {
+    let msg = 'Không thể cập nhật ảnh đại diện';
     try {
       const err = await response.json();
       if (err.message) msg = err.message;
@@ -130,6 +158,132 @@ export async function deleteVendorPortfolio(portfolioId: number): Promise<void> 
 
   if (!response.ok) {
     throw new Error('Không thể xóa tác phẩm');
+  }
+}
+
+// ==========================================
+// MULTI-ALBUM COLLECTION SERVICES
+// ==========================================
+
+export async function getVendorCollections(): Promise<CollectionResponse[]> {
+  const response = await fetch('/api/vendor/collections', {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể tải danh sách bộ sưu tập');
+  }
+
+  return response.json();
+}
+
+export async function getVendorCollectionDetail(collectionId: number): Promise<CollectionResponse> {
+  const response = await fetch(`/api/vendor/collections/${collectionId}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể tải thông tin bộ sưu tập');
+  }
+
+  return response.json();
+}
+
+export async function createVendorCollection(
+  data: CreateCollectionRequest
+): Promise<CollectionResponse> {
+  const response = await fetch('/api/vendor/collections', {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let msg = 'Không thể tạo mới bộ sưu tập';
+    try {
+      const err = await response.json();
+      if (err.message) msg = err.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
+export async function updateVendorCollection(
+  collectionId: number,
+  data: UpdateCollectionRequest
+): Promise<CollectionResponse> {
+  const response = await fetch(`/api/vendor/collections/${collectionId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let msg = 'Không thể cập nhật bộ sưu tập';
+    try {
+      const err = await response.json();
+      if (err.message) msg = err.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
+export async function deleteVendorCollection(collectionId: number): Promise<void> {
+  const response = await fetch(`/api/vendor/collections/${collectionId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể xóa bộ sưu tập');
+  }
+}
+
+export async function addCollectionImage(
+  collectionId: number,
+  data: AddCollectionImageRequest
+): Promise<CollectionImageResponse> {
+  const response = await fetch(`/api/vendor/collections/${collectionId}/images`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let msg = 'Không thể thêm ảnh vào bộ sưu tập';
+    try {
+      const err = await response.json();
+      if (err.message) msg = err.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
+export async function deleteCollectionImage(
+  collectionId: number,
+  imageId: number
+): Promise<void> {
+  const response = await fetch(`/api/vendor/collections/${collectionId}/images/${imageId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Không thể xóa ảnh khỏi bộ sưu tập');
   }
 }
 

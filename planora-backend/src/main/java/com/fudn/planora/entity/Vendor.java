@@ -67,6 +67,9 @@ public class Vendor {
     private List<VendorPortfolio> portfolios;
 
     @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<VendorCollection> collections;
+
+    @OneToMany(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Review> reviews;
 
     @PrePersist
@@ -83,6 +86,4 @@ public class Vendor {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-
 }

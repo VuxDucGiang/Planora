@@ -1,4 +1,4 @@
-﻿export interface VendorResponse {
+export interface VendorResponse {
   id: number;
   businessName: string;
   description: string;
@@ -22,6 +22,44 @@ export interface PortfolioResponse {
   imageUrl: string;
   title: string;
   description?: string;
+}
+
+export interface CollectionImageResponse {
+  id: number;
+  collectionId: number;
+  imageUrl: string;
+  title?: string;
+  createdAt: string;
+}
+
+export interface CollectionResponse {
+  id: number;
+  vendorId: number;
+  title: string;
+  description?: string;
+  coverImageUrl?: string;
+  imagesCount: number;
+  images: CollectionImageResponse[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateCollectionRequest {
+  title: string;
+  description?: string;
+  coverImageUrl?: string;
+  initialImages?: AddCollectionImageRequest[];
+}
+
+export interface UpdateCollectionRequest {
+  title: string;
+  description?: string;
+  coverImageUrl?: string;
+}
+
+export interface AddCollectionImageRequest {
+  imageUrl: string;
+  title?: string;
 }
 
 export interface PackageResponse {
@@ -66,6 +104,7 @@ export interface VendorDetailResponse {
   email?: string;
   avatarUrl?: string;
   portfolios: PortfolioResponse[];
+  collections?: CollectionResponse[];
   packages: PackageResponse[];
   reviews?: ReviewResponse[];
 }
@@ -111,6 +150,7 @@ export interface VendorProfileResponse {
   styleIds: number[];
   styles: string[];
   portfolios: PortfolioResponse[];
+  collections?: CollectionResponse[];
 }
 
 export interface UpdateVendorProfileRequest {
@@ -136,7 +176,6 @@ export interface FileUploadResponse {
   format?: string;
   bytes?: number;
 }
-
 
 export interface VendorServiceDetailResponse {
   id: number;
