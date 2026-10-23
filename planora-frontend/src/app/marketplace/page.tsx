@@ -389,15 +389,16 @@ export default function Marketplace() {
   const debouncedPriceFrom = useDebounce(priceFrom, 400);
   const debouncedPriceTo = useDebounce(priceTo, 400);
 
-  // Auto reset to page 0 when any filter changes
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [debouncedSearchQuery, selectedCategory, selectedCity, selectedStyle, debouncedPriceFrom, debouncedPriceTo, sortBy]);
-
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(124);
+
+
+  // Auto reset to page 0 when any filter changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [debouncedSearchQuery, selectedCategory, selectedCity, selectedStyle, debouncedPriceFrom, debouncedPriceTo, sortBy]);
 
   // Filter Drawer State (Mobile)
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
