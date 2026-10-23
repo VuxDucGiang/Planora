@@ -1,18 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+
+const VendorAvatarModal = dynamic(() => import('@/components/vendor/VendorAvatarModal'), {
+  ssr: false,
+});
 import {
   Store,
   Camera,
   MapPin,
-  Phone,
-  Mail,
   Award,
   Star,
   Plus,
   Trash2,
   Save,
-  ExternalLink,
   Check,
   AlertCircle,
   Loader2,
@@ -43,6 +46,21 @@ import type {
   CollectionResponse,
   CollectionImageResponse,
 } from '@/types/vendor';
+
+function isOptimizableImage(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('/')) return true;
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host.includes('images.unsplash.com') ||
+      host.includes('res.cloudinary.com') ||
+      host.includes('lh3.googleusercontent.com')
+    );
+  } catch {
+    return false;
+  }
+}
 
 export default function VendorProfilePage() {
   // Main Data States
@@ -478,15 +496,18 @@ export default function VendorProfilePage() {
             <div className="relative group">
               <div
                 onClick={handleOpenAvatarModal}
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-[#FAF8F5] border-2 border-[#D4B896] shadow-md flex items-center justify-center shrink-0 cursor-pointer"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden bg-[#FAF8F5] border-2 border-[#D4B896] shadow-md flex items-center justify-center shrink-0 cursor-pointer relative"
                 title="Nhấp để chỉnh sửa ảnh đại diện"
               >
                 {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={avatarUrl}
                     alt={businessName}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    sizes="112px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    unoptimized={!isOptimizableImage(avatarUrl)}
+                    priority
                   />
                 ) : (
                   <Store className="w-10 h-10 text-[#5D0F12]" />
@@ -820,7 +841,7 @@ export default function VendorProfilePage() {
               return (
                 <div
                   key={col.id}
-                  className="group rounded-2xl overflow-hidden border border-[#EADCC9] bg-[#FAF8F5] hover:bg-white shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col"
+                  className="content-visibility-auto group rounded-2xl overflow-hidden border border-[#EADCC9] bg-[#FAF8F5] hover:bg-white shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col"
                 >
                   {/* Album Cover */}
                   <div
@@ -828,11 +849,13 @@ export default function VendorProfilePage() {
                     className="relative aspect-16/10 w-full overflow-hidden bg-stone-100 cursor-pointer"
                   >
                     {cover ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={cover}
                         alt={col.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized={!isOptimizableImage(cover)}
                       />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#FAF8F5] text-stone-400">
@@ -1061,11 +1084,13 @@ export default function VendorProfilePage() {
                     key={img.id}
                     className="group relative rounded-xl overflow-hidden border border-[#EADCC9] aspect-square bg-[#FAF8F5] shadow-2xs hover:shadow-md transition"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={img.imageUrl}
                       alt={img.title || 'Ảnh bộ sưu tập'}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      unoptimized={!isOptimizableImage(img.imageUrl)}
                     />
 
                     {/* Hover Overlay */}
@@ -1291,124 +1316,18 @@ export default function VendorProfilePage() {
       )}
 
       {/* ============================================================== */}
-      {/* MODAL 4: CHỈNH SỬA ẢNH ĐẠI DIỆN CLOUDINARY                     */}
+      {/* MODAL 4: CHỈNH SỬA ẢNH ĐẠI DIỆN CLOUDINARY (Code Split)       */}
       {/* ============================================================== */}
-      {isAvatarModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-[2rem] border border-[#EADCC9] shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6 relative">
-            <button
-              type="button"
-              onClick={() => setIsAvatarModalOpen(false)}
-              className="absolute top-5 right-5 p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-[#FAF8F5] transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF8F5] border border-[#EADCC9] shadow-2xs mb-2">
-                <Camera className="w-3.5 h-3.5 text-[#5D0F12]" />
-                <span className="font-serif tracking-widest text-[10px] font-bold uppercase text-[#5D0F12]">
-                  Cloudinary Avatar Uploader
-                </span>
-              </div>
-              <h3
-                className="text-xl font-bold uppercase tracking-wide text-neutral-900"
-                style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
-              >
-                Ảnh Đại Diện Thương Hiệu
-              </h3>
-              <p className="text-xs text-stone-500 mt-1 font-serif italic">
-                Tải ảnh đại diện sắc nét lên Cloudinary để hiển thị nổi bật trên Marketplace và trong các cuộc hội thoại.
-              </p>
-            </div>
-
-            {/* Avatar Circular Preview */}
-            <div className="flex flex-col items-center justify-center gap-3 py-2">
-              <div className="w-32 h-32 rounded-full overflow-hidden bg-[#FAF8F5] border-4 border-[#D4B896] shadow-lg flex items-center justify-center relative">
-                {tempAvatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={tempAvatarUrl} alt="Avatar Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <Store className="w-12 h-12 text-[#5D0F12]" />
-                )}
-                {isUploadingAvatar && (
-                  <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#FFFBF5]" />
-                  </div>
-                )}
-              </div>
-              {tempAvatarUrl && (
-                <button
-                  type="button"
-                  onClick={() => setTempAvatarUrl('')}
-                  className="text-xs text-rose-600 hover:text-rose-700 hover:underline font-semibold cursor-pointer"
-                >
-                  Xóa ảnh này (đặt về mặc định)
-                </button>
-              )}
-            </div>
-
-            {/* Cloudinary Upload Box */}
-            <div>
-              <div
-                onClick={() => modalAvatarInputRef.current?.click()}
-                className="cursor-pointer border-2 border-dashed border-[#D4B896] hover:border-[#5D0F12] rounded-2xl p-5 text-center bg-[#FAF8F5]/60 hover:bg-[#FAF8F5] transition flex flex-col items-center justify-center gap-2"
-              >
-                {isUploadingAvatar ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="w-7 h-7 animate-spin text-[#5D0F12]" />
-                    <span className="text-xs font-semibold text-stone-800">Đang tối ưu & tải ảnh lên Cloudinary...</span>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="w-6 h-6 text-[#5D0F12]" />
-                    <span className="text-xs font-semibold text-stone-800">
-                      Nhấn để chọn ảnh từ máy tính
-                    </span>
-                    <span className="text-[10px] text-stone-400">
-                      Hỗ trợ JPG, PNG, WEBP (tự động tối ưu qua Cloudinary)
-                    </span>
-                  </>
-                )}
-              </div>
-
-              <input
-                ref={modalAvatarInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleModalAvatarFileChange}
-              />
-            </div>
-
-            {/* Footer Actions */}
-            <div className="pt-3 border-t border-[#EADCC9]/60 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setIsAvatarModalOpen(false)}
-                className="px-5 py-2.5 rounded-full border border-stone-300 text-xs font-bold uppercase tracking-wider text-stone-700 hover:bg-[#FAF8F5] transition cursor-pointer"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveAvatarModal}
-                disabled={isSavingAvatar || isUploadingAvatar}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#5D0F12] hover:bg-[#4A0C0E] text-[#FFFBF5] text-xs font-bold uppercase tracking-wider shadow-md shadow-[#5D0F12]/20 transition disabled:opacity-50 cursor-pointer"
-              >
-                {isSavingAvatar ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Đang lưu...</span>
-                  </>
-                ) : (
-                  <span>Lưu Ảnh Đại Diện</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <VendorAvatarModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        tempAvatarUrl={tempAvatarUrl}
+        setTempAvatarUrl={setTempAvatarUrl}
+        isUploadingAvatar={isUploadingAvatar}
+        isSavingAvatar={isSavingAvatar}
+        onFileChange={handleModalAvatarFileChange}
+        onSave={handleSaveAvatarModal}
+      />
 
       {/* ============================================================== */}
       {/* LIGHTBOX PREVIEW MODAL                                         */}

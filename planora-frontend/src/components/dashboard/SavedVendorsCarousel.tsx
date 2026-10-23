@@ -1,9 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Star, AlertCircle, Plus, ChevronRight } from 'lucide-react';
 import type { VendorResponse } from '@/types/vendor';
+
+function isOptimizableImage(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('/')) return true;
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host.includes('images.unsplash.com') ||
+      host.includes('res.cloudinary.com') ||
+      host.includes('lh3.googleusercontent.com')
+    );
+  } catch {
+    return false;
+  }
+}
 
 const FALLBACK_IMAGES = [
   '/landing/landing-2.png',
@@ -95,10 +111,14 @@ function VendorCard({
       {/* Top Image Container */}
       <div className="p-3 pb-0">
         <div className="w-full h-52 sm:h-56 rounded-2xl overflow-hidden relative group bg-neutral-100">
-          <img
+          <Image
             src={imageUrl}
-            alt={vendor.businessName}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            alt={vendor.businessName || 'Vendor'}
+            fill
+            sizes="(max-width: 640px) 280px, 310px"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            unoptimized={!isOptimizableImage(imageUrl)}
+            priority={index === 0}
           />
           {vendor.primaryCategoryName && (
             <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/85 text-neutral-800 backdrop-blur-sm shadow-sm uppercase tracking-wider">

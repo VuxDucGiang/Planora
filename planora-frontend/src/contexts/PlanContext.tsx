@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { getActivePlan, deleteActivePlan as apiDeleteActivePlan } from '@/services/weddingPlan';
@@ -72,24 +72,27 @@ export const PlanProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [authLoading, isAuthenticated, refreshPlan]);
 
-  const deletePlan = async () => {
+  const deletePlan = useCallback(async () => {
     await apiDeleteActivePlan();
     setPlan(null);
     setDaysLeft(0);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      plan,
+      planId: plan?.id ?? null,
+      daysLeft,
+      isLoadingPlan,
+      refreshPlan,
+      setPlan,
+      deletePlan,
+    }),
+    [plan, daysLeft, isLoadingPlan, refreshPlan, deletePlan]
+  );
 
   return (
-    <PlanContext.Provider
-      value={{
-        plan,
-        planId: plan?.id ?? null,
-        daysLeft,
-        isLoadingPlan,
-        refreshPlan,
-        setPlan,
-        deletePlan,
-      }}
-    >
+    <PlanContext.Provider value={value}>
       {children}
     </PlanContext.Provider>
   );

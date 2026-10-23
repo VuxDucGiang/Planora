@@ -7,7 +7,6 @@ import {
   Edit2,
   Trash2,
   Layers,
-  Coins,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -17,7 +16,6 @@ import {
   AlertCircle,
   Check,
   Package as PackageIcon,
-  HelpCircle,
 } from 'lucide-react';
 import {
   getMyVendorServices,

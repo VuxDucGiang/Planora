@@ -9,7 +9,6 @@ import {
   RefreshCw, 
   DollarSign, 
   Users, 
-  HeartHandshake,
   CheckCircle2,
   Lightbulb,
   Palette

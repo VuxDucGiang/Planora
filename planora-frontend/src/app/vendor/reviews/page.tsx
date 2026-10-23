@@ -13,7 +13,6 @@ import {
   Send,
   Loader2,
   AlertCircle,
-  HelpCircle,
 } from 'lucide-react';
 import {
   getMyVendorReviews,
