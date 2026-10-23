@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { getActivePlan } from '@/services/weddingPlan';
 import { 
   getTimeline, 
   createEvent, 
@@ -26,7 +25,6 @@ import {
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
-import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePlan } from '@/contexts/PlanContext';
 
@@ -213,10 +211,12 @@ export default function Timeline() {
     setSuccessMessage(null);
   };
 
-  // Sort events chronologically by eventDate
-  const sortedEvents = [...events].sort((a, b) => 
-    new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
-  );
+  // Sort events chronologically by eventDate (Memoized)
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => 
+      new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
+    );
+  }, [events]);
 
   return (
     <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full">
@@ -300,7 +300,7 @@ export default function Timeline() {
                     </div>
 
                     {/* Timeline Event Card */}
-                    <div className="p-4 sm:p-5 bg-white border border-hairline rounded-2xl shadow-xs space-y-3 relative hover:border-primary/30 transition-all">
+                    <div className="content-visibility-auto p-4 sm:p-5 bg-white border border-hairline rounded-2xl shadow-xs space-y-3 relative hover:border-primary/30 transition-all">
                       
                       {/* Title & DateTime */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2.5 border-b border-hairline">

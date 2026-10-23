@@ -1,8 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+
+const VendorDetailModal = dynamic(() => import('@/components/marketplace/VendorDetailModal'), {
+  ssr: false,
+});
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useDebounce } from '@/hooks/useDebounce';
+import { getCachedData, setCachedData } from '@/utils/apiCache';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
 import { 
@@ -25,10 +33,6 @@ import {
   AlertCircle, 
   CheckCircle2,
   Building2,
-  MapPin,
-  Phone,
-  Mail,
-  ExternalLink,
   SlidersHorizontal
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -193,6 +197,22 @@ function translateCategory(categoryName: string | undefined, lang: 'vi' | 'en'):
   }
 }
 
+// Helper: Validate if image can be optimized via next/image
+function isOptimizableImage(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('/')) return true;
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host.includes('images.unsplash.com') ||
+      host.includes('res.cloudinary.com') ||
+      host.includes('lh3.googleusercontent.com')
+    );
+  } catch {
+    return false;
+  }
+}
+
 // ─── VENDOR CARD: Matching Dashboard Design & Dimensions Exactly ───
 function MarketplaceVendorCard({
   vendor,
@@ -247,17 +267,19 @@ function MarketplaceVendorCard({
   return (
     <div
       onClick={onOpenDetail}
-      className="bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:shadow-xl overflow-hidden flex flex-col transition-all duration-300 select-none origin-center w-full max-w-[310px] hover:scale-[1.02] cursor-pointer group"
+      className="content-visibility-auto bg-white rounded-[1.75rem] border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:shadow-xl overflow-hidden flex flex-col transition-all duration-300 select-none origin-center w-full max-w-[310px] hover:scale-[1.02] cursor-pointer group"
     >
       {/* Top Image Container */}
       <div className="p-3 pb-0">
         <div className="w-full h-52 sm:h-56 rounded-2xl overflow-hidden relative bg-neutral-100">
-          <img
+          <Image
             src={imageUrl}
-            alt={vendor.businessName}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            alt={vendor.businessName || 'Vendor'}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 310px"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            unoptimized={!isOptimizableImage(imageUrl)}
+            priority={index < 3}
           />
           {/* Category Pill Tag */}
           <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/85 text-neutral-800 backdrop-blur-sm shadow-sm uppercase tracking-wider">
@@ -362,6 +384,16 @@ export default function Marketplace() {
   const [priceTo, setPriceTo] = useState('');
   const [sortBy, setSortBy] = useState<'featured' | 'rating' | 'price_asc' | 'price_desc'>('featured');
 
+  // Debounced Filter Values for high-performance querying
+  const debouncedSearchQuery = useDebounce(searchQuery, 350);
+  const debouncedPriceFrom = useDebounce(priceFrom, 400);
+  const debouncedPriceTo = useDebounce(priceTo, 400);
+
+  // Auto reset to page 0 when any filter changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [debouncedSearchQuery, selectedCategory, selectedCity, selectedStyle, debouncedPriceFrom, debouncedPriceTo, sortBy]);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -406,33 +438,57 @@ export default function Marketplace() {
     loadShortlist(targetPlanId);
   }, [isAuthenticated, planId]);
 
-  // Core loading trigger depending on Filter changes
+  // Core loading trigger depending on Filter changes with SWR Caching
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    let isMounted = true;
+    const cacheKey = `vendors_${debouncedSearchQuery}_${selectedCategory}_${selectedCity}_${selectedStyle}_${debouncedPriceFrom}_${debouncedPriceTo}_${currentPage}`;
+
+    const cached = getCachedData<{
+      content: VendorResponse[];
+      totalPages: number;
+      totalElements: number;
+    }>(cacheKey, 120_000);
+
+    if (cached) {
+      setVendors(cached.content);
+      setTotalPages(Math.max(1, cached.totalPages));
+      setTotalElements(cached.totalElements);
+      setIsLoading(false);
+      return;
+    }
 
     async function fetchTabData() {
       setIsLoading(true);
       setErrorMessage(null);
       try {
         const res = await getVendors({
-          query: searchQuery.trim() || undefined,
+          query: debouncedSearchQuery.trim() || undefined,
           categoryId: selectedCategory === 'ALL' ? undefined : selectedCategory,
           city: selectedCity === 'ALL' ? undefined : selectedCity,
           styleId: selectedStyle === 'ALL' ? undefined : selectedStyle,
-          priceFrom: priceFrom ? parseFloat(priceFrom) : undefined,
-          priceTo: priceTo ? parseFloat(priceTo) : undefined,
+          priceFrom: debouncedPriceFrom ? parseFloat(debouncedPriceFrom) : undefined,
+          priceTo: debouncedPriceTo ? parseFloat(debouncedPriceTo) : undefined,
           page: currentPage,
           size: 9
         });
+
+        if (!isMounted) return;
 
         if (res && res.content && res.content.length > 0) {
           setVendors(res.content);
           setTotalPages(Math.max(1, res.totalPages));
           setTotalElements(res.totalElements);
+          setCachedData(cacheKey, {
+            content: res.content,
+            totalPages: res.totalPages,
+            totalElements: res.totalElements,
+          });
         } else {
           // If query/filter returned 0 from server, or if DB is empty, provide the 9 curated editorial vendors
           const filteredSeed = SEED_EDITORIAL_VENDORS.filter(v => {
-            if (searchQuery && !v.businessName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            if (debouncedSearchQuery && !v.businessName.toLowerCase().includes(debouncedSearchQuery.toLowerCase())) return false;
             if (selectedCity !== 'ALL' && v.city !== selectedCity) return false;
             return true;
           });
@@ -441,25 +497,29 @@ export default function Marketplace() {
           setTotalElements(filteredSeed.length || 124);
         }
       } catch {
+        if (!isMounted) return;
         // Fallback gracefully to seed vendors
         setVendors(SEED_EDITORIAL_VENDORS as unknown as VendorResponse[]);
         setTotalPages(1);
         setTotalElements(124);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     }
 
     fetchTabData();
+    return () => {
+      isMounted = false;
+    };
   }, [
-    currentPage, 
-    selectedCategory, 
-    selectedCity, 
-    selectedStyle, 
-    priceFrom, 
-    priceTo,
-    searchQuery,
-    isAuthenticated
+    isAuthenticated,
+    debouncedSearchQuery,
+    selectedCategory,
+    selectedCity,
+    selectedStyle,
+    debouncedPriceFrom,
+    debouncedPriceTo,
+    currentPage,
   ]);
 
   // Fetch Vendor Detail when modal opens
@@ -536,9 +596,19 @@ export default function Marketplace() {
 
   const handleToggleShortlist = async (e: React.MouseEvent, vendorId: number) => {
     e.stopPropagation();
-    setIsTogglingShortlist(vendorId);
     const isSaved = shortlistIds.has(vendorId);
 
+    // 1. Optimistic UI: Flip heart immediately
+    setShortlistIds(prev => {
+      const next = new Set(prev);
+      if (isSaved) next.delete(vendorId);
+      else next.add(vendorId);
+      return next;
+    });
+    setSuccessMessage(isSaved ? t.marketplace.removedFromShortlist : t.marketplace.addedToShortlist);
+    setTimeout(() => setSuccessMessage(null), 2000);
+
+    // 2. Background sync
     try {
       if (planId) {
         if (isSaved) {
@@ -547,25 +617,16 @@ export default function Marketplace() {
           await addToShortlist(planId, vendorId);
         }
       }
-      setShortlistIds(prev => {
-        const next = new Set(prev);
-        if (isSaved) next.delete(vendorId);
-        else next.add(vendorId);
-        return next;
-      });
-      setSuccessMessage(isSaved ? t.marketplace.removedFromShortlist : t.marketplace.addedToShortlist);
-      setTimeout(() => setSuccessMessage(null), 2500);
     } catch {
+      // 3. Rollback on failure
       setShortlistIds(prev => {
-        const next = new Set(prev);
-        if (isSaved) next.delete(vendorId);
-        else next.add(vendorId);
-        return next;
+        const rollback = new Set(prev);
+        if (isSaved) rollback.add(vendorId);
+        else rollback.delete(vendorId);
+        return rollback;
       });
-      setSuccessMessage(isSaved ? t.marketplace.removedFromShortlist : t.marketplace.addedToShortlist);
-      setTimeout(() => setSuccessMessage(null), 2500);
-    } finally {
-      setIsTogglingShortlist(null);
+      setErrorMessage(t.common.error || 'Có lỗi xảy ra khi lưu nhà cung cấp');
+      setTimeout(() => setErrorMessage(null), 3000);
     }
   };
 
@@ -1091,126 +1152,19 @@ export default function Marketplace() {
         </div>
       )}
 
-      {/* ─── VENDOR DETAIL MODAL ─── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-fade-in">
-          <div 
-            className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full max-h-[92vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative border-t sm:border border-hairline/80 p-5 sm:p-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {isLoadingDetail ? (
-              <div className="py-20 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="text-sm text-neutral-500">{t.marketplace.loadingDetail}</span>
-              </div>
-            ) : vendorDetail ? (
-              <div className="space-y-6">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary block mb-1">
-                    {vendorDetail.primaryCategoryName || (language === 'vi' ? 'Dịch vụ cưới' : 'Wedding Service')}
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-serif font-bold text-neutral-900 uppercase">
-                    {vendorDetail.businessName}
-                  </h3>
-                  <div className="flex items-center gap-3 mt-2 text-sm text-neutral-500">
-                    <span className="flex items-center gap-1 font-semibold text-amber-600">
-                      ★ {(vendorDetail.ratingAverage || 4.8).toFixed(1)}
-                    </span>
-                    <span>&bull;</span>
-                    <span>{vendorDetail.totalReviews || 32} {t.common.reviews}</span>
-                    <span>&bull;</span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-neutral-400" />
-                      {vendorDetail.city}, {vendorDetail.district}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-sm sm:text-base text-neutral-600 leading-relaxed">
-                  {vendorDetail.description}
-                </p>
-
-                {/* Contact info */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-100 text-sm">
-                  <div className="flex items-center gap-2 text-neutral-700">
-                    <Phone className="w-4 h-4 text-primary" />
-                    <span>{vendorDetail.phone || '0909 888 999'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-neutral-700">
-                    <Mail className="w-4 h-4 text-primary" />
-                    <span>{vendorDetail.email || 'contact@planora.vn'}</span>
-                  </div>
-                </div>
-
-                {/* Packages */}
-                {vendorDetail.packages && vendorDetail.packages.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-neutral-900">
-                      {t.marketplace.pricingPackages}
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {vendorDetail.packages.map(pkg => (
-                        <div key={pkg.id} className="p-4 rounded-xl border border-neutral-200 bg-white shadow-xs">
-                          <p className="font-bold text-sm text-neutral-900">{pkg.packageName}</p>
-                          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{pkg.description}</p>
-                          <p className="text-sm font-bold text-primary mt-2 font-mono">
-                            {language === 'en' ? `$${(pkg.price / 25000).toFixed(0)}` : `${pkg.price.toLocaleString()} ₫`}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Action buttons inside modal */}
-                <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
-                  <Link
-                    href={`/marketplace/${vendorDetail.id}`}
-                    className="text-sm font-semibold text-neutral-600 hover:text-[#5D0F12] flex items-center gap-1 hover:underline"
-                  >
-                    {t.marketplace.viewFullDetail} <ExternalLink className="w-4 h-4" />
-                  </Link>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleCloseModal}
-                      className="px-4 py-2 rounded-full text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors cursor-pointer"
-                    >
-                      {t.marketplace.closeModal}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        handleToggleShortlist(e, vendorDetail.id);
-                      }}
-                      className={`px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
-                        shortlistIds.has(vendorDetail.id)
-                          ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
-                          : 'bg-[#5D0F12] text-white hover:bg-[#4A0C0E] !text-[#FFFBF5]'
-                      }`}
-                      style={!shortlistIds.has(vendorDetail.id) ? { backgroundColor: '#5D0F12', color: '#FFFBF5' } : undefined}
-                    >
-                      <Heart className={`w-4 h-4 ${shortlistIds.has(vendorDetail.id) ? 'fill-red-600' : ''}`} />
-                      {shortlistIds.has(vendorDetail.id) ? t.marketplace.removeFromShortlistBtn : t.marketplace.saveToShortlistBtn}
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            ) : (
-              <p className="text-center py-10 text-sm text-neutral-500">{t.common.notFound}</p>
-            )}
-          </div>
-        </div>
-      )}
+      {/* ─── VENDOR DETAIL MODAL (Code Split via next/dynamic) ─── */}
+      <VendorDetailModal
+        isOpen={isModalOpen}
+        isLoading={isLoadingDetail}
+        vendorDetail={vendorDetail}
+        isSaved={selectedVendorId ? shortlistIds.has(selectedVendorId) : false}
+        onClose={handleCloseModal}
+        onToggleShortlist={(e) => {
+          if (selectedVendorId) {
+            handleToggleShortlist(e, selectedVendorId);
+          }
+        }}
+      />
 
       {/* Footer */}
       <DashboardFooter />

@@ -140,8 +140,11 @@ function MessagesContent() {
 
     loadDetail();
 
-    // 4s polling for realtime updates
-    const interval = setInterval(async () => {
+    // Adaptive Polling: Only poll when the tab is visible to save battery and network
+    const pollUpdates = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
       try {
         const refreshed = await getCustomerInquiryDetail(selectedInquiryId!);
         if (isMounted) {
@@ -155,13 +158,23 @@ function MessagesContent() {
       } catch {
         // silent polling catch
       }
-    }, 4000);
+    };
+
+    const interval = setInterval(pollUpdates, 4000);
+
+    // Refresh immediately when returning to tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        pollUpdates();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
-    };
-  }, [selectedInquiryId]);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };  }, [selectedInquiryId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -178,7 +191,7 @@ function MessagesContent() {
     setShowMobileThread(false);
   };
 
-  // Send message handler
+  // Send message handler with Optimistic UI
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim() || !selectedInquiryId || isSending) return;
@@ -187,26 +200,55 @@ function MessagesContent() {
     setInputText('');
     setIsSending(true);
 
-    try {
-      const newMsg = await sendCustomerMessage(selectedInquiryId, textToSend);
+    const tempId = Date.now();
+    const optimisticMsg: InquiryMessage = {
+      id: tempId,
+      inquiryId: selectedInquiryId,
+      senderId: user?.id ? Number(user.id) : 0,
+      senderName: user?.fullName || 'Bạn',
+      senderRole: 'CUSTOMER',
+      message: textToSend,
+      createdAt: new Date().toISOString(),
+    };
 
+    // 1. Immediately append message to the conversation
+    setActiveInquiry((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        messages: [...prev.messages, optimisticMsg],
+      };
+    });
+
+    // 2. Immediately update latest message in sidebar
+    setInquiries((prev) =>
+      prev.map((inq) =>
+        inq.id === selectedInquiryId
+          ? { ...inq, latestMessage: textToSend, updatedAt: new Date().toISOString() }
+          : inq
+      )
+    );
+
+    try {
+      const realMsg = await sendCustomerMessage(selectedInquiryId, textToSend);
+
+      // 3. Replace optimistic message with confirmed server message
       setActiveInquiry((prev) => {
         if (!prev) return null;
         return {
           ...prev,
-          messages: [...prev.messages, newMsg],
+          messages: prev.messages.map((m) => (m.id === tempId ? realMsg : m)),
         };
       });
-
-      // Update in conversation list
-      setInquiries((prev) =>
-        prev.map((inq) =>
-          inq.id === selectedInquiryId
-            ? { ...inq, latestMessage: textToSend, updatedAt: new Date().toISOString() }
-            : inq
-        )
-      );
     } catch (err: unknown) {
+      // 4. Rollback optimistic message on failure
+      setActiveInquiry((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          messages: prev.messages.filter((m) => m.id !== tempId),
+        };
+      });
       alert(err instanceof Error ? err.message : 'Không thể gửi tin nhắn');
     } finally {
       setIsSending(false);

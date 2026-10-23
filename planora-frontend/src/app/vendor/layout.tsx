@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   Menu,
   X,
-  Sparkles,
   ShieldCheck,
   Building2,
 } from 'lucide-react';

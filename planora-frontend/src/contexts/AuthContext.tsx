@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '@/types/auth';
 import { parseToken } from '@/services/auth';
@@ -37,28 +37,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(false);
   }, []);
 
-  const login = (jwtToken: string) => {
+  const login = useCallback((jwtToken: string) => {
     localStorage.setItem('planora_token', jwtToken);
     const parsedUser = parseToken(jwtToken);
     setToken(jwtToken);
     setUser(parsedUser);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('planora_token');
     setToken(null);
     setUser(null);
     window.location.href = '/login';
-  };
+  }, []);
 
-  const value = {
-    user,
-    token,
-    isAuthenticated: !!token,
-    isLoading,
-    login,
-    logout,
-  };
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      isAuthenticated: !!token,
+      isLoading,
+      login,
+      logout,
+    }),
+    [user, token, isLoading, login, logout]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

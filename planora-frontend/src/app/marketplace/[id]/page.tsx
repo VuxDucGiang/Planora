@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, use, type FormEvent, type ReactNode } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
@@ -246,22 +247,23 @@ export default function VendorDetail(props: PageProps) {
     checkShortlist(targetPlanId);
   }, [isAuthenticated, plan?.id, vendorId]);
 
-  // Handle Save / Toggle Shortlist
+  // Handle Save / Toggle Shortlist (Optimistic UI)
   const handleToggleShortlist = async () => {
     if (!plan || !vendor) return;
-    setIsTogglingShortlist(true);
+    const previousState = isSaved;
+    // 1. Flip state immediately
+    setIsSaved(!previousState);
+
     try {
-      if (isSaved) {
+      if (previousState) {
         await removeFromShortlist(plan.id, vendor.id);
-        setIsSaved(false);
       } else {
         await addToShortlist(plan.id, vendor.id);
-        setIsSaved(true);
       }
     } catch (err) {
+      // 2. Rollback on error
+      setIsSaved(previousState);
       console.error('Lỗi thao tác danh sách yêu thích:', err);
-    } finally {
-      setIsTogglingShortlist(false);
     }
   };
 
@@ -307,31 +309,64 @@ export default function VendorDetail(props: PageProps) {
     }
   };
 
-  // Poll chat messages when drawer is open
+  // Poll chat messages when drawer is open (Adaptive Polling)
   useEffect(() => {
     if (!isChatDrawerOpen || !activeInquiryId) return;
-    const interval = setInterval(async () => {
+
+    const pollDrawerChat = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
         const detail = await getCustomerInquiryDetail(activeInquiryId);
         setChatMessages(detail.messages || []);
       } catch {
         // silent catch
       }
-    }, 4000);
-    return () => clearInterval(interval);
+    };
+
+    const interval = setInterval(pollDrawerChat, 4000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        pollDrawerChat();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [isChatDrawerOpen, activeInquiryId]);
 
-  // Handle Send Customer Message in Drawer
+  // Handle Send Customer Message in Drawer (Optimistic UI)
   const handleSendCustomerMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInputText.trim() || !activeInquiryId || isSendingChatMessage) return;
     const text = chatInputText.trim();
     setChatInputText('');
     setIsSendingChatMessage(true);
+
+    const tempId = Date.now();
+    const optimisticMsg: InquiryMessage = {
+      id: tempId,
+      inquiryId: activeInquiryId,
+      senderId: 0,
+      senderName: 'Bạn',
+      senderRole: 'CUSTOMER',
+      message: text,
+      createdAt: new Date().toISOString(),
+    };
+
+    // 1. Immediately append optimistic message
+    setChatMessages(prev => [...prev, optimisticMsg]);
+
     try {
       const newMsg = await sendCustomerMessage(activeInquiryId, text);
-      setChatMessages(prev => [...prev, newMsg]);
+      // 2. Replace with confirmed server message
+      setChatMessages(prev => prev.map(m => m.id === tempId ? newMsg : m));
     } catch (err: unknown) {
+      // 3. Rollback on failure
+      setChatMessages(prev => prev.filter(m => m.id !== tempId));
       alert(err instanceof Error ? err.message : 'Không thể gửi tin nhắn');
     } finally {
       setIsSendingChatMessage(false);
@@ -392,6 +427,21 @@ export default function VendorDetail(props: PageProps) {
     return TEMPLATE_PHOTOS;
   })();
 
+  function isOptimizableImage(url: string): boolean {
+    if (!url) return false;
+    if (url.startsWith('/')) return true;
+    try {
+      const host = new URL(url).hostname;
+      return (
+        host.includes('images.unsplash.com') ||
+        host.includes('res.cloudinary.com') ||
+        host.includes('lh3.googleusercontent.com')
+      );
+    } catch {
+      return false;
+    }
+  }
+
   const category = vendor.primaryCategoryName || 'Trang trí cưới';
   const minPrice = vendor.priceFrom || 15000000;
   const maxPrice = vendor.priceTo || 35000000;
@@ -404,10 +454,14 @@ export default function VendorDetail(props: PageProps) {
       <main id="top">
         {/* HERO BANNER SECTION (FIGMA TEMPLATE) */}
         <section className="hero">
-          <img
-            alt={vendor.businessName}
+          <Image
+            alt={vendor.businessName || 'Vendor Banner'}
             className="hero-image"
             src={photos[0].src}
+            fill
+            sizes="100vw"
+            priority
+            unoptimized={!isOptimizableImage(photos[0].src)}
           />
           <div className="hero-overlay" />
           <div className="hero-content page-width">

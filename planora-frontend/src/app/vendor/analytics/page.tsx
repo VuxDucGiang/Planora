@@ -3,10 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  BarChart3,
   Heart,
   Star,
-  MessageSquare,
   Sparkles,
   Calendar,
   Users,
@@ -20,10 +18,9 @@ import {
   Clock,
   AlertCircle,
   Briefcase,
-  Camera,
 } from 'lucide-react';
 import { getVendorAnalytics } from '@/services/vendorAnalytics';
-import type { VendorAnalyticsResponse, VendorLeadResponse } from '@/types/vendor';
+import type { VendorAnalyticsResponse } from '@/types/vendor';
 
 export default function VendorAnalyticsPage() {
   const [data, setData] = useState<VendorAnalyticsResponse | null>(null);

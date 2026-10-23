@@ -3,18 +3,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { getActivePlan } from '@/services/weddingPlan';
 import { 
   getChecklist, 
   createTask, 
   updateTask, 
   deleteTask 
 } from '@/services/checklist';
-import type { ChecklistTask } from '@/types/checklist';
 import type { KanbanTask, KanbanStatus, TaskPriority, KanbanSubtask } from '@/types/kanban';
 import { 
   KANBAN_CATEGORIES, 
-  CATEGORY_MAP, 
   getCategoryById, 
   detectCategoryFromText, 
   DEFAULT_TASK_TEMPLATES, 
@@ -30,8 +27,6 @@ import {
   AlertCircle, 
   Loader2, 
   CheckCircle2, 
-  Clock, 
-  User, 
   CheckSquare, 
   Square, 
   Link as LinkIcon, 
@@ -39,19 +34,11 @@ import {
   ArrowUpDown, 
   X, 
   Sparkles, 
-  AlertTriangle, 
-  HelpCircle, 
-  ChevronRight, 
-  MoreHorizontal, 
-  SlidersHorizontal,
-  Flame,
-  ArrowRight,
-  GripVertical
+  Flame
 } from 'lucide-react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardFooter from '@/components/layout/DashboardFooter';
-import type { ActivePlanResponse } from '@/types/weddingPlan';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePlan } from '@/contexts/PlanContext';
 
@@ -1307,7 +1294,7 @@ export default function Checklist() {
                                 onDragStart={e => handleDragStart(e, task.id)}
                                 onDragEnd={() => setDraggedTaskId(null)}
                                 onClick={() => setActiveTaskId(task.id)}
-                                className={`group p-4 bg-white rounded-xl border transition-all duration-200 cursor-pointer shadow-xs hover:shadow-md hover:border-primary/40 relative select-none ${
+                                className={`content-visibility-auto group p-4 bg-white rounded-xl border transition-all duration-200 cursor-pointer shadow-xs hover:shadow-md hover:border-primary/40 relative select-none ${
                                   isOverdue 
                                     ? 'border-red-300 bg-red-50/15 ring-1 ring-red-200/50' 
                                     : 'border-hairline'

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   MessageSquare,
   Send,
@@ -8,20 +9,14 @@ import {
   Users,
   Coins,
   MapPin,
-  Clock,
   Phone,
   Mail,
-  CheckCircle2,
-  AlertCircle,
   Loader2,
   Paperclip,
-  Check,
   Search,
   Sparkles,
-  ArrowRight,
   User,
   X,
-  FileText,
 } from 'lucide-react';
 import {
   getVendorInquiries,
@@ -103,8 +98,9 @@ export default function VendorChatPage() {
 
     loadDetail();
 
-    // Polling every 5 seconds for new messages
-    const interval = setInterval(async () => {
+    // Adaptive polling: only poll every 5s when tab is active/visible
+    const pollUpdates = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
         const refreshed = await getVendorInquiryDetail(selectedInquiryId!);
         if (isMounted) {
@@ -118,11 +114,21 @@ export default function VendorChatPage() {
       } catch {
         // silent polling catch
       }
-    }, 5000);
+    };
+
+    const interval = setInterval(pollUpdates, 5000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        pollUpdates();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [selectedInquiryId]);
 
@@ -130,7 +136,7 @@ export default function VendorChatPage() {
     scrollToBottom();
   }, [activeInquiry?.messages]);
 
-  // Handle Send Message
+  // Handle Send Message with Optimistic UI
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim() || !selectedInquiryId || isSending) return;
@@ -139,27 +145,56 @@ export default function VendorChatPage() {
     setInputText('');
     setIsSending(true);
 
+    const tempId = Date.now();
+    const optimisticMsg: InquiryMessage = {
+      id: tempId,
+      inquiryId: selectedInquiryId,
+      senderId: 0,
+      senderName: 'Nhà cung cấp',
+      senderRole: 'ROLE_VENDOR',
+      message: textToSend,
+      createdAt: new Date().toISOString(),
+    };
+
+    // 1. Immediately append optimistic message
+    setActiveInquiry((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        status: 'RESPONDED',
+        messages: [...prev.messages, optimisticMsg],
+      };
+    });
+
+    // 2. Immediately update in conversation list
+    setInquiries((prev) =>
+      prev.map((inq) =>
+        inq.id === selectedInquiryId
+          ? { ...inq, status: 'RESPONDED', latestMessage: textToSend }
+          : inq
+      )
+    );
+
     try {
       const newMsg = await sendVendorMessage(selectedInquiryId, textToSend);
 
+      // 3. Replace optimistic message with confirmed message
       setActiveInquiry((prev) => {
         if (!prev) return null;
         return {
           ...prev,
-          status: 'RESPONDED',
-          messages: [...prev.messages, newMsg],
+          messages: prev.messages.map((m) => (m.id === tempId ? newMsg : m)),
         };
       });
-
-      // Update in conversation list
-      setInquiries((prev) =>
-        prev.map((inq) =>
-          inq.id === selectedInquiryId
-            ? { ...inq, status: 'RESPONDED', latestMessage: textToSend }
-            : inq
-        )
-      );
     } catch (err: unknown) {
+      // 4. Rollback on error
+      setActiveInquiry((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          messages: prev.messages.filter((m) => m.id !== tempId),
+        };
+      });
       alert(err instanceof Error ? err.message : 'Không thể gửi tin nhắn');
     } finally {
       setIsSending(false);
@@ -239,15 +274,19 @@ export default function VendorChatPage() {
     }
   };
 
-  const filteredInquiries = inquiries.filter((inq) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      inq.customerName.toLowerCase().includes(q) ||
-      (inq.title && inq.title.toLowerCase().includes(q)) ||
-      (inq.latestMessage && inq.latestMessage.toLowerCase().includes(q))
-    );
-  });
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  const filteredInquiries = useMemo(() => {
+    const q = debouncedSearchQuery.toLowerCase().trim();
+    if (!q) return inquiries;
+    return inquiries.filter((inq) => {
+      return (
+        inq.customerName.toLowerCase().includes(q) ||
+        (inq.title && inq.title.toLowerCase().includes(q)) ||
+        (inq.latestMessage && inq.latestMessage.toLowerCase().includes(q))
+      );
+    });
+  }, [inquiries, debouncedSearchQuery]);
 
   return (
     <div className="h-[calc(100vh-4rem)] lg:h-screen flex flex-col bg-[#FFFBF5] overflow-hidden">
