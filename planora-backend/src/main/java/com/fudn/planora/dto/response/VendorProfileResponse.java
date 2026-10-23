@@ -27,4 +27,5 @@ public class VendorProfileResponse {
     private Set<Long> styleIds;
     private Set<String> styles;
     private List<PortfolioResponse> portfolios;
+    private List<CollectionResponse> collections;
 }

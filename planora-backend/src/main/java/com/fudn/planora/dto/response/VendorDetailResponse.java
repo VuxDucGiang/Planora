@@ -31,6 +31,7 @@ public class VendorDetailResponse {
     private String avatarUrl;
 
     private List<PortfolioResponse> portfolios;
+    private List<CollectionResponse> collections;
     private List<PackageResponse> packages;
     private List<ReviewResponse> reviews;
 }

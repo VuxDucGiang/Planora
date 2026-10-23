@@ -368,15 +368,29 @@ export default function VendorDetail(props: PageProps) {
     );
   }
 
-  // Consistent photography & fallback data
-  const photos = vendor.portfolios && vendor.portfolios.length > 0
-    ? vendor.portfolios.map((p) => ({
+  // Consistent photography & fallback data (supports multi-album collections & legacy portfolios)
+  const photos = (() => {
+    if (vendor.collections && vendor.collections.length > 0) {
+      const colPhotos = vendor.collections.flatMap((c) =>
+        (c.images || []).map((img) => ({
+          src: img.imageUrl,
+          alt: img.title || c.title || vendor.businessName,
+          caption: `${c.title}${img.title ? ` • ${img.title}` : ''}`,
+          year: '2026',
+        }))
+      );
+      if (colPhotos.length > 0) return colPhotos;
+    }
+    if (vendor.portfolios && vendor.portfolios.length > 0) {
+      return vendor.portfolios.map((p) => ({
         src: p.imageUrl,
         alt: p.title || vendor.businessName,
         caption: p.title || 'Không gian tác nghiệp',
         year: '2026',
-      }))
-    : TEMPLATE_PHOTOS;
+      }));
+    }
+    return TEMPLATE_PHOTOS;
+  })();
 
   const category = vendor.primaryCategoryName || 'Trang trí cưới';
   const minPrice = vendor.priceFrom || 15000000;

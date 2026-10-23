@@ -53,7 +53,14 @@ export async function getMyCustomerInquiries(): Promise<InquirySummary[]> {
   });
 
   if (!response.ok) {
-    throw new Error('Không thể tải danh sách cuộc hội thoại');
+    let msg = 'Không thể tải danh sách cuộc hội thoại';
+    try {
+      const err = await response.json();
+      if (err.message) msg = err.message;
+    } catch {
+      // ignore
+    }
+    throw new Error(`[${response.status}] ${msg}`);
   }
 
   return response.json();

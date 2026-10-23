@@ -21,7 +21,6 @@ import {
   X,
   Maximize2,
   ShieldCheck,
-  ChevronRight,
 } from 'lucide-react';
 
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -325,58 +324,22 @@ function MessagesContent() {
   });
 
   return (
-    <div className="min-h-screen bg-[#FFFBF5] flex flex-col selection:bg-[#5D0F12]/15 selection:text-[#5D0F12]">
+    <div className="h-screen bg-[#FFFBF5] flex flex-col overflow-hidden selection:bg-[#5D0F12]/15 selection:text-[#5D0F12]">
       {/* ─── TOP BAR (DashboardHeader) ─── */}
-      <div className="sticky top-0 z-50">
-        <DashboardHeader logout={logout} plan={plan} daysLeft={daysLeft} />
-      </div>
+      <DashboardHeader logout={logout} plan={plan} daysLeft={daysLeft} />
 
       {/* ─── MAIN LAYOUT: SIDEBAR ON LEFT + MESSAGES WORKSPACE ─── */}
-      <div className="flex flex-1 w-full relative h-[calc(100vh-52px)] overflow-hidden">
+      <div className="flex flex-1 w-full relative overflow-hidden min-h-0">
         {/* Left Sidebar (Standard Dashboard Navigation) */}
         <DashboardSidebar hasPlan={!!plan} />
 
         {/* Messages Workspace */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5] overflow-hidden">
-          {/* Subheader / Page Title Bar */}
-          <div className="px-4 sm:px-6 py-3 border-b border-[#EADCC9]/80 bg-white/70 backdrop-blur-md flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#5D0F12]/10 border border-[#5D0F12]/20 flex items-center justify-center text-[#5D0F12]">
-                <MessageSquare className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1
-                    className="text-base sm:text-lg font-bold uppercase tracking-wide text-[#5D0F12]"
-                    style={{ fontFamily: '"ITC Garamond Std", "EB Garamond", serif' }}
-                  >
-                    Hộp Thư Tư Vấn Nhà Cung Cấp
-                  </h1>
-                  <span className="text-[10px] font-bold text-[#5D0F12] bg-[#5D0F12]/10 border border-[#5D0F12]/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    {inquiries.length} hội thoại
-                  </span>
-                </div>
-                <p className="text-[11px] text-stone-500 font-serif italic hidden sm:block">
-                  Trao đổi trực tiếp, nhận bảng báo giá và giải đáp mọi thắc mắc cùng các đối tác cưới tin cậy.
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="/marketplace"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D4B896] bg-[#FAF8F5] hover:bg-[#5D0F12] text-[#5D0F12] hover:text-white transition-all text-xs font-semibold shadow-xs"
-            >
-              <Store className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Khám phá Marketplace</span>
-              <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-
+        <div className="flex-1 flex flex-col min-w-0 bg-[#FFFBF5] overflow-hidden min-h-0">
           {/* 3-Column Split Workspace */}
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex overflow-hidden min-h-0">
             {/* ═════════ COLUMN 1: Conversation List ═════════ */}
             <aside
-              className={`w-full md:w-80 lg:w-96 border-r border-[#EADCC9]/80 bg-white/60 flex flex-col shrink-0 ${
+              className={`w-full md:w-80 lg:w-96 border-r border-[#EADCC9]/80 bg-white/60 flex flex-col shrink-0 min-h-0 ${
                 showMobileThread ? 'hidden md:flex' : 'flex'
               }`}
             >
@@ -429,7 +392,7 @@ function MessagesContent() {
               </div>
 
               {/* Conversations List Scrollable */}
-              <div className="flex-1 overflow-y-auto divide-y divide-[#EADCC9]/40">
+              <div className="flex-1 overflow-y-auto divide-y divide-[#EADCC9]/40 min-h-0">
                 {isLoadingList ? (
                   <div className="p-10 text-center text-xs text-stone-400 flex flex-col items-center justify-center gap-2">
                     <Loader2 className="w-6 h-6 animate-spin text-[#5D0F12]" />
@@ -529,7 +492,7 @@ function MessagesContent() {
 
             {/* ═════════ COLUMN 2: Active Chat Window ═════════ */}
             <section
-              className={`flex-1 flex flex-col bg-[#FFFBF5] overflow-hidden ${
+              className={`flex-1 flex flex-col bg-[#FFFBF5] overflow-hidden min-h-0 ${
                 !showMobileThread && !selectedInquiryId ? 'hidden md:flex' : 'flex'
               }`}
             >
@@ -604,7 +567,7 @@ function MessagesContent() {
                   </div>
 
                   {/* Messages Thread Body */}
-                  <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 min-h-0">
                     {isLoadingChat ? (
                       <div className="flex h-full items-center justify-center">
                         <Loader2 className="w-6 h-6 animate-spin text-[#5D0F12]" />
@@ -780,7 +743,7 @@ function MessagesContent() {
             {/* ═════════ COLUMN 3: Vendor & Event Profile Card ═════════ */}
             {activeInquiry && (
               <aside
-                className={`w-80 border-l border-[#EADCC9]/80 bg-white/70 flex-col p-5 space-y-5 shrink-0 overflow-y-auto ${
+                className={`w-80 border-l border-[#EADCC9]/80 bg-white/70 flex-col p-5 space-y-5 shrink-0 overflow-y-auto min-h-0 ${
                   showInfoDrawer ? 'flex' : 'hidden xl:flex'
                 }`}
               >
@@ -952,7 +915,7 @@ export default function MessagesPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
+        <div className="h-screen bg-[#FFFBF5] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#5D0F12]" />
             <span className="text-xs text-stone-500 font-serif italic">

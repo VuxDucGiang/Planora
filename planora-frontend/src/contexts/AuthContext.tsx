@@ -48,6 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('planora_token');
     setToken(null);
     setUser(null);
+    window.location.href = '/login';
   };
 
   const value = {
