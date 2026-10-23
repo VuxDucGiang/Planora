@@ -36,6 +36,7 @@ import { uploadImage } from '@/services/vendorProfile';
 import type {
   InquirySummary,
   InquiryDetail,
+  InquiryMessage,
 } from '@/types/inquiry';
 
 type FilterType = 'ALL' | 'PENDING' | 'RESPONDED' | 'CLOSED';

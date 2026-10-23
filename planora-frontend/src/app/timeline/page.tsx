@@ -100,6 +100,14 @@ export default function Timeline() {
     };
   }, [isAuthenticated, planId, isLoadingPlan, plan, router, t.timeline.errorLoading]);
 
+  // Sort events chronologically by eventDate (Memoized)
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => 
+      new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
+    );
+  }, [events]);
+
+
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
@@ -210,13 +218,6 @@ export default function Timeline() {
     setErrorMessage(null);
     setSuccessMessage(null);
   };
-
-  // Sort events chronologically by eventDate (Memoized)
-  const sortedEvents = useMemo(() => {
-    return [...events].sort((a, b) => 
-      new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
-    );
-  }, [events]);
 
   return (
     <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col w-full">
