@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./marketplace-vendor.css";
 
 @theme {
   --color-primary: #5D0F12;
@@ -442,5 +443,13 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+
+
+/* Performance Optimization: content-visibility for ultra-smooth 60fps scrolling on long lists */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 360px;
 }
 

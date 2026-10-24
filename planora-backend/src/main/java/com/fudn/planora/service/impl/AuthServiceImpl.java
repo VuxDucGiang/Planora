@@ -16,6 +16,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.fudn.planora.dto.request.GoogleLoginRequest;
 import com.fudn.planora.entity.Role;
+import com.fudn.planora.entity.Vendor;
+import com.fudn.planora.repository.VendorRepository;
 import com.fudn.planora.repository.RoleRepository;
 import com.fudn.planora.enums.ERole;
 import com.fudn.planora.enums.EUserProvider;
@@ -32,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final VendorRepository vendorRepository;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -50,7 +53,8 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu không chính xác!");
         }
-        String token = jwtService.generateToken(user.getEmail());
+        String roleName = (user.getRole() != null && user.getRole().getRoleName() != null) ? user.getRole().getRoleName().name() : "USER";
+        String token = jwtService.generateToken(user.getEmail(), roleName);
         return new LoginResponse(token, "Bearer");
     }
 
@@ -155,8 +159,22 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
+        if (roleEnum == ERole.VENDOR) {
+            Vendor vendor = Vendor.builder()
+                    .user(user)
+                    .businessName(user.getFullname())
+                    .description("")
+                    .experienceYears(0)
+                    .verified(false)
+                    .ratingAverage(0.0)
+                    .totalReviews(0)
+                    .build();
+            vendorRepository.save(vendor);
+        }
+
         // 6. Sinh và trả về Token để Frontend tự động Login
-        String token = jwtService.generateToken(user.getEmail());
+        String roleName = (user.getRole() != null && user.getRole().getRoleName() != null) ? user.getRole().getRoleName().name() : "USER";
+        String token = jwtService.generateToken(user.getEmail(), roleName);
         return new LoginResponse(token, "Bearer");
     }
 }

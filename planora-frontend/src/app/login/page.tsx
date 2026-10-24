@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { login as loginService } from '@/services/auth';
+import { login as loginService, parseToken, getRoleRedirectPath } from '@/services/auth';
 import { Eye, EyeOff, Loader2, CheckCircle2, Globe } from 'lucide-react';
 import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google';
 
@@ -16,7 +16,7 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { user, login, isAuthenticated, isLoading } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const router = useRouter();
 
@@ -24,10 +24,11 @@ export default function Login() {
 
   // Redirection check (PublicRoute behavior)
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.replace('/');
+    if (!isLoading && isAuthenticated && user) {
+      const target = getRoleRedirectPath(user.role, user.email);
+      router.replace(target);
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +44,13 @@ export default function Login() {
     try {
       const response = await loginService({ email: email.trim(), password });
       login(response.accessToken);
+      const parsed = parseToken(response.accessToken);
+      const targetPath = getRoleRedirectPath(parsed?.role, parsed?.email || email.trim());
       setSuccessMessage(t.auth.loginSuccess);
 
       setTimeout(() => {
-        router.replace('/');
-      }, 1200);
+        router.replace(targetPath);
+      }, 1000);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : (language === 'vi' ? 'Đăng nhập thất bại. Vui lòng kiểm tra lại!' : 'Login failed. Please check your credentials!');
       setErrorMessage(errorMsg);
@@ -82,11 +85,13 @@ export default function Login() {
       }
 
       login(jwtToken);
+      const parsedGoogle = parseToken(jwtToken);
+      const targetPath = getRoleRedirectPath(parsedGoogle?.role, parsedGoogle?.email);
       setSuccessMessage(t.auth.googleSuccess);
 
       setTimeout(() => {
-        router.replace('/');
-      }, 1200);
+        router.replace(targetPath);
+      }, 1000);
     } catch (error) {
       console.error('Lỗi khi đăng nhập Google:', error);
       const errorMsg = error instanceof Error ? error.message : t.auth.googleError;

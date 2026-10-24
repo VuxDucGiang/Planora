@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 
 interface NavigationContextType {
@@ -33,20 +33,23 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     }
   }, [isMobileNavOpen]);
 
-  const toggleMobileNav = () => setIsMobileNavOpen(prev => !prev);
-  const closeMobileNav = () => setIsMobileNavOpen(false);
-  const openMobileNav = () => setIsMobileNavOpen(true);
+  const toggleMobileNav = useCallback(() => setIsMobileNavOpen(prev => !prev), []);
+  const closeMobileNav = useCallback(() => setIsMobileNavOpen(false), []);
+  const openMobileNav = useCallback(() => setIsMobileNavOpen(true), []);
+
+  const value = useMemo(
+    () => ({
+      isMobileNavOpen,
+      setIsMobileNavOpen,
+      toggleMobileNav,
+      closeMobileNav,
+      openMobileNav,
+    }),
+    [isMobileNavOpen, toggleMobileNav, closeMobileNav, openMobileNav]
+  );
 
   return (
-    <NavigationContext.Provider
-      value={{
-        isMobileNavOpen,
-        setIsMobileNavOpen,
-        toggleMobileNav,
-        closeMobileNav,
-        openMobileNav,
-      }}
-    >
+    <NavigationContext.Provider value={value}>
       {children}
     </NavigationContext.Provider>
   );

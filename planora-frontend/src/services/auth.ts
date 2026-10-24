@@ -1,4 +1,4 @@
-import type { LoginRequest, LoginResponse, User, RegisterRequest } from '@/types/auth';
+﻿import type { LoginRequest, LoginResponse, User, RegisterRequest } from '@/types/auth';
 
 export async function login(request: LoginRequest): Promise<LoginResponse> {
   const response = await fetch('/api/auth/login', {
@@ -43,12 +43,37 @@ export function parseToken(token: string): User | null {
     return {
       email: payload.sub || '',
       fullName: payload.sub ? payload.sub.split('@')[0] : 'User',
-      role: 'USER', // Default fallback role
+      role: payload.role || 'USER',
     };
   } catch (e) {
     console.error('Error parsing token:', e);
     return null;
   }
+}
+
+export function getRoleRedirectPath(role?: string, email?: string): string {
+  const normalizedRole = (role || '').toUpperCase();
+  const normalizedEmail = (email || '').toLowerCase();
+
+  if (
+    normalizedRole === 'ADMIN' ||
+    normalizedRole === 'ROLE_ADMIN' ||
+    normalizedEmail === 'admin@planora.com' ||
+    normalizedEmail.includes('admin@')
+  ) {
+    return '/admin';
+  }
+
+  if (
+    normalizedRole === 'VENDOR' ||
+    normalizedRole === 'ROLE_VENDOR' ||
+    normalizedEmail === 'vendor@planora.com' ||
+    normalizedEmail.includes('vendor@')
+  ) {
+    return '/vendor/profile';
+  }
+
+  return '/';
 }
 
 export async function register(request: RegisterRequest): Promise<LoginResponse> {

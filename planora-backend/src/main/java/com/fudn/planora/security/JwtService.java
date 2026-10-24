@@ -25,15 +25,23 @@ public class JwtService {
     }
 
     public String generateToken(String email) {
+        return generateToken(email, null);
+    }
+
+    public String generateToken(String email, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(email)
                 .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(getSigningKey())
-                .compact();
+                .expiration(expiryDate);
+
+        if (role != null && !role.isBlank()) {
+            builder.claim("role", role);
+        }
+
+        return builder.signWith(getSigningKey()).compact();
     }
 
     public String extractEmail(String token) {

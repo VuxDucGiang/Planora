@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Heart, Sparkles, Users, Palette, Compass } from 'lucide-react';
+import Image from 'next/image';
+import { Sparkles, Users, Palette, Compass } from 'lucide-react';
 import LandingHeader from '@/components/layout/LandingHeader';
 import LandingFooter from '@/components/layout/LandingFooter';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -244,12 +245,13 @@ export default function WeddingLanding() {
       <div className="relative min-h-screen lg:min-h-[90vh] flex flex-col overflow-visible">
         {/* Background Image Layer */}
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="/landing/landing-1.png"
             alt="Wedding Background"
-            fetchPriority="high"
-            decoding="async"
-            className="w-full h-full object-cover"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
           />
           {/* Gradients to guarantee text contrast and smooth page transition */}
           <div className="absolute inset-0 bg-gradient-to-r from-cream/45 via-cream/15 to-transparent" />
@@ -307,31 +309,31 @@ export default function WeddingLanding() {
             <div className="lg:col-span-7 relative w-full h-[320px] sm:h-[400px] lg:h-[460px] flex items-center justify-center lg:block mt-8 lg:mt-0">
               {/* Mobile/Tablet Horizontal Scroll layout */}
               <div className="lg:hidden w-full overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory flex gap-4 px-4 scroll-smooth">
-                <div className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video rounded-3xl overflow-hidden shadow-2xl snap-center border border-white/10">
-                  <img
+                <div className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video rounded-3xl overflow-hidden shadow-2xl snap-center border border-white/10 relative">
+                  <Image
                     src="/landing/landing-2.png"
                     alt="Wedding Couple"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 280px, 320px"
+                    className="object-cover"
                   />
                 </div>
-                <div className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video rounded-3xl overflow-hidden shadow-2xl snap-center border border-white/10">
-                  <img
+                <div className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video rounded-3xl overflow-hidden shadow-2xl snap-center border border-white/10 relative">
+                  <Image
                     src="/landing/landing-3.png"
                     alt="Bridesmaids"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 280px, 320px"
+                    className="object-cover"
                   />
                 </div>
-                <div className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video rounded-3xl overflow-hidden shadow-2xl snap-center border border-white/10">
-                  <img
+                <div className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video rounded-3xl overflow-hidden shadow-2xl snap-center border border-white/10 relative">
+                  <Image
                     src="/landing/landing-4.png"
                     alt="Wedding Bouquet"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 280px, 320px"
+                    className="object-cover"
                   />
                 </div>
               </div>
@@ -340,32 +342,33 @@ export default function WeddingLanding() {
               <div className="hidden lg:block relative w-full h-full overflow-visible">
                 {/* Top right image (landing-2) */}
                 <div className="absolute top-0 left-[228px] w-[380px] aspect-video rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 hover:scale-[1.03] transition-transform duration-500">
-                  <img
+                  <Image
                     src="/landing/landing-2.png"
                     alt="Wedding Couple"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover object-center"
+                    fill
+                    sizes="380px"
+                    priority
+                    className="object-cover object-center"
                   />
                 </div>
                 {/* Bottom left image (landing-3) */}
                 <div className="absolute top-[220px] left-0 w-[380px] aspect-video rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 hover:scale-[1.03] transition-transform duration-500">
-                  <img
+                  <Image
                     src="/landing/landing-3.png"
                     alt="Bridesmaids"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover object-center"
+                    fill
+                    sizes="380px"
+                    className="object-cover object-center"
                   />
                 </div>
                 {/* Bottom right image (landing-4) - cut off at screen edge */}
                 <div className="absolute top-[220px] left-[404px] w-[380px] aspect-video rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 hover:scale-[1.03] transition-transform duration-500">
-                  <img
+                  <Image
                     src="/landing/landing-4.png"
                     alt="Wedding Bouquet"
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover object-center"
+                    fill
+                    sizes="380px"
+                    className="object-cover object-center"
                   />
                 </div>
               </div>

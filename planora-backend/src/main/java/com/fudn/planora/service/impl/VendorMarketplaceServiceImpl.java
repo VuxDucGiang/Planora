@@ -338,6 +338,8 @@ public class VendorMarketplaceServiceImpl implements VendorMarketplaceService {
                 .customerAvatar(customerAvatar)
                 .rating(review.getRating())
                 .comment(review.getComment())
+                .vendorReply(review.getVendorReply())
+                .repliedAt(review.getRepliedAt())
                 .createdAt(review.getCreatedAt())
                 .build();
     }

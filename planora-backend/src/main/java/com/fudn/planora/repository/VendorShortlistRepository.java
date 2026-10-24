@@ -16,4 +16,6 @@ public interface VendorShortlistRepository extends JpaRepository<VendorShortlist
 
     Optional<VendorShortlist> findByWeddingPlanIdAndVendorId(Long weddingPlanId, Long vendorId);
     boolean existsByWeddingPlanIdAndVendorId(Long weddingPlanId, Long vendorId);
+
+    Long countByVendorId(Long vendorId);
 }

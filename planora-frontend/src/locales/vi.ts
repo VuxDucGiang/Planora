@@ -47,6 +47,7 @@ export const vi: LocaleDictionary = {
     checklist: 'Checklist',
     timeline: 'Dòng thời gian',
     vendors: 'Nhà cung cấp',
+    messages: 'Tin nhắn',
     guests: 'Khách mời',
     setup: 'Thiết lập',
     settings: 'Cài đặt',

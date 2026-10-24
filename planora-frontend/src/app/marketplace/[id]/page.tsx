@@ -1,33 +1,183 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, use, type FormEvent, type ReactNode } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
 import { getVendorDetail, getShortlist, addToShortlist, removeFromShortlist } from '@/services/vendor';
 import type { VendorDetailResponse } from '@/types/vendor';
-import { 
-  Heart, 
-  Star, 
-  MapPin, 
-  Camera, 
-  Coins, 
-  Calendar as CalendarIcon, 
-  Users, 
-  MessageSquare,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  Check,
-  Mail,
-  Send
-} from 'lucide-react';
+import { createOrGetInquiry, getCustomerInquiryDetail, sendCustomerMessage } from '@/services/inquiryService';
+import type { InquiryMessage } from '@/types/inquiry';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Loader2, X, Send, ExternalLink } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
+type IconName = 
+  | 'arrow' 
+  | 'calendar' 
+  | 'chat' 
+  | 'chevron' 
+  | 'clock' 
+  | 'guests' 
+  | 'heart' 
+  | 'instagram' 
+  | 'location' 
+  | 'mail' 
+  | 'phone' 
+  | 'send' 
+  | 'share' 
+  | 'sparkle' 
+  | 'star' 
+  | 'verified';
+
+function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, ReactNode> = {
+    arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
+    calendar: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M16 3v4M8 3v4M3 10h18" />
+      </>
+    ),
+    chat: (
+      <>
+        <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+        <path d="M8 10h.01M12 10h.01M16 10h.01" />
+      </>
+    ),
+    chevron: <path d="m9 18 6-6-6-6" />,
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </>
+    ),
+    guests: (
+      <>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </>
+    ),
+    heart: (
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+    ),
+    instagram: (
+      <>
+        <rect x="3" y="3" width="18" height="18" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <path d="M17.5 6.5h.01" />
+      </>
+    ),
+    location: (
+      <>
+        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </>
+    ),
+    mail: (
+      <>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 7 9 6 9-6" />
+      </>
+    ),
+    phone: (
+      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z" />
+    ),
+    send: <path d="m22 2-7 20-4-9-9-4Zm-11 11L22 2" />,
+    share: (
+      <>
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+      </>
+    ),
+    sparkle: (
+      <path d="M12 2 14.4 9.6 22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4Z" />
+    ),
+    star: (
+      <path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5-4.7-4.6 6.5-.9Z" />
+    ),
+    verified: (
+      <>
+        <circle cx="12" cy="12" r="10" />
+        <path d="m8 12 2.7 2.7L16.5 9" />
+      </>
+    ),
+  };
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="icon shrink-0"
+      fill="none"
+      height={size}
+      viewBox="0 0 24 24"
+      width={size}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.7}
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+
+function SectionTitle({
+  eyebrow,
+  title,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="section-heading">
+      <div>
+        <span className="eyebrow">{eyebrow}</span>
+        <h2>{title}</h2>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// Fallback high quality photography from Figma Template
+const TEMPLATE_PHOTOS = [
+  {
+    src: 'https://images.unsplash.com/photo-1665607437981-973dcd6a22bb?auto=format&fit=crop&w=1800&q=88',
+    alt: 'Không gian tiệc cưới sang trọng với hoa tươi',
+    caption: 'Garden Vows',
+    year: '2025',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1561593367-66c79c2294e6?auto=format&fit=crop&w=1200&q=86',
+    alt: 'Bàn tiệc cưới được bài trí tinh tế',
+    caption: 'Classic Romance',
+    year: '2025',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1751257547111-9641cb540f4d?auto=format&fit=crop&w=1200&q=86',
+    alt: 'Bàn tiệc trang trí với hoa pastel',
+    caption: 'Pastel Dream',
+    year: '2026',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1660511057210-f7fba78d2741?auto=format&fit=crop&w=1200&q=86',
+    alt: 'Hoa trắng và nến trên bàn tiệc',
+    caption: 'Pure Elegance',
+    year: '2026',
+  },
+];
 
 export default function VendorDetail(props: PageProps) {
   const params = use(props.params);
@@ -40,19 +190,25 @@ export default function VendorDetail(props: PageProps) {
   // Data States
   const [vendor, setVendor] = useState<VendorDetailResponse | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-
-  // Loading States
   const [isLoading, setIsLoading] = useState(true);
   const [isTogglingShortlist, setIsTogglingShortlist] = useState(false);
 
-  // Form States
+  // Gallery active index
+  const [activePhoto, setActivePhoto] = useState(0);
+
+  // Inquiry Form State
   const [weddingDate, setWeddingDate] = useState('');
   const [guestCount, setGuestCount] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
-  const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  // Carousel State
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  // Live Chat Drawer States
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
+  const [activeInquiryId, setActiveInquiryId] = useState<number | null>(null);
+  const [chatMessages, setChatMessages] = useState<InquiryMessage[]>([]);
+  const [chatInputText, setChatInputText] = useState('');
+  const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
 
   // Load Vendor Detail
   useEffect(() => {
@@ -73,7 +229,7 @@ export default function VendorDetail(props: PageProps) {
     loadData();
   }, [isAuthenticated, vendorId]);
 
-  // Sync Shortlist state when plan is available
+  // Sync Shortlist state
   useEffect(() => {
     if (!isAuthenticated || !plan?.id) return;
     const targetPlanId = plan.id;
@@ -91,45 +247,146 @@ export default function VendorDetail(props: PageProps) {
     checkShortlist(targetPlanId);
   }, [isAuthenticated, plan?.id, vendorId]);
 
-  // Handle Save / Toggle Shortlist
+  // Handle Save / Toggle Shortlist (Optimistic UI)
   const handleToggleShortlist = async () => {
     if (!plan || !vendor) return;
-    setIsTogglingShortlist(true);
+    const previousState = isSaved;
+    // 1. Flip state immediately
+    setIsSaved(!previousState);
+
     try {
-      if (isSaved) {
+      if (previousState) {
         await removeFromShortlist(plan.id, vendor.id);
-        setIsSaved(false);
       } else {
         await addToShortlist(plan.id, vendor.id);
-        setIsSaved(true);
       }
     } catch (err) {
+      // 2. Rollback on error
+      setIsSaved(previousState);
       console.error('Lỗi thao tác danh sách yêu thích:', err);
-    } finally {
-      setIsTogglingShortlist(false);
     }
   };
 
-  // Handle Submit Inquiry
-  const handleSubmitInquiry = (e: React.FormEvent) => {
+  // Handle Submit Inquiry via Backend API
+  const handleSubmitInquiry = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!weddingDate || !guestCount) return;
+    if (!weddingDate || !vendor) return;
     setIsSubmittingInquiry(true);
-    setTimeout(() => {
+    try {
+      const inq = await createOrGetInquiry({
+        vendorId: vendor.id,
+        weddingPlanId: plan?.id,
+        title: `Tư vấn tiệc cưới ngày ${weddingDate}`,
+        message: `Xin chào ${vendor.businessName}! Tôi dự định tổ chức vào ngày ${weddingDate} với quy mô khoảng ${guestCount || '150 khách'}. Số điện thoại liên hệ: ${phoneNumber || 'Chưa cung cấp'}. Rất mong nhận được tư vấn chi tiết từ bạn.`,
+      });
+      setSubmitted(true);
+      setActiveInquiryId(inq.id);
+      setChatMessages(inq.messages || []);
+      setIsChatDrawerOpen(true);
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Không thể gửi yêu cầu tư vấn');
+    } finally {
       setIsSubmittingInquiry(false);
-      setInquirySuccess(true);
-      setWeddingDate('');
-      setGuestCount('');
-      setTimeout(() => setInquirySuccess(false), 5000);
-    }, 1500);
+    }
+  };
+
+  // Handle Direct Live Chat
+  const handleOpenDirectChat = async () => {
+    if (!vendor) return;
+    try {
+      const inq = await createOrGetInquiry({
+        vendorId: vendor.id,
+        weddingPlanId: plan?.id,
+        title: `Tư vấn trực tiếp với ${vendor.businessName}`,
+        message: `Xin chào ${vendor.businessName}, tôi đang xem trang dịch vụ của bạn trên Planora và muốn được tư vấn thêm.`,
+      });
+      setActiveInquiryId(inq.id);
+      setChatMessages(inq.messages || []);
+      setIsChatDrawerOpen(true);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Không thể kết nối trò chuyện');
+    }
+  };
+
+  // Poll chat messages when drawer is open (Adaptive Polling)
+  useEffect(() => {
+    if (!isChatDrawerOpen || !activeInquiryId) return;
+
+    const pollDrawerChat = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      try {
+        const detail = await getCustomerInquiryDetail(activeInquiryId);
+        setChatMessages(detail.messages || []);
+      } catch {
+        // silent catch
+      }
+    };
+
+    const interval = setInterval(pollDrawerChat, 4000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        pollDrawerChat();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isChatDrawerOpen, activeInquiryId]);
+
+  // Handle Send Customer Message in Drawer (Optimistic UI)
+  const handleSendCustomerMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInputText.trim() || !activeInquiryId || isSendingChatMessage) return;
+    const text = chatInputText.trim();
+    setChatInputText('');
+    setIsSendingChatMessage(true);
+
+    const tempId = Date.now();
+    const optimisticMsg: InquiryMessage = {
+      id: tempId,
+      inquiryId: activeInquiryId,
+      senderId: 0,
+      senderName: 'Bạn',
+      senderRole: 'CUSTOMER',
+      message: text,
+      createdAt: new Date().toISOString(),
+    };
+
+    // 1. Immediately append optimistic message
+    setChatMessages(prev => [...prev, optimisticMsg]);
+
+    try {
+      const newMsg = await sendCustomerMessage(activeInquiryId, text);
+      // 2. Replace with confirmed server message
+      setChatMessages(prev => prev.map(m => m.id === tempId ? newMsg : m));
+    } catch (err: unknown) {
+      // 3. Rollback on failure
+      setChatMessages(prev => prev.filter(m => m.id !== tempId));
+      alert(err instanceof Error ? err.message : 'Không thể gửi tin nhắn');
+    } finally {
+      setIsSendingChatMessage(false);
+    }
+  };
+
+  // Copy URL Share
+  const handleShare = () => {
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(window.location.href);
+      alert(language === 'vi' ? 'Đã sao chép liên kết trang nhà cung cấp!' : 'Link copied to clipboard!');
+    }
   };
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
+      <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-text">{t.dashboard.loadingSession}</span>
+          <Loader2 className="w-8 h-8 animate-spin text-[#5D0F12]" />
+          <span className="text-sm text-stone-500">{t.dashboard.loadingSession}</span>
         </div>
       </div>
     );
@@ -137,572 +394,665 @@ export default function VendorDetail(props: PageProps) {
 
   if (isLoading || !vendor) {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
+      <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <span className="text-sm text-muted-text font-display">{t.marketplace.loadingDetail}</span>
+          <Loader2 className="w-8 h-8 animate-spin text-[#5D0F12]" />
+          <span className="text-sm text-stone-500 font-serif">{t.marketplace.loadingDetail}</span>
         </div>
       </div>
     );
   }
 
-  // Get consistent category and mock data
-  const fallbackMeta = getVendorMeta(vendor.id);
-  const fallbackPrice = getMockPriceRange(vendor.id);
-  const category = vendor.primaryCategoryName || fallbackMeta.category;
-  const min = (vendor.priceFrom !== undefined && vendor.priceFrom !== null) ? vendor.priceFrom : fallbackPrice.min;
-  const max = (vendor.priceTo !== undefined && vendor.priceTo !== null) ? vendor.priceTo : fallbackPrice.max;
-  const imageUrls = fallbackMeta.imageUrls;
+  // Consistent photography & fallback data (supports multi-album collections & legacy portfolios)
+  const photos = (() => {
+    if (vendor.collections && vendor.collections.length > 0) {
+      const colPhotos = vendor.collections.flatMap((c) =>
+        (c.images || []).map((img) => ({
+          src: img.imageUrl,
+          alt: img.title || c.title || vendor.businessName,
+          caption: `${c.title}${img.title ? ` • ${img.title}` : ''}`,
+          year: '2026',
+        }))
+      );
+      if (colPhotos.length > 0) return colPhotos;
+    }
+    if (vendor.portfolios && vendor.portfolios.length > 0) {
+      return vendor.portfolios.map((p) => ({
+        src: p.imageUrl,
+        alt: p.title || vendor.businessName,
+        caption: p.title || 'Không gian tác nghiệp',
+        year: '2026',
+      }));
+    }
+    return TEMPLATE_PHOTOS;
+  })();
 
-  // Portfolio carousel images
-  const carouselImages = vendor.portfolios && vendor.portfolios.length > 0
-    ? vendor.portfolios.map(p => p.imageUrl)
-    : imageUrls;
+  function isOptimizableImage(url: string): boolean {
+    if (!url) return false;
+    if (url.startsWith('/')) return true;
+    try {
+      const host = new URL(url).hostname;
+      return (
+        host.includes('images.unsplash.com') ||
+        host.includes('res.cloudinary.com') ||
+        host.includes('lh3.googleusercontent.com')
+      );
+    } catch {
+      return false;
+    }
+  }
 
-  const nextImage = () => {
-    setActiveImageIndex(prev => (prev + 1) % carouselImages.length);
-  };
-
-  const prevImage = () => {
-    setActiveImageIndex(prev => (prev - 1 + carouselImages.length) % carouselImages.length);
-  };
+  const category = vendor.primaryCategoryName || 'Trang trí cưới';
+  const minPrice = vendor.priceFrom || 15000000;
+  const maxPrice = vendor.priceTo || 35000000;
 
   return (
-    <div className="min-h-screen bg-canvas text-body-text font-sans flex flex-col relative w-full overflow-x-hidden">
+    <div className="vendor-showcase-page">
+      {/* Planora App Header (Retained as requested) */}
       <DashboardHeader logout={logout} plan={plan} daysLeft={daysLeft} />
 
-      {/* Main Container */}
-      <div className="flex-1 w-full flex flex-col">
-        
-        {/* Banner Section */}
-        <div className="relative w-full h-[240px] sm:h-[320px] md:h-[400px] bg-slate-900 overflow-hidden">
-          <img 
-            src={carouselImages[activeImageIndex % carouselImages.length]} 
-            alt="Wedding Banner" 
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover opacity-60 filter blur-xs scale-105"
+      <main id="top">
+        {/* HERO BANNER SECTION (FIGMA TEMPLATE) */}
+        <section className="hero">
+          <Image
+            alt={vendor.businessName || 'Vendor Banner'}
+            className="hero-image"
+            src={photos[0].src}
+            fill
+            sizes="100vw"
+            priority
+            unoptimized={!isOptimizableImage(photos[0].src)}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
-          
-          {/* Main Visual Couple in Banner */}
-          <div className="absolute inset-0 flex items-center justify-center px-4">
-            <div className="relative w-full max-w-4xl h-full flex items-end pb-4 sm:pb-8">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200" 
-                alt="Banner Couple" 
-                className="absolute inset-0 w-full h-full object-cover rounded-b-[28px] sm:rounded-b-[40px] shadow-2xl border-b-4 border-cream/20"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = carouselImages[0];
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-b-[28px] sm:rounded-b-[40px]"></div>
+          <div className="hero-overlay" />
+          <div className="hero-content page-width">
+            <div className="breadcrumbs">
+              <Link href="/marketplace">Trang chủ</Link>
+              <Icon name="chevron" size={13} />
+              <span>{category}</span>
+              <Icon name="chevron" size={13} />
+              <span>{vendor.businessName}</span>
+            </div>
+            <p className="hero-kicker">
+              Selected wedding vendor · {vendor.city || 'Đà Lạt'}
+            </p>
+            <h1>
+              Những khoảnh khắc ngày trọng đại
+              <br />
+              kể câu chuyện của riêng bạn.
+            </h1>
+          </div>
+          <div className="hero-tools">
+            <button
+              aria-label="Chia sẻ"
+              className="round-button glass"
+              type="button"
+              onClick={handleShare}
+            >
+              <Icon name="share" />
+            </button>
+            <button
+              aria-label={isSaved ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}
+              className={isSaved ? 'round-button glass active' : 'round-button glass'}
+              onClick={handleToggleShortlist}
+              disabled={isTogglingShortlist}
+              type="button"
+            >
+              <Icon name="heart" />
+            </button>
+          </div>
+        </section>
+
+        {/* FLOATING VENDOR IDENTITY CARD (FIGMA TEMPLATE) */}
+        <section
+          className="vendor-card page-width"
+          aria-label="Thông tin nhà cung cấp"
+        >
+          <div className="vendor-identity">
+            <div className="vendor-avatar">
+              {vendor.avatarUrl ? (
+                <img
+                  src={vendor.avatarUrl}
+                  alt={vendor.businessName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{vendor.businessName.slice(0, 2).toUpperCase()}</span>
+              )}
+              <span className="verified-dot" title="Đã xác thực bởi Planora">
+                <Icon name="verified" size={14} />
+              </span>
+            </div>
+            <div>
+              <div className="pills">
+                <span>{category}</span>
+                <span className="choice">
+                  <Icon name="sparkle" size={11} /> Planora&apos;s choice
+                </span>
+              </div>
+              <h2>{vendor.businessName}</h2>
+              <div className="rating-row">
+                <span className="stars">★★★★★</span>
+                <strong>{vendor.ratingAverage ? Number(vendor.ratingAverage).toFixed(1) : '4.9'}</strong>
+                <span>· {vendor.totalReviews || 122} đánh giá</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Floating Profile Info & About Row */}
-        <div className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 md:px-8 relative -mt-14 sm:-mt-20 md:-mt-24 z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-            
-            {/* Left Floating Card */}
-            <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xl border border-hairline relative text-center">
-              {/* Floating circular icon */}
-              <div className="absolute -top-10 sm:-top-12 left-1/2 -translate-x-1/2 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary border-4 border-white shadow-lg flex items-center justify-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-cream/20 flex items-center justify-center text-gold">
-                  <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-gold text-gold" />
-                </div>
-              </div>
-
-              {/* Title Content */}
-              <div className="pt-7 sm:pt-10 space-y-4">
-                <div className="space-y-1">
-                  <h1 className="text-xl md:text-2xl font-semibold text-ink font-display tracking-tight">
-                    {vendor.businessName}
-                  </h1>
-                  <div className="inline-block bg-gold/15 border border-gold/30 text-primary text-[9px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full">
-                    {t.marketplace.aiChoice}
-                  </div>
-                </div>
-
-                {/* Rating */}
-                <div className="flex flex-col items-center justify-center gap-0.5 border-y border-hairline py-3 my-2">
-                  <div className="flex items-center gap-1 justify-center">
-                    <div className="flex text-gold">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < Math.round(vendor.ratingAverage) ? 'fill-gold text-gold' : 'text-slate-200'}`} />
-                      ))}
-                    </div>
-                    <span className="text-xs font-bold text-ink">({vendor.ratingAverage})</span>
-                  </div>
-                  <span className="text-[10px] text-muted-text font-bold uppercase tracking-wide">
-                    [{vendor.totalReviews} {t.marketplace.reviewsText}]
-                  </span>
-                </div>
-
-                {/* Meta details list */}
-                <div className="space-y-3.5 text-left text-xs max-w-xs mx-auto">
-                  <div className="flex items-center gap-3.5 text-body-text">
-                    <MapPin className="w-4 h-4 text-primary shrink-0" />
-                    <span>{vendor.district}, {vendor.city}, {language === 'vi' ? 'Việt Nam' : 'Vietnam'}</span>
-                  </div>
-                  <div className="flex items-center gap-3.5 text-body-text">
-                    <Camera className="w-4 h-4 text-primary shrink-0" />
-                    <span className="capitalize">
-                      {language === 'vi' 
-                        ? `${category.toLowerCase().includes('ảnh') || category.toLowerCase().includes('photo') ? 'Nhiếp ảnh' : category} & Quay phim`
-                        : `${category} & Videography`}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3.5 text-body-text">
-                    <Coins className="w-4 h-4 text-primary shrink-0" />
-                    <span className="font-mono font-semibold text-primary">
-                      {formatCurrency(min)} - {formatCurrency(max)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+          <div className="vendor-about">
+            <span className="eyebrow">Về nhà cung cấp</span>
+            <p>
+              {vendor.description || 
+                'Chuyên thiết kế không gian cưới tinh tế, nơi hoa, ánh sáng và cảm xúc hòa quyện thành một dấu ấn duy nhất cho ngày trọng đại.'}
+            </p>
+            <div className="style-tags">
+              {vendor.styles && vendor.styles.length > 0 ? (
+                vendor.styles.map((st, i) => <span key={i}>{st}</span>)
+              ) : (
+                <>
+                  <span>Garden wedding</span>
+                  <span>Minimalist</span>
+                  <span>Romantic</span>
+                </>
+              )}
             </div>
+          </div>
 
-            {/* Right About Info */}
-            <div className="lg:col-span-7 pt-4 lg:pt-16 space-y-4">
-              <div className="inline-block bg-primary text-cream text-[10px] font-bold uppercase tracking-[0.2em] px-5 py-2 rounded-full">
-                {t.marketplace.aboutVendorTitle}
-              </div>
-              <p className="text-sm text-body-text leading-relaxed font-serif">
-                {vendor.description || (language === 'vi' 
-                  ? `Với hơn ${vendor.experienceYears} năm kinh nghiệm ghi lại những khoảnh khắc tình yêu đẹp nhất, ${vendor.businessName} tự hào mang đến phong cách dịch vụ cưới chuyên nghiệp, tinh tế hàng đầu tại Việt Nam.`
-                  : `With over ${vendor.experienceYears} years of experience capturing the most beautiful love stories, ${vendor.businessName} proudly delivers premier, sophisticated wedding services.`)}
+          <div className="vendor-meta">
+            <div>
+              <Icon name="location" size={17} />
+              <span>{vendor.district ? `${vendor.district}, ` : ''}{vendor.city || 'Đà Lạt'}</span>
+            </div>
+            <div>
+              <Icon name="clock" size={17} />
+              <span>{vendor.experienceYears || 6} năm kinh nghiệm</span>
+            </div>
+            <div>
+              <Icon name="phone" size={17} />
+              <span>{vendor.phone || '0912 111 111'}</span>
+            </div>
+          </div>
+        </section>
+
+        {/* MAIN TWO-COLUMN CONTENT GRID (FIGMA TEMPLATE) */}
+        <div className="content-grid page-width">
+          {/* LEFT: MAIN CONTENT */}
+          <div className="main-content">
+            {/* Story / Concept Philosophy */}
+            <section className="story-section">
+              <span className="eyebrow">{vendor.businessName}</span>
+              <blockquote>
+                “Mỗi đám cưới là một câu chuyện riêng — chúng tôi chỉ giúp tình yêu ấy nở hoa rực rỡ.”
+              </blockquote>
+              <p>
+                Từ lễ đường ngập tràn ánh nắng đến bữa tiệc thân mật dưới tán cây, đội ngũ {vendor.businessName} luôn theo đuổi vẻ đẹp tự nhiên, cảm xúc chân thực và tinh tế dành riêng cho từng cặp đôi.
               </p>
+            </section>
+
+            {/* Portfolio Gallery Section */}
+            <section className="portfolio-section" id="portfolio">
+              <SectionTitle
+                eyebrow={`Portfolio 01 — 0${photos.length}`}
+                title={`Không gian do ${vendor.businessName} kiến tạo`}
+                action={
+                  <button className="text-button" type="button" onClick={() => setActivePhoto((activePhoto + 1) % photos.length)}>
+                    Xem tiếp <Icon name="arrow" />
+                  </button>
+                }
+              />
+              <div className="gallery">
+                <button
+                  aria-label="Ảnh trước"
+                  className="gallery-arrow previous"
+                  onClick={() =>
+                    setActivePhoto(
+                      (activePhoto + photos.length - 1) % photos.length,
+                    )
+                  }
+                  type="button"
+                >
+                  <Icon name="chevron" />
+                </button>
+                <img
+                  alt={photos[activePhoto].alt}
+                  className="gallery-main"
+                  src={photos[activePhoto].src}
+                />
+                <button
+                  aria-label="Ảnh tiếp theo"
+                  className="gallery-arrow next"
+                  onClick={() =>
+                    setActivePhoto((activePhoto + 1) % photos.length)
+                  }
+                  type="button"
+                >
+                  <Icon name="chevron" />
+                </button>
+                <div className="gallery-caption">
+                  <span>{photos[activePhoto].caption}</span>
+                  <span>{vendor.city || 'Đà Lạt'} · {photos[activePhoto].year}</span>
+                </div>
+              </div>
+
+              {/* Thumbnails row */}
+              <div className="thumbnails">
+                {photos.map((photo, index) => (
+                  <button
+                    aria-label={`Xem ảnh ${index + 1}`}
+                    className={
+                      activePhoto === index ? 'thumbnail active' : 'thumbnail'
+                    }
+                    key={photo.src + index}
+                    onClick={() => setActivePhoto(index)}
+                    type="button"
+                  >
+                    <img alt="" src={photo.src} />
+                  </button>
+                ))}
+              </div>
+            </section>
+
+                      </div>
+
+          {/* RIGHT: INQUIRY SIDEBAR (FIGMA TEMPLATE) */}
+          <aside className="inquiry-card" id="inquiry">
+            <div className="inquiry-header">
+              <span className="eyebrow">Gửi yêu cầu</span>
+              <h2>Hãy bắt đầu từ ngày cưới của bạn</h2>
+              <p>{vendor.businessName} thường phản hồi trong vòng 2 giờ.</p>
+            </div>
+            <div className="starting-price">
+              <span>Chi phí từ</span>
+              <strong>{formatCurrency(minPrice)}</strong>
             </div>
 
-          </div>
+            <form onSubmit={handleSubmitInquiry}>
+              <label>
+                Ngày cưới dự kiến
+                <span className="input-wrap">
+                  <Icon name="calendar" size={17} />
+                  <input 
+                    aria-label="Ngày cưới dự kiến" 
+                    required 
+                    type="date"
+                    value={weddingDate}
+                    onChange={(e) => setWeddingDate(e.target.value)}
+                  />
+                </span>
+              </label>
+
+              <label>
+                Số lượng khách
+                <span className="input-wrap">
+                  <Icon name="guests" size={17} />
+                  <select 
+                    aria-label="Số lượng khách" 
+                    value={guestCount}
+                    onChange={(e) => setGuestCount(e.target.value)}
+                    required
+                  >
+                    <option disabled value="">
+                      Chọn quy mô tiệc
+                    </option>
+                    <option value="Dưới 100 khách">Dưới 100 khách</option>
+                    <option value="100–200 khách">100–200 khách</option>
+                    <option value="200–400 khách">200–400 khách</option>
+                    <option value="Trên 400 khách">Trên 400 khách</option>
+                  </select>
+                </span>
+              </label>
+
+              <label>
+                Số điện thoại
+                <span className="input-wrap">
+                  <Icon name="phone" size={17} />
+                  <input
+                    aria-label="Số điện thoại"
+                    placeholder="Nhập số điện thoại"
+                    required
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                </span>
+              </label>
+
+              <button 
+                className="primary-button" 
+                type="submit"
+                disabled={isSubmittingInquiry}
+              >
+                {isSubmittingInquiry ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Icon name="send" size={17} />
+                    {submitted ? 'Đã gửi yêu cầu' : 'Yêu cầu báo giá'}
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="or-divider">
+              <span>hoặc</span>
+            </div>
+
+            <button 
+              className="secondary-button" 
+              type="button"
+              onClick={handleOpenDirectChat}
+            >
+              <Icon name="chat" size={17} /> Trò chuyện trực tiếp
+            </button>
+
+            <button
+              className={isSaved ? 'save-button saved' : 'save-button'}
+              onClick={handleToggleShortlist}
+              disabled={isTogglingShortlist}
+              type="button"
+            >
+              <Icon name="heart" size={17} />
+              {isSaved ? 'Đã lưu vào danh sách' : 'Lưu nhà cung cấp'}
+            </button>
+
+            <div className="assurance">
+              <Icon name="verified" size={18} />
+              <span>
+                Thông tin của bạn được bảo mật và chỉ chia sẻ với {vendor.businessName}.
+              </span>
+            </div>
+          </aside>
         </div>
 
-        {/* Horizontal Scalloped Lace Divider */}
-        <div className="w-full my-12 relative h-5 select-none opacity-80"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='16' viewBox='0 0 40 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,16 C10,16 10,2 20,2 C30,2 30,16 40,16' stroke='%23FAF5EE' stroke-width='2' fill='none'/%3E%3Cpath d='M0,16 C10,16 10,6 20,6 C30,6 30,16 40,16' stroke='%235D0F12' stroke-width='1.5' fill='none' opacity='0.2'/%3E%3Ccircle cx='20' cy='9' r='1.5' fill='%235D0F12' opacity='0.3'/%3E%3Ccircle cx='10' cy='13' r='1' fill='%235D0F12' opacity='0.2'/%3E%3Ccircle cx='30' cy='13' r='1' fill='%235D0F12' opacity='0.2'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat-x',
-            backgroundSize: '40px 16px'
-          }}
-        ></div>
-
-        {/* Two-Column Grid: Portfolio + Pricing on Left, Send Inquiry Sidebar on Right */}
-        <div className="max-w-6xl w-full mx-auto px-3.5 sm:px-6 md:px-8 pb-24 lg:pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* LEFT AREA: Gallery & Pricing (Col span 8) */}
-            <div className="lg:col-span-8 space-y-12">
-              
-              {/* Portfolio / Gallery */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 border-b border-hairline pb-3">
-                  <Camera className="w-5 h-5 text-primary" />
-                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">{t.marketplace.portfolioTitle}</h3>
-                </div>
-
-                {/* Arched Framed Carousel */}
-                <div className="relative bg-cream/30 border border-hairline rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm overflow-hidden flex flex-col items-center">
-                  
-                  {/* Lace overlay frame style */}
-                  <div className="relative w-full aspect-[16/10] max-w-2xl bg-white border-4 sm:border-8 border-double border-gold/30 rounded-xl sm:rounded-2xl overflow-hidden shadow-inner p-1 sm:p-2">
-                    <div className="w-full h-full relative overflow-hidden rounded-lg">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={carouselImages[activeImageIndex % carouselImages.length]} 
-                        alt="Portfolio Slide" 
-                        loading="lazy"
-                        decoding="async"
-                        className="object-cover w-full h-full transition-all duration-700 ease-in-out hover:scale-105"
-                      />
-                      
-                      {/* Left Navigation Arrow */}
-                      <button 
-                        onClick={prevImage}
-                        className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors cursor-pointer"
-                        aria-label={language === 'vi' ? 'Ảnh trước' : 'Previous image'}
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-
-                      {/* Right Navigation Arrow */}
-                      <button 
-                        onClick={nextImage}
-                        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 hover:bg-white text-ink shadow-md flex items-center justify-center transition-colors cursor-pointer"
-                        aria-label={language === 'vi' ? 'Ảnh tiếp' : 'Next image'}
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Carousel Indicators Dots */}
-                  <div className="flex gap-2 mt-4">
-                    {carouselImages.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setActiveImageIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all cursor-pointer ${activeImageIndex === idx ? 'bg-primary scale-125' : 'bg-primary/20 hover:bg-primary/50'}`}
-                      />
-                    ))}
-                  </div>
-                </div>
+        {/* Services & Packages Section */}
+            <section className="services-section page-width" id="services">
+              <div className="section-heading">
+                <span className="eyebrow">BẢNG GIÁ DỊCH VỤ</span>
+                <h2>Dịch vụ & chi phí</h2>
+                <p className="section-subtitle">
+                  Chọn gói trải nghiệm phù hợp cho ngày trọng đại của hai bạn
+                </p>
               </div>
-
-              {/* Services & Pricing */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 border-b border-hairline pb-3">
-                  <Coins className="w-5 h-5 text-primary" />
-                  <h3 className="text-xs font-bold text-ink uppercase tracking-wider font-display">{t.marketplace.servicesPricingTitle}</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
-                  {/* Premium Package Card */}
-                  <div className="bg-primary text-cream rounded-[24px] p-6 flex flex-col justify-between shadow-lg relative overflow-hidden group hover:scale-[1.01] transition-transform duration-300">
-                    <div className="absolute top-0 right-0 bg-gold text-primary font-bold text-[8px] uppercase tracking-wider py-1 px-3.5 rounded-bl-lg">
-                      {t.marketplace.popularTag}
-                    </div>
-                    <div className="space-y-4">
-                      <div className="border-b border-cream/15 pb-4 space-y-1">
-                        <span className="text-[10px] font-bold text-gold-light uppercase tracking-wider block">Premium</span>
-                        <h4 className="text-3xl font-bold font-mono">
-                          {formatCurrency(max)}
-                        </h4>
-                        <p className="text-xs text-cream/70 font-display">
-                          {language === 'vi' ? 'Gói trọn gói Ngày cưới & Phóng sự' : 'Comprehensive Pre-Wedding & Ceremony'}
+              <div className="service-grid">
+                {vendor.packages && vendor.packages.length > 0 ? (
+                  vendor.packages.map((pkg, idx) => {
+                    const isFeatured = idx === 0;
+                    return (
+                      <article 
+                        key={pkg.id || idx} 
+                        className={isFeatured ? 'service-card featured' : 'service-card'}
+                      >
+                        <div>
+                          <div className="service-topline">
+                            <span className="eyebrow">Gói 0{idx + 1}</span>
+                            {isFeatured && <span className="popular">Được yêu thích</span>}
+                          </div>
+                          <h3>{pkg.packageName}</h3>
+                          <p className="price">
+                            <span>Từ</span> {formatCurrency(pkg.price)}
+                          </p>
+                          <p>{pkg.description || 'Gói dịch vụ cao cấp được thiết kế chuẩn mực theo yêu cầu của hai bạn.'}</p>
+                          <ul>
+                            <li>Tư vấn concept & bảng màu chủ đạo</li>
+                            <li>Tác nghiệp trọn gói cùng ekip chuyên nghiệp</li>
+                            <li>Hậu kỳ & bàn giao toàn bộ sản phẩm chất lượng cao</li>
+                          </ul>
+                        </div>
+                        <button 
+                          className="service-link"
+                          type="button"
+                          onClick={() => {
+                            setWeddingDate(new Date().toISOString().split('T')[0]);
+                            setGuestCount('100–200 khách');
+                            document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                        >
+                          Nhận tư vấn <Icon name="arrow" />
+                        </button>
+                      </article>
+                    );
+                  })
+                ) : (
+                  /* Figma Template Default Packages */
+                  <>
+                    <article className="service-card featured">
+                      <div>
+                        <div className="service-topline">
+                          <span className="eyebrow">Gói 01</span>
+                          <span className="popular">Được yêu thích</span>
+                        </div>
+                        <h3>Garden Ceremony</h3>
+                        <p className="price">
+                          <span>Từ</span> {formatCurrency(minPrice)}
                         </p>
-                      </div>
-                      <ul className="space-y-2.5 text-xs text-cream/90">
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính + 1 Quay phim' : '1 Lead Photographer + 1 Videographer'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>{language === 'vi' ? 'Tác nghiệp 10 giờ / Toàn bộ file gốc + Album' : '10-hour coverage / All files + Album'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-gold-light shrink-0" />
-                          <span>{language === 'vi' ? 'Chỉnh màu cao cấp & Quay flycam' : 'Premium photo editing & drone footage'}</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setWeddingDate(new Date().toISOString().split('T')[0]);
-                        setGuestCount('150');
-                        document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="w-full mt-6 py-2.5 bg-cream hover:bg-warm-white text-primary text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
-                    >
-                      {t.marketplace.inquireNow}
-                    </button>
-                  </div>
-
-                  {/* Basic Package Card */}
-                  <div className="bg-[#FFFBF5] text-body-text border border-hairline rounded-[24px] p-6 flex flex-col justify-between shadow-md hover:scale-[1.01] transition-transform duration-300">
-                    <div className="space-y-4">
-                      <div className="border-b border-hairline pb-4 space-y-1">
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Basic</span>
-                        <h4 className="text-3xl font-bold font-mono text-ink">
-                          {formatCurrency(min)}
-                        </h4>
-                        <p className="text-xs text-muted-text">
-                          {language === 'vi' ? 'Phóng sự cưới ngày chính lễ' : 'Journalistic Wedding Day'}
+                        <p>
+                          Thiết kế khu vực lễ chính, cổng hoa và lối dẫn theo concept riêng.
                         </p>
+                        <ul>
+                          <li>01 buổi tư vấn concept</li>
+                          <li>Hoa tươi theo mùa & hoa nhập khẩu</li>
+                          <li>Thi công & tháo dỡ trọn gói</li>
+                        </ul>
                       </div>
-                      <ul className="space-y-2.5 text-xs text-body-text">
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{language === 'vi' ? '1 Nhiếp ảnh gia chính' : '1 Lead Photographer'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{language === 'vi' ? 'Tác nghiệp 4 giờ / File số chất lượng cao' : '4-hour coverage / High-res digital files'}</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{language === 'vi' ? 'Hậu kỳ cơ bản 150 hình ảnh chọn lọc' : 'Basic retouching of 150 select photos'}</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        setWeddingDate(new Date().toISOString().split('T')[0]);
-                        setGuestCount('50');
-                        document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="w-full mt-6 py-2.5 bg-primary hover:bg-primary-active text-cream text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md transition-colors cursor-pointer"
-                    >
-                      {t.marketplace.inquireNow}
-                    </button>
-                  </div>
+                      <button 
+                        className="service-link"
+                        type="button"
+                        onClick={() => {
+                          setWeddingDate(new Date().toISOString().split('T')[0]);
+                          setGuestCount('100–200 khách');
+                          document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                      >
+                        Nhận tư vấn <Icon name="arrow" />
+                      </button>
+                    </article>
 
-                </div>
+                    <article className="service-card">
+                      <div>
+                        <div className="service-topline">
+                          <span className="eyebrow">Gói 02</span>
+                        </div>
+                        <h3>Full Wedding Styling</h3>
+                        <p className="price">
+                          <span>Từ</span> {formatCurrency(maxPrice)}
+                        </p>
+                        <p>
+                          Đồng bộ không gian lễ, bàn tiệc, photobooth và hệ thống hoa trang trí.
+                        </p>
+                        <ul>
+                          <li>Concept & moodboard độc quyền</li>
+                          <li>Thiết kế toàn bộ không gian ngày cưới</li>
+                          <li>Điều phối styling trực tiếp trong ngày</li>
+                        </ul>
+                      </div>
+                      <button 
+                        className="service-link"
+                        type="button"
+                        onClick={() => {
+                          setWeddingDate(new Date().toISOString().split('T')[0]);
+                          setGuestCount('200–400 khách');
+                          document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                      >
+                        Nhận tư vấn <Icon name="arrow" />
+                      </button>
+                    </article>
+                  </>
+                )}
               </div>
+            </section>
 
-            </div>
-
-            {/* RIGHT AREA: Sticky Send Inquiry Sidebar (Col span 4) */}
-            <div id="inquiry-sidebar" className="lg:col-span-4 lg:sticky lg:top-[70px] bg-primary text-cream rounded-[28px] sm:rounded-[32px] p-5 sm:p-8 shadow-xl border border-primary/20 space-y-5 sm:space-y-6">
-              <div className="border-b border-cream/15 pb-4 space-y-1">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-gold-light" />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-gold-light font-display">{t.marketplace.sendInquiryTitle}</h3>
-                </div>
-                <h4 className="text-lg font-semibold tracking-tight text-cream mt-2 font-display">
-                  {vendor.businessName}
-                </h4>
-                <p className="text-[10px] text-cream/60">
-                  {t.marketplace.startingFrom}: {formatCurrency(min)} / Premium: {formatCurrency(max)}
+            {/* Customer Reviews Section */}
+            <section className="reviews-section page-width" id="reviews">
+              <div className="section-heading">
+                <span className="eyebrow">ĐÁNH GIÁ TỪ CẶP ĐÔI</span>
+                <h2>Lời nhắn từ khách hàng</h2>
+                <p className="section-subtitle">
+                  Những câu chuyện đã nở hoa · {vendor.ratingAverage ? Number(vendor.ratingAverage).toFixed(1) : '4.9'} / 5 sao ({vendor.totalReviews || 122} đánh giá)
                 </p>
               </div>
 
-              {/* Inquiry Form */}
-              <form onSubmit={handleSubmitInquiry} className="space-y-4">
-                
-                {/* Date Input */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-cream/70 uppercase tracking-wider block">
-                    {t.marketplace.selectWeddingDate}
-                  </label>
-                  <div className="relative">
-                    <input 
-                      type="date" 
-                      required
-                      value={weddingDate}
-                      onChange={e => setWeddingDate(e.target.value)}
-                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-base sm:text-xs text-cream focus:outline-none focus:border-gold font-mono cursor-pointer"
-                    />
-                    <CalendarIcon className="w-4 h-4 text-cream/50 absolute right-3.5 top-3.5 pointer-events-none" />
-                  </div>
-                </div>
+              {vendor.reviews && vendor.reviews.length > 0 ? (
+                <div className="space-y-5">
+                  {vendor.reviews.map((rev) => (
+                    <article key={rev.id} className="review-card">
+                      <div className="quote-mark">“</div>
+                      <div>
+                        <div className="stars">
+                          {'★'.repeat(Math.round(rev.rating)) + '☆'.repeat(5 - Math.round(rev.rating))}
+                        </div>
+                        <blockquote>
+                          {rev.comment}
+                        </blockquote>
+                        <div className="review-author">
+                          <span className="author-avatar">
+                            {rev.customerName ? rev.customerName.charAt(0).toUpperCase() : 'U'}
+                          </span>
+                          <span>
+                            <strong>{rev.customerName}</strong>
+                            <small>{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</small>
+                          </span>
+                        </div>
 
-                {/* Guest Count Input */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-cream/70 uppercase tracking-wider block">
-                    {t.marketplace.estimatedGuests}
-                  </label>
-                  <div className="relative">
-                    <input 
-                      type="number" 
-                      inputMode="numeric"
-                      placeholder={language === 'vi' ? 'VD: 150 khách' : 'e.g. 150'}
-                      required
-                      value={guestCount}
-                      onChange={e => setGuestCount(e.target.value)}
-                      className="w-full bg-cream/10 border border-cream/20 rounded-lg pl-4 pr-10 py-2.5 text-base sm:text-xs text-cream focus:outline-none focus:border-gold font-mono"
-                    />
-                    <Users className="w-4 h-4 text-cream/50 absolute right-3.5 top-3.5 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Form Message States */}
-                {inquirySuccess && (
-                  <div className="p-3 bg-green-500/20 border border-green-500/30 text-green-200 text-[11px] rounded-lg animate-fade-in leading-relaxed">
-                    {t.marketplace.inquirySuccessMsg}
-                  </div>
-                )}
-
-                {/* Primary Send Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmittingInquiry}
-                  className="w-full py-2.5 bg-gold hover:bg-gold-light disabled:bg-gold/40 disabled:cursor-not-allowed text-primary font-bold text-[10px] uppercase tracking-wider rounded-full shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isSubmittingInquiry ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      {t.marketplace.submitInquiryBtn}
-                    </>
-                  )}
-                </button>
-
-              </form>
-
-              {/* Divider line */}
-              <div className="border-t border-cream/10 my-4"></div>
-
-              {/* Action buttons */}
-              <div className="space-y-2.5">
-                <button
-                  type="button"
-                  onClick={() => alert(language === 'vi' ? 'Chức năng Chat trực tiếp đang được kết nối với trung tâm tin nhắn...' : 'Live Chat is currently connecting to the messaging center...')}
-                  className="w-full py-2 bg-cream/15 border border-cream/20 hover:bg-cream/25 text-cream text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-gold-light" />
-                  {t.marketplace.directChatBtn}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={handleToggleShortlist}
-                  disabled={isTogglingShortlist}
-                  className="w-full py-2 bg-cream/15 border border-cream/20 hover:bg-cream/25 text-cream text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                >
-                  <Heart className={`w-3.5 h-3.5 text-gold-light ${isSaved ? 'fill-gold-light' : ''}`} />
-                  {isSaved ? t.marketplace.shortlistBtnSaved : t.marketplace.shortlistBtnAdd}
-                </button>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-
-        {/* Reviews Section: Client Feedback */}
-        <div className="w-full py-16 bg-primary text-cream relative">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-8">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gold-light uppercase tracking-widest block">{t.marketplace.servicesTag}</span>
-              <h3 className="text-xl sm:text-2xl font-semibold tracking-tight uppercase font-display">
-                {t.marketplace.clientFeedbackTitle}
-              </h3>
-            </div>
-
-            {/* Testimonial Card */}
-            <div className="bg-white text-body-text rounded-[28px] p-8 max-w-2xl mx-auto shadow-2xl space-y-6 relative border border-hairline/10 animate-fade-in">
-              <p className="text-xs sm:text-sm font-serif italic leading-relaxed text-ink/90">
-                {language === 'vi'
-                  ? '"Lên kế hoạch cưới ban đầu thật sự choáng ngợp, nhưng Planora đã khiến mọi thứ trở nên nhẹ nhàng hơn rất nhiều. Danh sách việc cần làm được cá nhân hóa giúp chúng tôi luôn chuẩn bị đúng hạn, và các gợi ý nhà cung cấp hoàn toàn đúng gu của hai vợ chồng. Tính năng lên kế hoạch thông minh đã tiết kiệm cho chúng tôi vô số thời gian."'
-                  : '"Planning our wedding felt overwhelming at first, but Planora made everything so much easier. The personalized checklist kept us organized, and the vendor recommendations matched our style perfectly. The AI planning features saved us countless hours of research. From budgeting to finding the right photographer and florist, Planora helped us map out every step of the way!"'}
-              </p>
-              
-              <div className="flex flex-col items-center justify-center gap-2">
-                <div className="flex text-gold justify-center">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-gold text-gold" />
+                        {rev.vendorReply && (
+                          <div className="vendor-reply-bubble">
+                            <span className="font-semibold text-[#5D0F12] block mb-1">
+                              Phản hồi từ {vendor.businessName}:
+                            </span>
+                            <span className="text-stone-600">{rev.vendorReply}</span>
+                          </div>
+                        )}
+                      </div>
+                    </article>
                   ))}
                 </div>
-                <span className="text-xs font-bold text-ink uppercase tracking-wider font-display block">
-                  Emily &amp; James
+              ) : (
+                /* Figma Template Default Testimonial */
+                <article className="review-card">
+                  <div className="quote-mark">“</div>
+                  <div>
+                    <div className="stars">★★★★★</div>
+                    <blockquote>
+                      {vendor.businessName} đã biến buổi lễ trong mơ của chúng tôi thành hiện thực.
+                      Mọi chi tiết đều tinh tế, nhưng vẫn rất tự nhiên và đúng với câu chuyện của hai đứa.
+                    </blockquote>
+                    <div className="review-author">
+                      <span className="author-avatar">EJ</span>
+                      <span>
+                        <strong>Emily &amp; James</strong>
+                        <small>Đám cưới tại {vendor.city || 'Đà Lạt'} · 03.2025</small>
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              )}
+            </section>
+
+
+        {/* EDITORIAL CTA SECTION (FIGMA TEMPLATE) */}
+        <section className="editorial-cta">
+          <div className="cta-image">
+            <img alt="Bàn tiệc cưới với hoa và nến" src={photos[photos.length - 1].src} />
+          </div>
+          <div className="cta-content">
+            <span className="eyebrow">Planora wedding editorial</span>
+            <h2>
+              Ngày trọng đại,
+              <br />
+              <em>được kể theo cách của bạn.</em>
+            </h2>
+            <p>
+              Khám phá những nhà cung cấp được tuyển chọn và bắt đầu kế hoạch cưới trong mơ cùng Planora.
+            </p>
+            <Link className="primary-button" href="/marketplace">
+              Khám phá nhà cung cấp <Icon name="arrow" />
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      {/* FLOATING LIVE CHAT DRAWER (REAL-TIME CONVERSATION) */}
+      {isChatDrawerOpen && (
+        <div className="fixed bottom-4 right-4 z-50 w-[92vw] sm:w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl border border-[#dfd5c7] flex flex-col overflow-hidden animate-slide-up">
+          {/* Drawer Header */}
+          <div className="p-3.5 bg-[#711218] text-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
+                {vendor.businessName.charAt(0)}
+              </div>
+              <div>
+                <h4 className="text-xs font-bold leading-tight truncate max-w-[200px]">
+                  {vendor.businessName}
+                </h4>
+                <span className="text-[10px] text-white/70 block">
+                  Trò chuyện trực tiếp &bull; Trực tuyến
                 </span>
               </div>
             </div>
-
-            {/* Feedback Page Dots */}
-            <div className="flex justify-center gap-1.5 pt-2">
-              <div className="w-2 h-2 rounded-full bg-cream"></div>
-              <div className="w-2 h-2 rounded-full bg-cream/30"></div>
-              <div className="w-2 h-2 rounded-full bg-cream/30"></div>
+            <div className="flex items-center gap-1">
+              {activeInquiryId && (
+                <Link
+                  href={`/messages?inquiryId=${activeInquiryId}`}
+                  title="Mở toàn màn hình trong Hộp Thư Tin Nhắn"
+                  className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsChatDrawerOpen(false)}
+                className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* Bottom Scalloped Lace Divider */}
-        <div className="w-full relative h-5 select-none opacity-80 bg-primary"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='16' viewBox='0 0 40 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,16 C10,16 10,2 20,2 C30,2 30,16 40,16' stroke='%23FFFBF5' stroke-width='2' fill='none'/%3E%3Ccircle cx='20' cy='9' r='1.5' fill='%23FFFBF5' opacity='0.3'/%3E%3Ccircle cx='10' cy='13' r='1' fill='%23FFFBF5' opacity='0.2'/%3E%3Ccircle cx='30' cy='13' r='1' fill='%23FFFBF5' opacity='0.2'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat-x',
-            backgroundSize: '40px 16px',
-            transform: 'rotate(180deg) translateY(-2px)'
-          }}
-        ></div>
-
-        {/* Bottom CTA Newsletter Section */}
-        <div className="w-full py-16 bg-[#FFFBF5] text-center space-y-6">
-          <div className="space-y-1">
-            <span className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] block">Planora</span>
-            <h3 className="text-2xl font-serif text-ink tracking-wide">
-              {t.landing.ctaTitle.toUpperCase()}
-            </h3>
-            <p className="text-[11px] text-muted-text max-w-xs mx-auto leading-relaxed">
-              {t.landing.howItWorksSubtitle}
-            </p>
+          {/* Messages Thread */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#f8f4ec]/60 text-xs">
+            {chatMessages.length === 0 ? (
+              <div className="text-center py-12 text-stone-400 font-serif italic text-xs">
+                Gửi lời chào để bắt đầu cuộc trò chuyện với {vendor.businessName}...
+              </div>
+            ) : (
+              chatMessages.map(msg => {
+                const isMe = msg.senderRole === 'USER';
+                return (
+                  <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                    <span className="text-[9px] text-stone-400 mb-0.5 px-1">{isMe ? 'Bạn' : vendor.businessName}</span>
+                    <div className={`p-3 rounded-2xl max-w-[85%] leading-relaxed ${
+                      isMe ? 'bg-[#711218] text-white rounded-br-none shadow-sm' : 'bg-white border border-[#dfd5c7] text-stone-800 rounded-bl-none shadow-sm'
+                    }`}>
+                      {msg.message}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
 
-          <div className="max-w-md mx-auto px-4 flex gap-2">
-            <input 
-              type="email" 
-              placeholder={t.landing.emailPlaceholder}
-              className="flex-1 bg-white border border-hairline rounded-sm px-4 py-2.5 text-xs text-ink focus:outline-none focus:border-primary shadow-xs"
+          {/* Chat Input Bar */}
+          <form onSubmit={handleSendCustomerMessage} className="p-3 border-t border-[#dfd5c7] bg-white flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Nhập tin nhắn..."
+              value={chatInputText}
+              onChange={e => setChatInputText(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-xl border border-[#dfd5c7] bg-[#f8f4ec]/50 text-xs focus:outline-none focus:ring-1 focus:ring-[#711218]"
             />
-            <button 
-              type="button"
-              onClick={() => alert(language === 'vi' ? 'Cảm ơn bạn đã đăng ký nhận thông tin từ Planora!' : 'Thank you for subscribing to Planora updates!')}
-              className="px-6 py-2.5 bg-primary hover:bg-primary-active text-cream text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors shadow-sm cursor-pointer"
+            <button
+              type="submit"
+              disabled={!chatInputText.trim() || isSendingChatMessage}
+              className="p-2 rounded-xl bg-[#711218] text-white hover:bg-[#4e0b0f] transition disabled:opacity-40 cursor-pointer"
             >
-              {t.landing.signUpBtn}
+              {isSendingChatMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
-          </div>
+          </form>
         </div>
+      )}
 
-      </div>
-
-      {/* Sticky Mobile Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-hairline p-3 px-4 shadow-lg flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={handleToggleShortlist}
-          disabled={isTogglingShortlist}
-          className={`p-3 rounded-full border transition-all cursor-pointer ${
-            isSaved 
-              ? 'bg-red-50 border-red-200 text-red-600' 
-              : 'bg-canvas border-hairline text-neutral-600 hover:text-red-500'
-          }`}
-          title={isSaved ? t.marketplace.shortlistBtnSaved : t.marketplace.shortlistBtnAdd}
-        >
-          <Heart className={`w-5 h-5 ${isSaved ? 'fill-red-600' : ''}`} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            document.getElementById('inquiry-sidebar')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="flex-1 py-3 bg-[#5D0F12] text-[#FFFBF5] rounded-full text-xs font-bold uppercase tracking-wider shadow-md hover:bg-[#4A0C0E] transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
-        >
-          <Mail className="w-4 h-4 text-gold-light" />
-          <span>{t.marketplace.sendInquiryTitle || 'Gửi yêu cầu báo giá'}</span>
-        </button>
-      </div>
-
+      {/* Planora App Footer (Retained as requested) */}
       <DashboardFooter />
     </div>
   );
-}
-
-// Helper: Consistent image and category resolver
-function getVendorMeta(vendorId: number) {
-  const categoriesList = ['Photography', 'Decoration', 'Makeup Artist', 'Wedding Venue'];
-  
-  const imagesByCategory: Record<string, string[]> = {
-    'Photography': [
-      'https://images.unsplash.com/photo-1537633552985-df8429e8048b?q=80&w=600',
-      'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600',
-      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600'
-    ],
-    'Decoration': [
-      'https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=600',
-      'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?q=80&w=600',
-      'https://images.unsplash.com/photo-1519225495810-7512c696505a?q=80&w=600'
-    ],
-    'Makeup Artist': [
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=600',
-      'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600',
-      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=600'
-    ],
-    'Wedding Venue': [
-      'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=600',
-      'https://images.unsplash.com/photo-1507504038482-7621c37c2f0f?q=80&w=600',
-      'https://images.unsplash.com/photo-1561542320-9a18cd340469?q=80&w=600'
-    ]
-  };
-
-  const catIndex = vendorId % categoriesList.length;
-  const category = categoriesList[catIndex];
-  const imageUrls = imagesByCategory[category];
-
-  return { category, imageUrls };
-}
-
-function getMockPriceRange(vendorId: number) {
-  const basePrice = (vendorId % 10) * 5000000 + 15000000;
-  const maxPrice = basePrice + (vendorId % 3) * 10000000 + 5000000;
-  return { min: basePrice, max: maxPrice };
 }

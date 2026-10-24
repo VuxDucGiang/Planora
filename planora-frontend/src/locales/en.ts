@@ -47,6 +47,7 @@ export const en: LocaleDictionary = {
     checklist: 'Checklist',
     timeline: 'Timeline',
     vendors: 'Vendors',
+    messages: 'Messages',
     guests: 'Guests',
     setup: 'Setup',
     settings: 'Settings',

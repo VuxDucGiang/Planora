@@ -1,9 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Star, AlertCircle, Plus, ChevronRight } from 'lucide-react';
 import type { VendorResponse } from '@/types/vendor';
+
+function isOptimizableImage(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('/')) return true;
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host.includes('images.unsplash.com') ||
+      host.includes('res.cloudinary.com') ||
+      host.includes('lh3.googleusercontent.com')
+    );
+  } catch {
+    return false;
+  }
+}
 
 const FALLBACK_IMAGES = [
   '/landing/landing-2.png',
@@ -95,10 +111,14 @@ function VendorCard({
       {/* Top Image Container */}
       <div className="p-3 pb-0">
         <div className="w-full h-52 sm:h-56 rounded-2xl overflow-hidden relative group bg-neutral-100">
-          <img
+          <Image
             src={imageUrl}
-            alt={vendor.businessName}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            alt={vendor.businessName || 'Vendor'}
+            fill
+            sizes="(max-width: 640px) 280px, 310px"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            unoptimized={!isOptimizableImage(imageUrl)}
+            priority={index === 0}
           />
           {vendor.primaryCategoryName && (
             <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-white/85 text-neutral-800 backdrop-blur-sm shadow-sm uppercase tracking-wider">
@@ -159,7 +179,7 @@ function VendorCard({
 }
 
 export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isCarousel = vendors.length > 3;
   const n = vendors.length;
 
@@ -231,21 +251,22 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
   // If no vendors are saved
   if (vendors.length === 0) {
     return (
-      <div className="bg-white/80 border border-neutral-200/60 rounded-3xl p-10 text-center shadow-sm">
+      <div className="bg-[#FAF8F5] border border-neutral-200/60 rounded-[1.75rem] sm:rounded-[2rem] p-8 sm:p-12 text-center shadow-xs">
         <h3
-          className="text-xl sm:text-2xl font-serif font-medium tracking-wider uppercase mb-3 text-center text-[#5D0F12]"
+          className="text-lg sm:text-xl font-serif font-bold tracking-wide uppercase mb-2 text-center text-[#5D0F12]"
         >
-          SAVED VENDORS
+          {language === 'vi' ? 'ĐỐI TÁC ĐÃ LƯU' : 'SAVED VENDORS'}
         </h3>
         <AlertCircle className="w-8 h-8 text-neutral-400 mx-auto my-3" />
-        <p className="text-sm text-neutral-500 mb-4">Chưa có vendor nào được lưu vào danh sách yêu thích.</p>
+        <p className="text-xs sm:text-sm text-neutral-500 font-serif italic mb-4">
+          {language === 'vi' ? 'Chưa có đối tác nào được lưu vào danh sách yêu thích của bạn.' : 'No vendors saved to your shortlist yet.'}
+        </p>
         <Link
           href="/marketplace"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider !text-[#FFFBF5] shadow-sm hover:opacity-90 transition-all"
-          style={{ backgroundColor: '#5D0F12', color: '#FFFBF5' }}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#5D0F12] hover:bg-[#4A0C0E] !text-[#FFFBF5] shadow-sm transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
-          Khám phá Marketplace <ChevronRight className="w-3.5 h-3.5" />
+          {t.dashboard.exploreVendorsBtn || 'Khám phá Marketplace'} <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
     );
@@ -255,13 +276,13 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
   const activeDotIndex = isCarousel ? ((currentIndex % n) + n) % n : 0;
 
   return (
-    <div className="bg-[#FAF8F5] border border-neutral-200/50 rounded-[2rem] sm:rounded-[2.5rem] py-6 sm:py-10 px-3 sm:px-8 shadow-sm relative overflow-hidden">
+    <div className="bg-[#FAF8F5] border border-neutral-200/60 rounded-[1.75rem] sm:rounded-[2rem] py-6 sm:py-8 px-4 sm:px-8 shadow-xs relative overflow-hidden">
       {/* Title Header */}
-      <div className="text-center mb-6 sm:mb-8">
+      <div className="text-center mb-6">
         <h3
-          className="text-xl sm:text-2xl font-serif font-medium tracking-wider uppercase text-[#5D0F12]"
+          className="text-lg sm:text-xl font-serif font-bold tracking-wide uppercase text-[#5D0F12]"
         >
-          SAVED VENDORS
+          {language === 'vi' ? 'ĐỐI TÁC ĐÃ LƯU' : 'SAVED VENDORS'}
         </h3>
       </div>
 
@@ -375,9 +396,9 @@ export default function SavedVendorsCarousel({ vendors }: SavedVendorsCarouselPr
       <div className="text-center mt-6">
         <Link
           href="/marketplace"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5D0F12] border border-[#5D0F12]/20 bg-[#5D0F12]/5 hover:bg-[#5D0F12]/10 px-4 py-2 rounded-full transition-all uppercase tracking-wider"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-800 bg-white border border-neutral-300 hover:bg-neutral-50 hover:text-[#5D0F12] px-5 py-2.5 rounded-full transition-all uppercase tracking-wider shadow-xs"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-3.5 h-3.5 text-[#5D0F12]" />
           {t.dashboard.exploreVendorsBtn}
         </Link>
       </div>
