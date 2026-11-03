@@ -9,13 +9,29 @@ interface NavigationContextType {
   toggleMobileNav: () => void;
   closeMobileNav: () => void;
   openMobileNav: () => void;
+
+  // Desktop sidebar collapse state
+  isSidebarCollapsed: boolean;
+  setIsSidebarCollapsed: (collapsed: boolean) => void;
+  toggleSidebarCollapse: () => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsedState] = useState(false);
   const pathname = usePathname();
+
+  // Restore saved collapse preference on mount (avoid hydration mismatch)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('planora_user_sidebar_collapsed');
+      if (saved !== null) {
+        setIsSidebarCollapsedState(saved === 'true');
+      }
+    }
+  }, []);
 
   // Automatically close mobile nav drawer when navigating to a new route
   useEffect(() => {
@@ -37,6 +53,23 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const closeMobileNav = useCallback(() => setIsMobileNavOpen(false), []);
   const openMobileNav = useCallback(() => setIsMobileNavOpen(true), []);
 
+  const setIsSidebarCollapsed = useCallback((collapsed: boolean) => {
+    setIsSidebarCollapsedState(collapsed);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('planora_user_sidebar_collapsed', String(collapsed));
+    }
+  }, []);
+
+  const toggleSidebarCollapse = useCallback(() => {
+    setIsSidebarCollapsedState((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('planora_user_sidebar_collapsed', String(next));
+      }
+      return next;
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       isMobileNavOpen,
@@ -44,8 +77,19 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       toggleMobileNav,
       closeMobileNav,
       openMobileNav,
+      isSidebarCollapsed,
+      setIsSidebarCollapsed,
+      toggleSidebarCollapse,
     }),
-    [isMobileNavOpen, toggleMobileNav, closeMobileNav, openMobileNav]
+    [
+      isMobileNavOpen,
+      toggleMobileNav,
+      closeMobileNav,
+      openMobileNav,
+      isSidebarCollapsed,
+      setIsSidebarCollapsed,
+      toggleSidebarCollapse,
+    ]
   );
 
   return (
@@ -65,6 +109,9 @@ export function useNavigation() {
       toggleMobileNav: () => {},
       closeMobileNav: () => {},
       openMobileNav: () => {},
+      isSidebarCollapsed: false,
+      setIsSidebarCollapsed: () => {},
+      toggleSidebarCollapse: () => {},
     };
   }
   return context;

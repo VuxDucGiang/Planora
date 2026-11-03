@@ -16,6 +16,8 @@ import {
   Calendar,
   X,
   Sparkles,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -39,7 +41,12 @@ interface DashboardSidebarProps {
 export default function DashboardSidebar({ hasPlan, isOpen, onClose }: DashboardSidebarProps) {
   const pathname = usePathname();
   const { t } = useLanguage();
-  const { isMobileNavOpen, closeMobileNav } = useNavigation();
+  const {
+    isMobileNavOpen,
+    closeMobileNav,
+    isSidebarCollapsed,
+    toggleSidebarCollapse,
+  } = useNavigation();
 
   const showMobile = isOpen !== undefined ? isOpen : isMobileNavOpen;
   const handleClose = onClose || closeMobileNav;
@@ -75,18 +82,33 @@ export default function DashboardSidebar({ hasPlan, isOpen, onClose }: Dashboard
   ];
 
   // Helper renderer for navigation items
-  const renderNavSections = (isMobileView: boolean) => (
+  const renderNavSections = (isMobileView: boolean, isCollapsed: boolean = false) => (
     <div className="flex flex-col gap-1">
       {sections.map((section, sIdx) => (
-        <div key={sIdx} className={sIdx > 0 ? (isMobileView ? 'mt-4' : 'mt-3.5') : ''}>
+        <div
+          key={sIdx}
+          className={
+            sIdx > 0
+              ? isMobileView
+                ? 'mt-4'
+                : isCollapsed
+                ? 'mt-2.5'
+                : 'mt-3.5'
+              : ''
+          }
+        >
           {/* Section Title */}
-          {section.title && (
-            <p 
-              className="text-xs sm:text-sm font-bold text-muted-text uppercase tracking-[0.15em] px-3 mb-1.5 font-serif"
-            >
-              {section.title}
-            </p>
-          )}
+          {section.title &&
+            (isCollapsed ? (
+              <div
+                className="my-2 border-t border-hairline/60 mx-1"
+                title={section.title}
+              />
+            ) : (
+              <p className="text-xs sm:text-sm font-bold text-muted-text uppercase tracking-[0.15em] px-3 mb-1.5 font-serif truncate">
+                {section.title}
+              </p>
+            ))}
 
           {/* Nav Items */}
           <div className="space-y-0.5">
@@ -98,15 +120,17 @@ export default function DashboardSidebar({ hasPlan, isOpen, onClose }: Dashboard
                 return (
                   <div
                     key={item.label}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg opacity-35 cursor-not-allowed select-none min-h-[44px]"
+                    className={`flex items-center ${
+                      isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'
+                    } py-2.5 rounded-lg opacity-35 cursor-not-allowed select-none min-h-[44px]`}
                     title={`${item.label} (${t.nav.unavailableTooltip})`}
                   >
-                    <span className="text-muted-text">{item.icon}</span>
-                    <span 
-                      className="text-base font-normal text-muted-text font-serif"
-                    >
-                      {item.label}
-                    </span>
+                    <span className="text-muted-text shrink-0">{item.icon}</span>
+                    {!isCollapsed && (
+                      <span className="text-base font-normal text-muted-text font-serif truncate">
+                        {item.label}
+                      </span>
+                    )}
                   </div>
                 );
               }
@@ -120,23 +144,35 @@ export default function DashboardSidebar({ hasPlan, isOpen, onClose }: Dashboard
                       handleClose();
                     }
                   }}
+                  title={isCollapsed ? item.label : undefined}
                   className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-lg min-h-[44px]
+                    flex items-center ${
+                      isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'
+                    } py-2.5 rounded-lg min-h-[44px]
                     transition-all duration-150 group relative
-                    ${isActive
-                      ? 'bg-primary/10 text-primary font-bold'
-                      : 'text-body-text hover:bg-canvas hover:text-ink'
+                    ${
+                      isActive
+                        ? 'bg-primary/10 text-primary font-bold'
+                        : 'text-body-text hover:bg-canvas hover:text-ink'
                     }
                   `}
                 >
-                  <span className={`transition-colors ${isActive ? 'text-primary' : 'text-muted-text group-hover:text-ink'}`}>
+                  <span
+                    className={`shrink-0 transition-colors ${
+                      isActive ? 'text-primary' : 'text-muted-text group-hover:text-ink'
+                    }`}
+                  >
                     {item.icon}
                   </span>
-                  <span 
-                    className={`text-base font-normal font-serif ${isActive ? 'text-primary font-bold' : ''}`}
-                  >
-                    {item.label}
-                  </span>
+                  {!isCollapsed && (
+                    <span
+                      className={`text-base font-normal font-serif truncate ${
+                        isActive ? 'text-primary font-bold' : ''
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -149,31 +185,57 @@ export default function DashboardSidebar({ hasPlan, isOpen, onClose }: Dashboard
   return (
     <>
       {/* ─── 1. DESKTOP PERMANENT SIDEBAR (Hidden on < lg) ─── */}
-      <aside 
-        className="hidden lg:flex w-[240px] bg-white border-r border-hairline flex-col py-5 px-3 gap-1 shrink-0 sticky top-[52px] h-[calc(100vh-52px)] overflow-y-auto dashboard-scroll z-20 font-serif"
+      <aside
+        className={`hidden lg:flex ${
+          isSidebarCollapsed ? 'w-[72px] px-2' : 'w-[240px] px-3'
+        } bg-white border-r border-hairline flex-col py-4 gap-1 shrink-0 sticky top-[52px] h-[calc(100vh-52px)] overflow-y-auto dashboard-scroll z-20 font-serif transition-all duration-300 ease-in-out`}
       >
-        {renderNavSections(false)}
+        {/* Toggle Collapse Button Header */}
+        <div
+          className={`flex items-center ${
+            isSidebarCollapsed ? 'justify-center' : 'justify-between'
+          } pb-3 mb-2 border-b border-hairline/60`}
+        >
+          {!isSidebarCollapsed && (
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-text font-serif pl-2 truncate">
+              Menu điều hướng
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={toggleSidebarCollapse}
+            className="p-1.5 rounded-lg border border-hairline/80 hover:bg-canvas text-muted-text hover:text-ink transition cursor-pointer"
+            title={isSidebarCollapsed ? 'Mở rộng thanh menu' : 'Thu hẹp thanh menu'}
+            aria-label={isSidebarCollapsed ? 'Mở rộng thanh menu' : 'Thu hẹp thanh menu'}
+          >
+            {isSidebarCollapsed ? (
+              <PanelLeftOpen className="w-4 h-4" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        {renderNavSections(false, isSidebarCollapsed)}
       </aside>
 
       {/* ─── 2. MOBILE OFF-CANVAS SLIDE DRAWER (Visible when showMobile is true) ─── */}
       {showMobile && (
         <div className="fixed inset-0 z-50 lg:hidden overflow-hidden">
           {/* Backdrop overlay with blur */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300 animate-fade-in"
             onClick={handleClose}
             aria-label="Đóng menu điều hướng"
           />
 
           {/* Drawer content sliding from left */}
-          <div 
-            className="fixed inset-y-0 left-0 w-[280px] sm:w-[320px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col justify-between py-5 px-4 animate-slide-right overflow-y-auto dashboard-scroll font-serif"
-          >
+          <div className="fixed inset-y-0 left-0 w-[280px] sm:w-[320px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col justify-between py-5 px-4 animate-slide-right overflow-y-auto dashboard-scroll font-serif">
             <div>
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-hairline">
-                <Link 
-                  href="/" 
+                <Link
+                  href="/"
                   onClick={handleClose}
                   className="flex items-center gap-2 group"
                 >
@@ -196,14 +258,18 @@ export default function DashboardSidebar({ hasPlan, isOpen, onClose }: Dashboard
                 </button>
               </div>
 
-              {/* Navigation sections */}
-              {renderNavSections(true)}
+              {/* Navigation sections (never collapsed on mobile drawer) */}
+              {renderNavSections(true, false)}
             </div>
 
             {/* Drawer Footer info */}
             <div className="pt-6 mt-4 border-t border-hairline text-center text-xs text-muted-text font-sans">
-              <p className="font-serif italic text-primary/80 font-medium">Quiet Luxury & Editorial Romance</p>
-              <p className="text-[11px] mt-1 text-muted-text/70">Planora Wedding Platform © 2026</p>
+              <p className="font-serif italic text-primary/80 font-medium">
+                Quiet Luxury & Editorial Romance
+              </p>
+              <p className="text-[11px] mt-1 text-muted-text/70">
+                Planora Wedding Platform © 2026
+              </p>
             </div>
           </div>
         </div>

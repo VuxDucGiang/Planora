@@ -31,6 +31,7 @@ import type {
   VendorServiceDetailResponse,
   PackageResponse,
 } from '@/types/vendor';
+import CurrencyInput from '@/components/ui/CurrencyInput';
 
 export default function VendorServicesPage() {
   // Main Data States
@@ -107,6 +108,7 @@ export default function VendorServicesPage() {
     setPriceFrom('');
     setPriceTo('');
     setServiceActive(true);
+    setErrorMessage(null);
     if (categories.length > 0) setServiceCategoryId(categories[0].id);
     setIsServiceModalOpen(true);
   };
@@ -117,9 +119,10 @@ export default function VendorServicesPage() {
     setServiceCategoryId(s.categoryId);
     setServiceName(s.serviceName);
     setServiceDesc(s.description || '');
-    setPriceFrom(s.priceFrom ? s.priceFrom.toString() : '');
-    setPriceTo(s.priceTo ? s.priceTo.toString() : '');
+    setPriceFrom(s.priceFrom !== undefined && s.priceFrom !== null ? s.priceFrom.toString() : '');
+    setPriceTo(s.priceTo !== undefined && s.priceTo !== null ? s.priceTo.toString() : '');
     setServiceActive(s.active);
+    setErrorMessage(null);
     setIsServiceModalOpen(true);
   };
 
@@ -131,6 +134,31 @@ export default function VendorServicesPage() {
       return;
     }
 
+    const MAX_PRICE = 500_000_000;
+    const numPriceFrom = priceFrom !== '' ? parseFloat(priceFrom) : undefined;
+    const numPriceTo = priceTo !== '' ? parseFloat(priceTo) : undefined;
+
+    if (numPriceFrom !== undefined) {
+      if (isNaN(numPriceFrom) || numPriceFrom < 0 || numPriceFrom > MAX_PRICE) {
+        setErrorMessage('Giá từ phải nằm trong khoảng từ 0 đến 500.000.000 đ (5 trăm triệu)!');
+        return;
+      }
+    }
+
+    if (numPriceTo !== undefined) {
+      if (isNaN(numPriceTo) || numPriceTo < 0 || numPriceTo > MAX_PRICE) {
+        setErrorMessage('Giá đến mức phải nằm trong khoảng từ 0 đến 500.000.000 đ (5 trăm triệu)!');
+        return;
+      }
+    }
+
+    if (numPriceFrom !== undefined && numPriceTo !== undefined) {
+      if (numPriceTo < numPriceFrom) {
+        setErrorMessage('Giá đến mức không được nhỏ hơn giá khởi điểm (giá từ)!');
+        return;
+      }
+    }
+
     try {
       setIsSubmittingService(true);
       setErrorMessage(null);
@@ -139,8 +167,8 @@ export default function VendorServicesPage() {
         categoryId: serviceCategoryId,
         serviceName: serviceName.trim(),
         description: serviceDesc.trim() || undefined,
-        priceFrom: priceFrom ? parseFloat(priceFrom) : undefined,
-        priceTo: priceTo ? parseFloat(priceTo) : undefined,
+        priceFrom: numPriceFrom,
+        priceTo: numPriceTo,
         active: serviceActive,
       };
 
@@ -184,6 +212,7 @@ export default function VendorServicesPage() {
     setPackageName('');
     setPackageDesc('');
     setPackagePrice('');
+    setErrorMessage(null);
     setIsPackageModalOpen(true);
   };
 
@@ -193,7 +222,8 @@ export default function VendorServicesPage() {
     setEditingPackageId(pkg.id);
     setPackageName(pkg.packageName);
     setPackageDesc(pkg.description || '');
-    setPackagePrice(pkg.price ? pkg.price.toString() : '');
+    setPackagePrice(pkg.price !== undefined && pkg.price !== null ? pkg.price.toString() : '');
+    setErrorMessage(null);
     setIsPackageModalOpen(true);
   };
 
@@ -201,8 +231,16 @@ export default function VendorServicesPage() {
   const handleSavePackage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetServiceIdForPackage) return;
-    if (!packageName.trim() || !packagePrice) {
+    if (!packageName.trim() || packagePrice === '') {
       setErrorMessage('Vui lòng nhập tên gói và giá niêm yết!');
+      return;
+    }
+
+    const MAX_PRICE = 500_000_000;
+    const numPackagePrice = parseFloat(packagePrice);
+
+    if (isNaN(numPackagePrice) || numPackagePrice < 0 || numPackagePrice > MAX_PRICE) {
+      setErrorMessage('Giá gói dịch vụ phải nằm trong khoảng từ 0 đến 500.000.000 đ (5 trăm triệu)!');
       return;
     }
 
@@ -212,7 +250,7 @@ export default function VendorServicesPage() {
 
       const payload = {
         packageName: packageName.trim(),
-        price: parseFloat(packagePrice),
+        price: numPackagePrice,
         description: packageDesc.trim() || undefined,
       };
 
@@ -313,7 +351,7 @@ export default function VendorServicesPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold text-[#5D0F12] uppercase tracking-widest bg-[#5D0F12]/10 border border-[#5D0F12]/20 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Giai đoạn 2: Dịch Vụ & Bảng Giá
+                <Sparkles className="w-3 h-3" /> Dịch Vụ & Bảng Giá
               </span>
             </div>
 
@@ -554,6 +592,13 @@ export default function VendorServicesPage() {
               </p>
             </div>
 
+            {errorMessage && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs shadow-xs animate-fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSaveService} className="space-y-4">
               {/* Category Select */}
               <div>
@@ -582,7 +627,10 @@ export default function VendorServicesPage() {
                 <input
                   type="text"
                   value={serviceName}
-                  onChange={(e) => setServiceName(e.target.value)}
+                  onChange={(e) => {
+                    setServiceName(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
                   placeholder="Ví dụ: Chụp ảnh phóng sự cưới trọn gói..."
                   className="w-full px-4 py-2.5 rounded-xl border border-[#EADCC9] bg-[#FAF8F5]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5D0F12]/30 text-sm font-medium transition"
                   required
@@ -590,34 +638,56 @@ export default function VendorServicesPage() {
               </div>
 
               {/* Price From & Price To */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                    Giá từ (VNĐ)
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                    Khoảng giá ước tính (VNĐ)
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="500000"
-                    value={priceFrom}
-                    onChange={(e) => setPriceFrom(e.target.value)}
-                    placeholder="10000000"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#EADCC9] bg-[#FAF8F5]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5D0F12]/30 text-sm font-medium transition"
-                  />
+                  <span className="text-[11px] font-serif italic text-stone-500">
+                    Cho phép: 0 – 500 triệu VNĐ
+                  </span>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                    Đến mức (VNĐ)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="500000"
-                    value={priceTo}
-                    onChange={(e) => setPriceTo(e.target.value)}
-                    placeholder="35000000"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#EADCC9] bg-[#FAF8F5]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5D0F12]/30 text-sm font-medium transition"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      htmlFor="service-price-from"
+                      className="block text-[11px] font-semibold text-stone-600 mb-1"
+                    >
+                      Giá từ
+                    </label>
+                    <CurrencyInput
+                      id="service-price-from"
+                      value={priceFrom}
+                      onChange={(raw) => {
+                        setPriceFrom(raw);
+                        if (errorMessage) setErrorMessage(null);
+                      }}
+                      placeholder="10,000,000"
+                      max={500000000}
+                      showInWords={true}
+                      inputClassName="!rounded-xl !border-[#EADCC9] !bg-[#FAF8F5]/50 focus:!bg-white focus:!border-[#5D0F12] focus:!ring-2 focus:!ring-[#5D0F12]/30 text-sm font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="service-price-to"
+                      className="block text-[11px] font-semibold text-stone-600 mb-1"
+                    >
+                      Đến mức
+                    </label>
+                    <CurrencyInput
+                      id="service-price-to"
+                      value={priceTo}
+                      onChange={(raw) => {
+                        setPriceTo(raw);
+                        if (errorMessage) setErrorMessage(null);
+                      }}
+                      placeholder="35,000,000"
+                      max={500000000}
+                      showInWords={true}
+                      inputClassName="!rounded-xl !border-[#EADCC9] !bg-[#FAF8F5]/50 focus:!bg-white focus:!border-[#5D0F12] focus:!ring-2 focus:!ring-[#5D0F12]/30 text-sm font-medium"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -701,6 +771,13 @@ export default function VendorServicesPage() {
               </p>
             </div>
 
+            {errorMessage && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs shadow-xs animate-fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSavePackage} className="space-y-4">
               {/* Package Name */}
               <div>
@@ -710,7 +787,10 @@ export default function VendorServicesPage() {
                 <input
                   type="text"
                   value={packageName}
-                  onChange={(e) => setPackageName(e.target.value)}
+                  onChange={(e) => {
+                    setPackageName(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
                   placeholder="Ví dụ: Gói Tiêu Chuẩn Silver, Gói VIP Luxury..."
                   className="w-full px-4 py-2.5 rounded-xl border border-[#EADCC9] bg-[#FAF8F5]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5D0F12]/30 text-sm font-medium transition"
                   required
@@ -719,18 +799,26 @@ export default function VendorServicesPage() {
 
               {/* Price */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">
-                  Giá niêm yết (VNĐ) <span className="text-rose-600">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="500000"
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="package-price" className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                    Giá niêm yết (VNĐ) <span className="text-rose-600">*</span>
+                  </label>
+                  <span className="text-[11px] font-serif italic text-stone-500">
+                    Cho phép: 0 – 500 triệu VNĐ
+                  </span>
+                </div>
+                <CurrencyInput
+                  id="package-price"
                   value={packagePrice}
-                  onChange={(e) => setPackagePrice(e.target.value)}
-                  placeholder="15000000"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#EADCC9] bg-[#FAF8F5]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5D0F12]/30 text-sm font-medium transition"
+                  onChange={(raw) => {
+                    setPackagePrice(raw);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  placeholder="15,000,000"
+                  max={500000000}
                   required
+                  showInWords={true}
+                  inputClassName="!rounded-xl !border-[#EADCC9] !bg-[#FAF8F5]/50 focus:!bg-white focus:!border-[#5D0F12] focus:!ring-2 focus:!ring-[#5D0F12]/30 text-sm font-medium"
                 />
               </div>
 
@@ -779,4 +867,3 @@ export default function VendorServicesPage() {
     </div>
   );
 }
-

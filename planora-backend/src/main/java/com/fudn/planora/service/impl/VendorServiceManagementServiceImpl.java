@@ -70,6 +70,12 @@ public class VendorServiceManagementServiceImpl implements VendorServiceManageme
     public VendorServiceDetailResponse createService(String email, CreateVendorServiceRequest request) {
         Vendor vendor = getVendorByEmail(email);
 
+        if (request.getPriceFrom() != null && request.getPriceTo() != null) {
+            if (request.getPriceTo().compareTo(request.getPriceFrom()) < 0) {
+                throw new RuntimeException("Giá tối đa (đến mức) không được nhỏ hơn giá khởi điểm (giá từ)!");
+            }
+        }
+
         ServiceCategorie category = serviceCategorieRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Danh mục dịch vụ có ID: " + request.getCategoryId()));
 
@@ -92,6 +98,12 @@ public class VendorServiceManagementServiceImpl implements VendorServiceManageme
     @Transactional
     public VendorServiceDetailResponse updateService(String email, Long serviceId, CreateVendorServiceRequest request) {
         Vendor vendor = getVendorByEmail(email);
+
+        if (request.getPriceFrom() != null && request.getPriceTo() != null) {
+            if (request.getPriceTo().compareTo(request.getPriceFrom()) < 0) {
+                throw new RuntimeException("Giá tối đa (đến mức) không được nhỏ hơn giá khởi điểm (giá từ)!");
+            }
+        }
 
         VendorService service = vendorServiceRepository.findById(serviceId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Dịch vụ có ID: " + serviceId));
@@ -221,4 +233,3 @@ public class VendorServiceManagementServiceImpl implements VendorServiceManageme
                 .build();
     }
 }
-

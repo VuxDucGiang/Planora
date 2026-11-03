@@ -1,0 +1,208 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+
+% Core packages
+\usepackage{amsmath,amssymb}
+\usepackage{tikz-cd}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{hyperref}
+
+% Paragraphs & Spacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55\baselineskip}
+\setlist[itemize]{topsep=0.15\baselineskip,itemsep=0.08\baselineskip,parsep=0pt,partopsep=0pt}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{4pt}
+\emergencystretch=3em
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+
+\begin{document}
+\pagenumbering{gobble}
+
+\begin{titlepage}
+    \centering
+    \vspace*{0.8cm}
+
+    \includegraphics[width=0.35\textwidth]{fpt-logo.png}\par
+    \vspace{0.4cm}
+
+    {\Huge\bfseries FINAL REPORT\par}
+    \vspace{1.2cm}
+
+    {\Large\bfseries Project Name: Planora\par}
+    \vspace{0.8cm}
+
+    {\large\bfseries Slogan:\par}
+    {\Large AI-Powered Wedding Planning Marketplace\par}
+
+    \vspace{1.2cm}
+    {\large\bfseries Prepared by:\par}
+    {\Large Team Planora\par}
+
+    \vspace{1.2cm}
+    {\large\bfseries Team Members:\par}
+    \vspace{0.4cm}
+    \begin{tabular}{lll}
+        DE190556 & Vũ Đức Giang & FullStack Developer (Leader) \\
+        DE180215 & Phan Thanh Nguyên & FullStack Developer \\
+        DS190663 & Lê Văn Quân & Business Analyst \\
+        DS190540 & Nguyễn Thị Thuỳ Trâm & Business Analyst \\
+        DE190738 & Phan Thị Tuyết Ngân & UI/UX Designer
+    \end{tabular}
+
+    \vfill
+
+    \begin{tabular}{rl}
+        \textbf{Course:} & EXE201 -- Experiential Entrepreneurship 2 \\
+        \textbf{Instructor:} & ThS. Nguyễn Thị Tú Sương \\
+        \textbf{Institution:} & FPT University \\
+        \textbf{Submission Date:} & October 2026
+    \end{tabular}
+\end{titlepage}
+\pagenumbering{arabic}
+
+\section*{Section 1 -- Activities and Achievements This Semester}
+
+\textbf{Overview.} Trong học kỳ EXE201, nhóm đã phát triển thành công sản phẩm MVP web Planora, triển khai chiến dịch tiếp cận thị trường đa kênh qua Facebook, Threads và tin nhắn trực tiếp, đồng thời thu thập phản hồi thực tế để tối ưu hóa trải nghiệm người dùng theo phương pháp Khởi nghiệp Tinh gọn (Lean Startup).
+
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{0.13\textwidth}|>{\raggedright\arraybackslash}p{0.17\textwidth}|>{\raggedright\arraybackslash}p{0.16\textwidth}|>{\raggedright\arraybackslash}p{0.25\textwidth}|>{\raggedright\arraybackslash}p{0.21\textwidth}|}
+\hline
+\textbf{Phase} & \textbf{Key Activities} & \textbf{Objectives} & \textbf{Results / Achievements} & \textbf{Evidence (Links, Images, Prototype)} \\
+\hline
+Product Roadmap & Xác định vấn đề, nhóm khách hàng, giá trị cốt lõi, tinh gọn phạm vi và thứ tự ưu tiên MVP. & Tạo định hướng sản phẩm khả thi, có thể kiểm chứng với nguồn lực 10 tuần. & Hoàn thành lộ trình 4 giai đoạn cốt lõi: Nền tảng người dùng; Lập kế hoạch \& Ngân sách; Danh mục Vendor mẫu; Dashboard theo dõi tiến độ. & Nội dung Roadmap, MVP Priority và phạm vi trong báo cáo. \\
+\hline
+MVP Development & Thiết kế giao diện; lập trình web client-server; xây dựng module onboarding, checklist, ngân sách và trang vendor. & Có sản phẩm web chạy thực tế, ổn định để người dùng tương tác trọn vẹn quy trình. & MVP hoạt động đầy đủ trên domain chính thức; hoàn thành 100\% mục tiêu chức năng ban đầu; tích hợp hệ thống tracking nội bộ. & \href{https://www.planora.id.vn}{www.planora.id.vn}; \href{https://drive.google.com/drive/folders/17QFpvAA_m3wtimYPhKe0-bYMzgufKLp9?usp=sharing}{Ảnh chụp giao diện}. \\
+\hline
+Go-to-Market Strategy & Xác định khách hàng mục tiêu (cặp đôi 23--32 tuổi); lên kế hoạch nội dung truyền thông 10 tuần trên Facebook và Threads. & Tiếp cận nhóm người dùng đầu tiên với chi phí 0 đồng (Organic Bootstrapping). & Hoàn thành kế hoạch truyền thông 10 tuần; tập trung chia sẻ kinh nghiệm kiểm soát chi phí cưới và template kế hoạch thực tế. & \href{https://docs.google.com/document/d/1fOqyDUOCmhLDXdhWGvPtCeUn_Bf0PoH7/edit?usp=sharing&ouid=114382309854651798971&rtpof=true&sd=true}{Kế hoạch và lịch tạo nội dung}. \\
+\hline
+Launching & Ra mắt fanpage Facebook, kênh Threads; đăng bài mời trải nghiệm; tiếp cận trực tiếp (Outbound Outreach) qua tin nhắn. & Đưa Planora đến người dùng thật, đo lường hành vi và phễu chuyển đổi. & Facebook đạt 38 theo dõi, 695 lượt tiếp cận, 69 tương tác, 218 lượt truy cập. Threads đạt 126 theo dõi, hơn 3.000 lượt xem (bài trải nghiệm đạt 2.500 lượt xem, 24 like, 12 bình luận). Website ghi nhận 34 tài khoản cặp đôi đăng ký, 26 lượt hoàn thành onboarding (76,5\%), 22 kế hoạch cưới được tạo và 9 DAU. & \href{https://www.facebook.com/profile.php?id=61594647060807}{Facebook}; \href{https://www.threads.com/@planora.wedding}{Threads}; \href{https://drive.google.com/drive/folders/1lo8-UoJkhtzMk1A9iy7E5t6sFk4E88OJ?usp=sharing}{Ảnh thống kê & Dashboard}. \\
+\hline
+Collecting Feedback & Thu thập ý kiến qua tính năng góp ý trong ứng dụng và tin nhắn trực tiếp; phân loại lỗi và cải tiến liên tục. & Hiểu điểm nghẽn trải nghiệm thực tế và giải quyết ngay các bất tiện của người dùng. & Tiếp nhận 12 phản hồi (7 in-app, 5 tin nhắn/bình luận). Đã khắc phục 100\% các lỗi hiển thị mobile (P0/P1), đồng bộ Design System, thêm tính năng chi phí tùy chỉnh và ghi nhận 1 lời mời hợp tác B2B. & \href{https://drive.google.com/drive/folders/1xGcUkPfSd8J98-1XI5c4BPlAWIVGnC1m?usp=sharing}{Minh chứng phản hồi người dùng}. \\
+\hline
+\end{tabular}
+\end{center}
+
+\newpage
+\begingroup
+\setlength{\parskip}{0.35\baselineskip}
+\subsection*{Detailed Analysis}
+
+\subsubsection*{Product Roadmap}
+Roadmap liên kết chặt chẽ vấn đề phân mảnh thông tin của cặp đôi với kế hoạch phát triển kỹ thuật. Việc chia lộ trình thành bốn giai đoạn (nền tảng cốt lõi, lập kế hoạch, danh mục nhà cung cấp mẫu và dashboard theo dõi) giúp nhóm xử lý các mối phụ thuộc, tránh phát triển dàn trải. Trong học kỳ này, nhóm chủ động tinh gọn phạm vi (Lean Scope), tạm hoãn cổng thanh toán trực tiếp và tính năng chat thời gian thực để dồn toàn lực kiểm chứng luồng giá trị quan trọng nhất: Khảo sát nhu cầu $\rightarrow$ Lập kế hoạch cưới \& phân bổ ngân sách $\rightarrow$ Xem gợi ý nhà cung cấp phù hợp. Toàn bộ 100\% mục tiêu cốt lõi của giai đoạn MVP đã được hoàn tất và kiểm chứng thành công.
+
+\subsubsection*{MVP Development}
+MVP chuyển hóa đề án thành một sản phẩm web hoàn chỉnh tại địa chỉ \href{https://www.planora.id.vn}{www.planora.id.vn}. Nền tảng được xây dựng trên kiến trúc web hiện đại, tách biệt rõ ràng giữa giao diện người dùng và hệ thống máy chủ xử lý dữ liệu, đảm bảo bảo mật thông tin và tốc độ phản hồi nhanh. Các phân hệ chính gồm: khảo sát thông tin cưới 4 bước (Onboarding Wizard), công cụ phân bổ ngân sách theo hạng mục (Budget Tracker), danh sách công việc chuẩn bị theo mốc thời gian (Checklist) và danh mục nhà cung cấp mẫu (Vendor Directory). Đội ngũ cũng tích hợp riêng một phân hệ quản trị (Admin Dashboard) tại \texttt{/admin} nhằm trực tiếp đo lường số liệu hoạt động và phễu chuyển đổi của người dùng theo thời gian thực.
+
+\subsubsection*{Go-to-Market Strategy}
+Chiến lược tiếp cận thị trường của Planora tập trung vào phân khúc khách hàng mục tiêu là các cặp đôi trẻ trong độ tuổi 23--32 tại các đô thị lớn (TP. Hồ Chí Minh, Hà Nội, Đà Nẵng). Nhóm lựa chọn Facebook và Threads làm kênh tiếp cận ban đầu với chiến lược chi phí 0 đồng (Bootstrapping). Nội dung truyền thông trong 10 tuần không chỉ giới thiệu sản phẩm mà tập trung chia sẻ các giải pháp thiết thực cho cô dâu chú rể: cách hạn chế phát sinh chi phí cưới, bảng dự trù ngân sách mẫu và quy trình chuẩn bị cưới khoa học. Kế hoạch này giúp xây dựng uy tín ban đầu và tạo sự tò mò để khách hàng chủ động bấm vào đường dẫn dùng thử ứng dụng.
+
+\subsubsection*{Launching \& User Funnel Analysis}
+Chiến dịch ra mắt ghi nhận hiệu quả lan tỏa tự nhiên rất tích cực trên mạng xã hội:
+\begin{itemize}
+    \item \textbf{Kênh Threads (@planora.wedding):} Đạt 126 người theo dõi và hơn 3.000 lượt xem tích lũy; bài đăng mời trải nghiệm ứng dụng đạt đỉnh 2.500 lượt xem với 24 lượt thích và 12 bình luận tương tác trực tiếp.
+    \item \textbf{Kênh Facebook Fanpage:} Đạt 38 người theo dõi, 695 lượt tiếp cận (với 62\% đến từ người chưa theo dõi trang), 69 lượt tương tác và 218 lượt truy cập trang.
+    \item \textbf{Tiếp cận trực tiếp (Outbound Outreach):} Nhóm đã chủ động nhắn tin khảo sát các cô dâu trong hội nhóm cưới, đạt tỷ lệ chuyển đổi từ tin nhắn sang truy cập dùng thử trên 35\%.
+\end{itemize}
+
+Dữ liệu ghi nhận từ hệ thống quản trị nội bộ cho thấy phễu hành vi người dùng (AARRR Funnel) diễn biến rất khả quan:
+\begin{enumerate}
+    \item \textbf{Đăng ký tài khoản (Acquisition):} Đạt \textbf{34 cặp đôi} đăng ký tài khoản thật (100\%).
+    \item \textbf{Hoàn thành Onboarding (Activation):} Ghi nhận \textbf{26 cặp đôi} hoàn thành đủ 4 bước khảo sát (\textbf{76,5\%}). Tỷ lệ này cao vượt trội so với trung bình web app nhờ quy trình nhập liệu tinh gọn, trực quan.
+    \item \textbf{Lập Kế hoạch Cưới & Ngân sách (Retention/Engagement):} Có \textbf{22 cặp đôi} tạo và lưu kế hoạch chi tiết (\textbf{64,7\%}); hệ thống ghi nhận \textbf{9 người dùng hoạt động trong 24h gần nhất (DAU)}.
+    \item \textbf{Xem Hồ sơ Vendor & Gửi yêu cầu tư vấn (Intent/Referral):} Có \textbf{14 cặp đôi} xem danh mục nhà cung cấp (\textbf{41,2\%}) và \textbf{5 lượt gửi yêu cầu báo giá} (\textbf{14,7\%}).
+\end{enumerate}
+
+\subsubsection*{Collecting Feedback \& Defect Resolution}
+Nhóm đã tiếp nhận tổng cộng 12 phản hồi (7 qua tính năng góp ý trong ứng dụng và 5 qua tin nhắn/bình luận). Các ý kiến được phân loại và xử lý nhanh chóng:
+\begin{itemize}
+    \item \textbf{Lỗi hiển thị Mobile (P0 - Critical):} Tài khoản \texttt{@sjcjrka} phản ánh nút ``BẮT ĐẦU NGAY'' đè lên logo header trên điện thoại. Nhóm đã tối ưu lại CSS header, xử lý co giãn linh hoạt và sửa xong trong vòng 12 giờ.
+    \item \textbf{Bố cục Dashboard trên di động (P1 - High):} Tài khoản \texttt{@mkhanh.chloe} phản ánh giao diện dashboard bị chia 2 cột quá hẹp trên màn hình nhỏ. Nhóm đã điều chỉnh giao diện về bố cục 1 cột (single-column) chuẩn mobile, tăng kích thước nút bấm để người dùng dễ thao tác.
+    \item \textbf{Đồng bộ nhận diện thương hiệu (P1 - High):} Tài khoản \texttt{@daihaisa.nx} góp ý font chữ và màu sắc chưa đồng nhất. Nhóm đã chuẩn hóa thành \textbf{Planora Design System} với phong cách sang trọng, sử dụng tông màu đỏ vang Imperial Burgundy kết hợp nền ấm Warm Linen.
+    \item \textbf{Bổ sung chi phí tùy chỉnh (P1 - High):} Đáp ứng nhu cầu thực tế của người dùng, nhóm đã bổ sung tính năng cho phép cặp đôi tự thêm các khoản chi phong tục (như tráp lễ gia tiên, lì xì bê tráp) vào bảng ngân sách.
+    \item \textbf{Cơ hội hợp tác B2B:} Thương hiệu thiệp cưới online \texttt{@nhahy.online365} đã chủ động liên hệ ngỏ ý hợp tác phân phối dịch vụ với mức chiết khấu hấp dẫn; nhóm đã ghi nhận vào danh sách đối tác chiến lược cho giai đoạn sau.
+\end{itemize}
+
+\newpage
+\section*{Section 2 -- Lessons Learned}
+
+\textbf{Overview.} Quá trình đưa sản phẩm MVP đến người dùng thực tế giúp nhóm đúc kết những bài học quý giá về việc cân bằng nguồn lực, giải quyết bài toán sàn giao dịch hai phía (Marketplace Cold-Start) và văn hóa lắng nghe phản hồi để cải tiến sản phẩm liên tục.
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{0.18\textwidth}|>{\raggedright\arraybackslash}p{0.25\textwidth}|>{\raggedright\arraybackslash}p{0.29\textwidth}|>{\raggedright\arraybackslash}p{0.20\textwidth}|}
+\hline
+\textbf{Phase} & \textbf{Challenges Faced} & \textbf{How the Team Solved It} & \textbf{Key Lessons Learned} \\
+\hline
+MVP Development & Ý tưởng ban đầu có quá nhiều tính năng, trong khi nguồn lực và thời gian 10 tuần có hạn. & Nhóm kiên quyết tinh gọn phạm vi; chỉ ưu tiên luồng giá trị cốt lõi: Khảo sát $\rightarrow$ Lập kế hoạch $\rightarrow$ Xem vendor. Đẩy thanh toán và chat realtime sang giai đoạn sau. & Giữ MVP tập trung vào việc giải quyết nỗi đau lớn nhất của khách hàng; không mở rộng tính năng trước khi kiểm chứng nhu cầu. \\
+\hline
+Marketing / Go-to-Market & Bài toán sàn hai phía: Cần có cặp đôi để hút vendor, nhưng cũng cần vendor để cặp đôi tham gia. & Thực hiện chiến lược ``Demand-First'': Tập trung kéo 34 cặp đôi trước; tự tuyển chọn và chuẩn hóa dữ liệu nhà cung cấp uy tín làm hồ sơ mẫu trên sàn. & Giải quyết bài toán nguồn cung bằng mô hình tuyển chọn mẫu (Curated Directory) nhằm tạo dựng niềm tin cho người dùng trước khi mở rộng B2B. \\
+\hline
+Feedback \& Improvement & Hơn 85\% người dùng tiếp cận qua điện thoại và phát hiện các lỗi vỡ giao diện trên màn hình di động. & Tiếp nhận cầu thị, sửa lỗi ngay trong 12--24h, cập nhật chuẩn Responsive Mobile và xây dựng bộ quy chuẩn Design System đồng nhất. & Luôn áp dụng tư duy Mobile-First trong thiết kế; tốc độ sửa lỗi nhanh chóng là chìa khóa xây dựng thiện cảm và giữ chân người dùng thử. \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection*{Detailed Analysis}
+
+\subsubsection*{MVP Development}
+Thách thức lớn nhất trong phát triển MVP là cân bằng giữa tham vọng tính năng và giới hạn thời gian. Việc tập trung vào luồng giá trị trực tiếp: nhập nhu cầu, tạo kế hoạch cưới, ước tính ngân sách và gợi ý nhà cung cấp giúp Planora nổi bật như một công cụ hỗ trợ ra quyết định thông minh, thay vì chỉ là một danh bạ dịch vụ thụ động. Quyết định trì hoãn các module thanh toán phức tạp sang giai đoạn sau giúp giảm rủi ro lỗi kỹ thuật, đồng thời đảm bảo hệ thống vận hành trơn tru và hoàn thành đúng thời hạn nghiệm thu.
+
+\subsubsection*{Marketing / Go-to-Market: Giải Quyết Điểm Nghẽn Sàn Hai Phía (0 Vendor vs. 34 Cặp Đôi)}
+Trong mô hình Marketplace, việc khởi động hệ sinh thái khi chưa có cả hai phía là rào cản kinh điển. Tại thời điểm báo cáo, nền tảng ghi nhận **34 tài khoản cặp đôi** và **0 tài khoản Vendor chính thức đăng ký gian hàng**. Đây là quyết định chiến lược có chủ đích của nhóm:
+\begin{itemize}
+    \item \textbf{Tránh rủi ro mất uy tín:} Nếu kêu gọi các studio hay tiệc cưới đăng ký khi nền tảng chưa có người truy cập, nhóm sẽ bị từ chối và làm giảm giá trị thương hiệu.
+    \item \textbf{Chiến lược Demand-First \& Curated Supply:} Nhóm tập trung chăm sóc phía Cầu (cặp đôi) trước. Để người dùng vẫn có thể so sánh và tìm kiếm dịch vụ, nhóm đã tự tay chọn lọc, thẩm định thông tin giá cả của các đơn vị cưới uy tín và đưa lên sàn làm hồ sơ mẫu chuẩn hóa.
+    \item \textbf{Lực hút đối tác tự nhiên (Inbound Pull):} Thực tế đã chứng minh chiến lược này đúng đắn: khi Planora tạo được tiếng vang trên Threads, thương hiệu thiệp cưới Nhà Hỷ đã chủ động tìm đến đề xuất hợp tác. Có người dùng thật (34 cặp đôi có nhu cầu cưới thực tế) chính là lợi thế đàm phán vững chắc nhất để nhóm mở rộng nguồn cung trong giai đoạn thương mại hóa.
+\end{itemize}
+
+\subsubsection*{Feedback \& Improvement: Tư Duy Mobile-First và Văn Hóa Cải Tiến Nhanh}
+Thực tế triển khai cho thấy hơn 85\% cặp đôi truy cập website từ liên kết trên mạng xã hội bằng điện thoại thông minh. Những phản hồi ban đầu về việc chữ bị đè trên header hay dashboard khó bấm đã dạy cho nhóm bài học sâu sắc: sản phẩm web hiện đại phải lấy di động làm trung tâm (Mobile-First). Nhóm không chỉ vá lỗi kỹ thuật trong 24 giờ mà còn xây dựng quy chuẩn nhận diện thương hiệu hoàn chỉnh, tạo nên giao diện trang nhã, giàu tính thẩm mỹ phù hợp với ngành cưới.
+
+\section*{Section 3 -- Conclusion and Next Actions}
+
+\subsection*{3.1 Summary}
+
+\begin{itemize}
+    \item \textbf{Key achievements during this semester:} Hiện thực hóa thành công đề án lý thuyết thành sản phẩm web thực tế tại \href{https://www.planora.id.vn}{www.planora.id.vn}; thu hút 34 cặp đôi đăng ký, tạo 22 bản kế hoạch cưới; đạt hơn 3.000 lượt tiếp cận trên Threads và 695 lượt trên Facebook với chi phí 0 đồng; xử lý thành công 12 phản hồi người dùng, hoàn thiện giao diện responsive mobile và chuẩn hóa Design System.
+    \item \textbf{Completion level vs. initial goals:} Hoàn thành 100\% mục tiêu MVP ban đầu đề ra tại EXE101. Nhóm đã kiểm chứng được giả định quan trọng nhất: các cặp đôi trẻ thực sự có nhu cầu sử dụng nền tảng số để định hình ý tưởng và kiểm soát ngân sách cưới.
+\end{itemize}
+
+\subsection*{3.2 Next Steps \& Product Roadmap V2}
+
+\begin{itemize}
+    \item \textbf{Giai đoạn 1 (Tháng 11--12/2026):} Bổ sung tính năng xuất bản Kế hoạch Cưới ra file PDF/Excel chuyên nghiệp để chia sẻ với gia đình; xây dựng hệ thống email tự động nhắc nhở tiến độ chuẩn bị cưới theo mốc thời gian (D-Day); tối ưu hóa tốc độ tải trang.
+    \item \textbf{Giai đoạn 2 (Tháng 01--02/2027):} Chính thức kích hoạt phân hệ dành riêng cho nhà cung cấp (Vendor Portal); tiếp cận 20--30 đối tác cưới đầu tiên tại TP. Hồ Chí Minh với chính sách miễn phí gian hàng 6 tháng; kết nối thử nghiệm đơn hàng thực tế đầu tiên.
+    \item \textbf{Giai đoạn 3 (Tháng 03/2027 trở đi):} Từng bước thương mại hóa thông qua gói duy trì hồ sơ nâng cao (Vendor Subscription Pro) và phí hoa hồng kết nối dịch vụ thành công; mở rộng thị trường ra khu vực Hà Nội và Đà Nẵng.
+\end{itemize}
+
+\subsection*{3.3 Sơ Lược Tính Khả Thi Tài Chính (Unit Economics Preview)}
+Hệ thống vận hành với chi phí tinh gọn chỉ khoảng 700.000 VNĐ/tháng (hosting máy chủ và tên miền). Dự kiến khi bước vào giai đoạn thương mại hóa với mức phí gian hàng 299.000 VNĐ/tháng/vendor hoặc phí kết nối dịch vụ 50.000--100.000 VNĐ/inquiry xác thực, Planora chỉ cần đạt 15 Vendor trả phí hoặc 50 lượt kết nối mỗi tháng là đạt điểm hòa vốn vận hành, tạo nền tảng vững chắc cho việc gọi vốn và nhân rộng mô hình kinh doanh.
+
+\subsection*{Appendix (Minh Chứng Dự Án)}
+
+Toàn bộ liên kết và tư liệu minh chứng quá trình thực nghiệm được lưu trữ công khai:
+\begin{itemize}
+    \item \textbf{Sản phẩm Web MVP:} Trang chủ \href{https://www.planora.id.vn}{www.planora.id.vn}; \href{https://drive.google.com/drive/folders/17QFpvAA_m3wtimYPhKe0-bYMzgufKLp9?usp=sharing}{Thư mục ảnh chụp màn hình giao diện}.
+    \item \textbf{Kế hoạch Tiếp cận Thị trường:} \href{https://docs.google.com/document/d/1fOqyDUOCmhLDXdhWGvPtCeUn_Bf0PoH7/edit?usp=sharing&ouid=114382309854651798971&rtpof=true&sd=true}{Kế hoạch và lịch đăng bài 10 tuần trên mạng xã hội}.
+    \item \textbf{Kênh Truyền thông & Số liệu Launching:} Fanpage \href{https://www.facebook.com/profile.php?id=61594647060807}{Facebook Planora}; Kênh \href{https://www.threads.com/@planora.wedding}{Threads Planora}; \href{https://drive.google.com/drive/folders/1lo8-UoJkhtzMk1A9iy7E5t6sFk4E88OJ?usp=sharing}{Thư mục ảnh thống kê mạng xã hội và Admin Tracking Dashboard}.
+    \item \textbf{Khảo sát & Phản hồi Khách hàng:} \href{https://drive.google.com/drive/folders/1xGcUkPfSd8J98-1XI5c4BPlAWIVGnC1m?usp=sharing}{Tổng hợp ảnh chụp tin nhắn khảo sát, phản hồi lỗi UI/UX và đề xuất hợp tác B2B}.
+    \item \textbf{Đóng góp thành viên:} Cả 5 thành viên nhóm (Vũ Đức Giang, Phan Thanh Nguyên, Lê Văn Quân, Nguyễn Thị Thuỳ Trâm, Phan Thị Tuyết Ngân) đều hoàn thành 100\% khối lượng công việc được phân công xuyên suốt 10 tuần triển khai dự án.
+\end{itemize}
+
+\end{document}
+
