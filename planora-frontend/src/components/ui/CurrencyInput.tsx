@@ -80,6 +80,8 @@ export default function CurrencyInput({
           type="text"
           id={id}
           inputMode="numeric"
+          min={min}
+          max={max}
           required={required}
           disabled={disabled}
           placeholder={placeholder}

@@ -219,14 +219,16 @@ export default function VendorDetail(props: PageProps) {
   const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
 
   // Find matched category in user's wedding plan budget
+  const budgetItems = plan?.budgetItems;
+  const vendorCategoryName = vendor?.primaryCategoryName;
   const matchedBudgetItem = React.useMemo(() => {
-    if (!plan?.budgetItems || !vendor?.primaryCategoryName) return null;
-    const vendorCat = vendor.primaryCategoryName.toLowerCase().trim();
-    return plan.budgetItems.find((item) => {
+    if (!budgetItems || !vendorCategoryName) return null;
+    const vendorCat = vendorCategoryName.toLowerCase().trim();
+    return budgetItems.find((item) => {
       const itemCat = item.categoryName.toLowerCase().trim();
       return itemCat.includes(vendorCat) || vendorCat.includes(itemCat);
     });
-  }, [plan?.budgetItems, vendor?.primaryCategoryName]);
+  }, [budgetItems, vendorCategoryName]);
 
   // Pre-fill form from user's active wedding plan
   const handleApplyPlanData = React.useCallback(() => {
