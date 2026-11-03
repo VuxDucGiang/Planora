@@ -73,7 +73,13 @@ export async function getActivePlan(): Promise<ActivePlanResponse | null> {
     headers: getAuthHeaders(),
   });
 
-  if (response.status === 404 || response.status === 500) {
+  if (
+    response.status === 400 ||
+    response.status === 401 ||
+    response.status === 403 ||
+    response.status === 404 ||
+    response.status === 500
+  ) {
     // If backend throws an exception for no active plan, return null
     return null;
   }

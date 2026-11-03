@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   X, 
   Loader2, 
@@ -9,10 +10,14 @@ import {
   Phone, 
   Mail, 
   ExternalLink, 
-  Heart 
+  Heart,
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
-import type { VendorDetailResponse } from '@/types/vendor';
+import type { VendorDetailResponse, PackageResponse } from '@/types/vendor';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePlan } from '@/contexts/PlanContext';
+import { createOrGetInquiry } from '@/services/inquiryService';
 
 interface VendorDetailModalProps {
   isOpen: boolean;
@@ -32,8 +37,55 @@ export default function VendorDetailModal({
   onToggleShortlist,
 }: VendorDetailModalProps) {
   const { language, t } = useLanguage();
+  const { plan } = usePlan();
+  const router = useRouter();
+  const [sendingPackageId, setSendingPackageId] = useState<number | null>(null);
 
   if (!isOpen) return null;
+
+  // Find matched category in plan
+  const matchedBudgetItem = (() => {
+    if (!plan?.budgetItems || !vendorDetail?.primaryCategoryName) return null;
+    const vendorCat = vendorDetail.primaryCategoryName.toLowerCase().trim();
+    return plan.budgetItems.find((item) => {
+      const itemCat = item.categoryName.toLowerCase().trim();
+      return itemCat.includes(vendorCat) || vendorCat.includes(itemCat);
+    });
+  })();
+
+  const handleQuickInquirePackage = async (pkg: PackageResponse) => {
+    if (!vendorDetail) return;
+    setSendingPackageId(pkg.id);
+    try {
+      const priceText = language === 'en' ? `$${(pkg.price / 25000).toFixed(0)}` : `${pkg.price.toLocaleString()} ₫`;
+      const dateText = plan?.weddingDate || 'sắp tới';
+      const guestText = plan?.guestCount ? `${plan.guestCount} khách` : 'tiệc thân mật';
+      const locText = plan?.location || vendorDetail.city || '';
+
+      const msg = [
+        `Xin chào ${vendorDetail.businessName}! Tôi quan tâm đến gói dịch vụ "${pkg.packageName}" (${priceText}).`,
+        `Thông tin đám cưới của tôi:`,
+        `- Ngày tổ chức: ${dateText}`,
+        `- Quy mô tiệc: ${guestText}`,
+        locText ? `- Địa điểm: ${locText}` : '',
+        `Bạn có thể kiểm tra lịch trống và gửi thông tin chi tiết gói này giúp tôi qua tin nhắn được không? Cảm ơn bạn!`
+      ].filter(Boolean).join('\n');
+
+      const inq = await createOrGetInquiry({
+        vendorId: vendorDetail.id,
+        weddingPlanId: plan?.id,
+        title: `Tư vấn gói [${pkg.packageName}] - ${vendorDetail.businessName}`,
+        message: msg,
+      });
+
+      onClose();
+      router.push(`/messages?inquiryId=${inq.id}`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Không thể gửi yêu cầu tư vấn gói');
+    } finally {
+      setSendingPackageId(null);
+    }
+  };
 
   return (
     <div 
@@ -100,19 +152,53 @@ export default function VendorDetailModal({
             {/* Packages */}
             {vendorDetail.packages && vendorDetail.packages.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-bold uppercase tracking-wider text-neutral-900">
-                  {t.marketplace.pricingPackages}
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-neutral-900">
+                    {t.marketplace.pricingPackages}
+                  </h4>
+                  <span className="text-xs text-neutral-400">Gửi tư vấn thẳng qua tin nhắn</span>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {vendorDetail.packages.map(pkg => (
-                    <div key={pkg.id} className="p-4 rounded-xl border border-neutral-200 bg-white shadow-xs">
-                      <p className="font-bold text-sm text-neutral-900">{pkg.packageName}</p>
-                      <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{pkg.description}</p>
-                      <p className="text-sm font-bold text-primary mt-2 font-mono">
-                        {language === 'en' ? `$${(pkg.price / 25000).toFixed(0)}` : `${pkg.price.toLocaleString()} ₫`}
-                      </p>
-                    </div>
-                  ))}
+                  {vendorDetail.packages.map(pkg => {
+                    const isSending = sendingPackageId === pkg.id;
+                    const isWithinBudget = matchedBudgetItem?.estimatedCost && pkg.price <= matchedBudgetItem.estimatedCost;
+                    return (
+                      <div key={pkg.id} className="p-4 rounded-xl border border-neutral-200 bg-white shadow-xs flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between gap-1 mb-1">
+                            <p className="font-bold text-sm text-neutral-900">{pkg.packageName}</p>
+                            {isWithinBudget && (
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 shrink-0">
+                                <Sparkles className="w-2.5 h-2.5" /> Khớp ngân sách
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{pkg.description}</p>
+                          <p className="text-sm font-bold text-primary mt-2 font-mono">
+                            {language === 'en' ? `$${(pkg.price / 25000).toFixed(0)}` : `${pkg.price.toLocaleString()} ₫`}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleQuickInquirePackage(pkg)}
+                          disabled={sendingPackageId !== null}
+                          className="mt-3 w-full py-1.5 px-3 rounded-lg border border-[#5D0F12] text-[#5D0F12] hover:bg-[#5D0F12] hover:text-white transition text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          {isSending ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Đang kết nối...</span>
+                            </>
+                          ) : (
+                            <>
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>Nhận tư vấn gói này</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

@@ -12,7 +12,7 @@ import type { InquiryMessage } from '@/types/inquiry';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import DashboardFooter from '@/components/layout/DashboardFooter';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Loader2, X, Send, ExternalLink } from 'lucide-react';
+import { Loader2, X, Send, ExternalLink, Sparkles, CheckCircle2, RefreshCw } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -200,8 +200,16 @@ export default function VendorDetail(props: PageProps) {
   const [weddingDate, setWeddingDate] = useState('');
   const [guestCount, setGuestCount] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [location, setLocation] = useState('');
+  const [budgetEstimate, setBudgetEstimate] = useState('');
+  const [noteMessage, setNoteMessage] = useState('');
   const [isSubmittingInquiry, setIsSubmittingInquiry] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [hasAutoFilledFromPlan, setHasAutoFilledFromPlan] = useState(false);
+
+  // Direct package inquiry state
+  const [submittingPackageId, setSubmittingPackageId] = useState<number | null>(null);
+  const [packageInquirySuccess, setPackageInquirySuccess] = useState<string | null>(null);
 
   // Live Chat Drawer States
   const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
@@ -209,6 +217,76 @@ export default function VendorDetail(props: PageProps) {
   const [chatMessages, setChatMessages] = useState<InquiryMessage[]>([]);
   const [chatInputText, setChatInputText] = useState('');
   const [isSendingChatMessage, setIsSendingChatMessage] = useState(false);
+
+  // Find matched category in user's wedding plan budget
+  const matchedBudgetItem = React.useMemo(() => {
+    if (!plan?.budgetItems || !vendor?.primaryCategoryName) return null;
+    const vendorCat = vendor.primaryCategoryName.toLowerCase().trim();
+    return plan.budgetItems.find((item) => {
+      const itemCat = item.categoryName.toLowerCase().trim();
+      return itemCat.includes(vendorCat) || vendorCat.includes(itemCat);
+    });
+  }, [plan?.budgetItems, vendor?.primaryCategoryName]);
+
+  // Pre-fill form from user's active wedding plan
+  const handleApplyPlanData = React.useCallback(() => {
+    if (!plan) return;
+
+    if (plan.weddingDate) {
+      const dateFormatted = plan.weddingDate.includes('T')
+        ? plan.weddingDate.split('T')[0]
+        : plan.weddingDate;
+      setWeddingDate(dateFormatted);
+    }
+
+    if (plan.guestCount) {
+      if (plan.guestCount < 100) {
+        setGuestCount('Dưới 100 khách');
+      } else if (plan.guestCount <= 200) {
+        setGuestCount('100–200 khách');
+      } else if (plan.guestCount <= 400) {
+        setGuestCount('200–400 khách');
+      } else {
+        setGuestCount('Trên 400 khách');
+      }
+    }
+
+    if (plan.location) {
+      setLocation(plan.location);
+    }
+
+    if (matchedBudgetItem?.estimatedCost) {
+      setBudgetEstimate(formatCurrency(matchedBudgetItem.estimatedCost));
+    } else if (plan.budget) {
+      setBudgetEstimate(formatCurrency(plan.budget));
+    }
+
+    if (typeof window !== 'undefined') {
+      const savedPhone = localStorage.getItem('planora_user_phone');
+      if (savedPhone) setPhoneNumber(savedPhone);
+    }
+
+    setHasAutoFilledFromPlan(true);
+  }, [plan, matchedBudgetItem, formatCurrency]);
+
+  // Auto pre-fill on first load when plan is available
+  useEffect(() => {
+    if (plan && !hasAutoFilledFromPlan) {
+      handleApplyPlanData();
+    }
+  }, [plan, hasAutoFilledFromPlan, handleApplyPlanData]);
+
+  // Check ?inquire=true in query to smooth scroll to inquiry form
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('inquire') === 'true') {
+        setTimeout(() => {
+          document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' });
+        }, 450);
+      }
+    }
+  }, []);
 
   // Load Vendor Detail
   useEffect(() => {
@@ -267,18 +345,39 @@ export default function VendorDetail(props: PageProps) {
     }
   };
 
-  // Handle Submit Inquiry via Backend API
+  // Handle Submit Inquiry via Backend API with pre-filled wedding plan details
   const handleSubmitInquiry = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!weddingDate || !vendor) return;
     setIsSubmittingInquiry(true);
+
+    if (phoneNumber && typeof window !== 'undefined') {
+      localStorage.setItem('planora_user_phone', phoneNumber);
+    }
+
     try {
+      const chosenGuests = guestCount || (plan?.guestCount ? `${plan.guestCount} khách` : '100–200 khách');
+      const chosenLoc = location || plan?.location || '';
+
+      const detailsList = [
+        `Xin chào ${vendor.businessName}! Tôi quan tâm đến dịch vụ của bạn trên Planora và muốn nhận báo giá tư vấn.`,
+        `Thông tin kế hoạch cưới của tôi:`,
+        `- Ngày tổ chức dự kiến: ${weddingDate}`,
+        `- Quy mô tiệc: ${chosenGuests}`,
+        chosenLoc ? `- Địa điểm: ${chosenLoc}` : '',
+        budgetEstimate ? `- Dự trù ngân sách: ${budgetEstimate}` : '',
+        phoneNumber ? `- SĐT liên hệ: ${phoneNumber}` : '',
+        noteMessage ? `- Yêu cầu cụ thể: ${noteMessage}` : '',
+        `Rất mong sớm nhận được phản hồi và thông tin chi tiết từ bạn. Cảm ơn bạn!`
+      ].filter(Boolean).join('\n');
+
       const inq = await createOrGetInquiry({
         vendorId: vendor.id,
         weddingPlanId: plan?.id,
-        title: `Tư vấn tiệc cưới ngày ${weddingDate}`,
-        message: `Xin chào ${vendor.businessName}! Tôi dự định tổ chức vào ngày ${weddingDate} với quy mô khoảng ${guestCount || '150 khách'}. Số điện thoại liên hệ: ${phoneNumber || 'Chưa cung cấp'}. Rất mong nhận được tư vấn chi tiết từ bạn.`,
+        title: `Yêu cầu báo giá ngày ${weddingDate} - ${vendor.businessName}`,
+        message: detailsList,
       });
+
       setSubmitted(true);
       setActiveInquiryId(inq.id);
       setChatMessages(inq.messages || []);
@@ -288,6 +387,56 @@ export default function VendorDetail(props: PageProps) {
       alert(err instanceof Error ? err.message : 'Không thể gửi yêu cầu tư vấn');
     } finally {
       setIsSubmittingInquiry(false);
+    }
+  };
+
+  // Handle Direct Package Inquiry sent straight to vendor via chat
+  const handleInquirePackage = async (
+    pkg: { id?: number; packageName: string; price: number; description?: string },
+    index: number
+  ) => {
+    if (!vendor) return;
+    const pkgIdentifier = pkg.id ?? index;
+    setSubmittingPackageId(pkgIdentifier);
+
+    try {
+      const formattedPrice = formatCurrency(pkg.price);
+      const chosenDate = weddingDate || plan?.weddingDate || 'sắp tới';
+      const chosenGuests = guestCount || (plan?.guestCount ? `${plan.guestCount} khách` : 'tiệc thân mật');
+      const chosenLocation = location || plan?.location || vendor.city || '';
+
+      const packageMsg = [
+        `Xin chào ${vendor.businessName}! Tôi đang quan tâm đến gói dịch vụ sau trên Planora:`,
+        `[Gói dịch vụ]: ${pkg.packageName}`,
+        `[Chi phí]: ${formattedPrice}`,
+        pkg.description ? `[Chi tiết gói]: ${pkg.description}` : '',
+        `---`,
+        `Thông tin ngày cưới của tôi:`,
+        `- Ngày tổ chức dự kiến: ${chosenDate}`,
+        `- Quy mô tiệc: ${chosenGuests}`,
+        chosenLocation ? `- Địa điểm: ${chosenLocation}` : '',
+        phoneNumber ? `- SĐT liên hệ: ${phoneNumber}` : '',
+        `Bạn có thể kiểm tra lịch trống cho ngày này và tư vấn chi tiết hơn về các hạng mục trong gói giúp tôi được không? Cảm ơn bạn!`
+      ].filter(Boolean).join('\n');
+
+      const inq = await createOrGetInquiry({
+        vendorId: vendor.id,
+        weddingPlanId: plan?.id,
+        title: `Tư vấn gói [${pkg.packageName}] - ${vendor.businessName}`,
+        message: packageMsg,
+      });
+
+      setActiveInquiryId(inq.id);
+      setChatMessages(inq.messages || []);
+      setIsChatDrawerOpen(true);
+      setPackageInquirySuccess(pkg.packageName);
+
+      // Auto clear success notice after 5s
+      setTimeout(() => setPackageInquirySuccess(null), 5000);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Không thể gửi tin nhắn tư vấn gói dịch vụ');
+    } finally {
+      setSubmittingPackageId(null);
     }
   };
 
@@ -660,6 +809,32 @@ export default function VendorDetail(props: PageProps) {
               <h2>Hãy bắt đầu từ ngày cưới của bạn</h2>
               <p>{vendor.businessName} thường phản hồi trong vòng 2 giờ.</p>
             </div>
+
+            {/* Synced with active wedding plan notice */}
+            {plan && (
+              <div className="mt-3 p-3 rounded-xl bg-[#FAF6F0] border border-[#dfd5c7] flex items-start justify-between gap-2 text-left">
+                <div className="flex items-start gap-2 min-w-0">
+                  <Sparkles className="w-4 h-4 text-[#8E7044] shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-[#5D0F12] leading-tight">
+                      Đã điền tự động từ Kế hoạch cưới
+                    </p>
+                    <p className="text-[11px] text-stone-600 truncate mt-0.5">
+                      {plan.title || 'Đám cưới của bạn'} {daysLeft > 0 ? `• Còn ${daysLeft} ngày` : ''}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleApplyPlanData}
+                  title="Đồng bộ lại từ Kế hoạch cưới"
+                  className="text-[11px] font-semibold text-[#8E7044] hover:underline flex items-center gap-0.5 shrink-0 cursor-pointer"
+                >
+                  <RefreshCw className="w-3 h-3" /> Điền lại
+                </button>
+              </div>
+            )}
+
             <div className="starting-price">
               <span>Chi phí từ</span>
               <strong>{formatCurrency(minPrice)}</strong>
@@ -693,11 +868,25 @@ export default function VendorDetail(props: PageProps) {
                     <option disabled value="">
                       Chọn quy mô tiệc
                     </option>
-                    <option value="Dưới 100 khách">Dưới 100 khách</option>
-                    <option value="100–200 khách">100–200 khách</option>
-                    <option value="200–400 khách">200–400 khách</option>
-                    <option value="Trên 400 khách">Trên 400 khách</option>
+                    <option value="Dưới 100 khách">Dưới 100 khách {plan?.guestCount && plan.guestCount < 100 ? `(Kế hoạch: ${plan.guestCount})` : ''}</option>
+                    <option value="100–200 khách">100–200 khách {plan?.guestCount && plan.guestCount >= 100 && plan.guestCount <= 200 ? `(Kế hoạch: ${plan.guestCount})` : ''}</option>
+                    <option value="200–400 khách">200–400 khách {plan?.guestCount && plan.guestCount > 200 && plan.guestCount <= 400 ? `(Kế hoạch: ${plan.guestCount})` : ''}</option>
+                    <option value="Trên 400 khách">Trên 400 khách {plan?.guestCount && plan.guestCount > 400 ? `(Kế hoạch: ${plan.guestCount})` : ''}</option>
                   </select>
+                </span>
+              </label>
+
+              <label>
+                Địa điểm tổ chức
+                <span className="input-wrap">
+                  <Icon name="location" size={17} />
+                  <input
+                    aria-label="Địa điểm tổ chức"
+                    placeholder="Ví dụ: TP. Hồ Chí Minh, Hà Nội, Đà Lạt..."
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
                 </span>
               </label>
 
@@ -716,8 +905,22 @@ export default function VendorDetail(props: PageProps) {
                 </span>
               </label>
 
+              <label>
+                Lời nhắn &amp; Yêu cầu cụ thể (Tùy chọn)
+                <span className="input-wrap !items-start !p-2.5">
+                  <textarea
+                    aria-label="Lời nhắn"
+                    placeholder="Ví dụ: Mong muốn tư vấn concept hoa pastel, tiệc ngoài trời..."
+                    rows={2}
+                    value={noteMessage}
+                    onChange={(e) => setNoteMessage(e.target.value)}
+                    className="w-full bg-transparent border-0 text-stone-800 text-xs outline-none resize-none min-h-[46px]"
+                  />
+                </span>
+              </label>
+
               <button 
-                className="primary-button" 
+                className="primary-button cursor-pointer" 
                 type="submit"
                 disabled={isSubmittingInquiry}
               >
@@ -737,7 +940,7 @@ export default function VendorDetail(props: PageProps) {
             </div>
 
             <button 
-              className="secondary-button" 
+              className="secondary-button cursor-pointer" 
               type="button"
               onClick={handleOpenDirectChat}
             >
@@ -745,7 +948,7 @@ export default function VendorDetail(props: PageProps) {
             </button>
 
             <button
-              className={isSaved ? 'save-button saved' : 'save-button'}
+              className={isSaved ? 'save-button saved cursor-pointer' : 'save-button cursor-pointer'}
               onClick={handleToggleShortlist}
               disabled={isTogglingShortlist}
               type="button"
@@ -769,13 +972,42 @@ export default function VendorDetail(props: PageProps) {
                 <span className="eyebrow">BẢNG GIÁ DỊCH VỤ</span>
                 <h2>Dịch vụ & chi phí</h2>
                 <p className="section-subtitle">
-                  Chọn gói trải nghiệm phù hợp cho ngày trọng đại của hai bạn
+                  Chọn gói trải nghiệm phù hợp cho ngày trọng đại của hai bạn — Gửi tư vấn trực tiếp qua tin nhắn
                 </p>
               </div>
               <div className="service-grid">
                 {vendor.packages && vendor.packages.length > 0 ? (
                   vendor.packages.map((pkg, idx) => {
                     const isFeatured = idx === 0;
+                    const isSendingThis = submittingPackageId === (pkg.id ?? idx);
+
+                    // Smart Budget Compatibility Badge
+                    let budgetMatchBadge = null;
+                    if (matchedBudgetItem?.estimatedCost) {
+                      if (pkg.price <= matchedBudgetItem.estimatedCost) {
+                        budgetMatchBadge = (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-medium my-2">
+                            <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
+                            <span>Trong ngân sách dự trù ({formatCurrency(matchedBudgetItem.estimatedCost)})</span>
+                          </div>
+                        );
+                      } else {
+                        const diff = pkg.price - matchedBudgetItem.estimatedCost;
+                        budgetMatchBadge = (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-medium my-2">
+                            <span>Dự trù: {formatCurrency(matchedBudgetItem.estimatedCost)} (+{formatCurrency(diff)})</span>
+                          </div>
+                        );
+                      }
+                    } else if (plan?.budget) {
+                      const pct = Math.round((pkg.price / plan.budget) * 100);
+                      budgetMatchBadge = (
+                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[10px] my-2">
+                          <span>Chiếm ~{pct}% ngân sách cưới</span>
+                        </div>
+                      );
+                    }
+
                     return (
                       <article 
                         key={pkg.id || idx} 
@@ -790,6 +1022,7 @@ export default function VendorDetail(props: PageProps) {
                           <p className="price">
                             <span>Từ</span> {formatCurrency(pkg.price)}
                           </p>
+                          {budgetMatchBadge}
                           <p>{pkg.description || 'Gói dịch vụ cao cấp được thiết kế chuẩn mực theo yêu cầu của hai bạn.'}</p>
                           <ul>
                             <li>Tư vấn concept & bảng màu chủ đạo</li>
@@ -798,15 +1031,22 @@ export default function VendorDetail(props: PageProps) {
                           </ul>
                         </div>
                         <button 
-                          className="service-link"
+                          className="service-link cursor-pointer disabled:opacity-60"
                           type="button"
-                          onClick={() => {
-                            setWeddingDate(new Date().toISOString().split('T')[0]);
-                            setGuestCount('100–200 khách');
-                            document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' });
-                          }}
+                          disabled={submittingPackageId !== null}
+                          onClick={() => handleInquirePackage(pkg, idx)}
                         >
-                          Nhận tư vấn <Icon name="arrow" />
+                          {isSendingThis ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Đang gửi tin nhắn...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Nhận tư vấn gói này</span>
+                              <Icon name="arrow" />
+                            </>
+                          )}
                         </button>
                       </article>
                     );
@@ -824,6 +1064,12 @@ export default function VendorDetail(props: PageProps) {
                         <p className="price">
                           <span>Từ</span> {formatCurrency(minPrice)}
                         </p>
+                        {matchedBudgetItem?.estimatedCost && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-medium my-2">
+                            <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
+                            <span>Trong ngân sách ({formatCurrency(matchedBudgetItem.estimatedCost)})</span>
+                          </div>
+                        )}
                         <p>
                           Thiết kế khu vực lễ chính, cổng hoa và lối dẫn theo concept riêng.
                         </p>
@@ -834,15 +1080,26 @@ export default function VendorDetail(props: PageProps) {
                         </ul>
                       </div>
                       <button 
-                        className="service-link"
+                        className="service-link cursor-pointer disabled:opacity-60"
                         type="button"
-                        onClick={() => {
-                          setWeddingDate(new Date().toISOString().split('T')[0]);
-                          setGuestCount('100–200 khách');
-                          document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' });
-                        }}
+                        disabled={submittingPackageId !== null}
+                        onClick={() => handleInquirePackage({
+                          packageName: 'Garden Ceremony',
+                          price: minPrice,
+                          description: 'Thiết kế khu vực lễ chính, cổng hoa và lối dẫn theo concept riêng.'
+                        }, 0)}
                       >
-                        Nhận tư vấn <Icon name="arrow" />
+                        {submittingPackageId === 0 ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Đang gửi tin nhắn...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Nhận tư vấn gói này</span>
+                            <Icon name="arrow" />
+                          </>
+                        )}
                       </button>
                     </article>
 
@@ -855,6 +1112,11 @@ export default function VendorDetail(props: PageProps) {
                         <p className="price">
                           <span>Từ</span> {formatCurrency(maxPrice)}
                         </p>
+                        {matchedBudgetItem?.estimatedCost && (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-[11px] font-medium my-2">
+                            <span>Dự trù: {formatCurrency(matchedBudgetItem.estimatedCost)}</span>
+                          </div>
+                        )}
                         <p>
                           Đồng bộ không gian lễ, bàn tiệc, photobooth và hệ thống hoa trang trí.
                         </p>
@@ -865,15 +1127,26 @@ export default function VendorDetail(props: PageProps) {
                         </ul>
                       </div>
                       <button 
-                        className="service-link"
+                        className="service-link cursor-pointer disabled:opacity-60"
                         type="button"
-                        onClick={() => {
-                          setWeddingDate(new Date().toISOString().split('T')[0]);
-                          setGuestCount('200–400 khách');
-                          document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth' });
-                        }}
+                        disabled={submittingPackageId !== null}
+                        onClick={() => handleInquirePackage({
+                          packageName: 'Full Wedding Styling',
+                          price: maxPrice,
+                          description: 'Đồng bộ không gian lễ, bàn tiệc, photobooth và hệ thống hoa trang trí.'
+                        }, 1)}
                       >
-                        Nhận tư vấn <Icon name="arrow" />
+                        {submittingPackageId === 1 ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Đang gửi tin nhắn...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Nhận tư vấn gói này</span>
+                            <Icon name="arrow" />
+                          </>
+                        )}
                       </button>
                     </article>
                   </>
@@ -972,18 +1245,19 @@ export default function VendorDetail(props: PageProps) {
 
       {/* FLOATING LIVE CHAT DRAWER (REAL-TIME CONVERSATION) */}
       {isChatDrawerOpen && (
-        <div className="fixed bottom-4 right-4 z-50 w-[92vw] sm:w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl border border-[#dfd5c7] flex flex-col overflow-hidden animate-slide-up">
+        <div className="fixed bottom-4 right-4 z-50 w-[94vw] sm:w-[420px] h-[550px] bg-white rounded-2xl shadow-2xl border border-[#dfd5c7] flex flex-col overflow-hidden animate-slide-up">
           {/* Drawer Header */}
           <div className="p-3.5 bg-[#711218] text-white flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold ring-1 ring-white/30">
                 {vendor.businessName.charAt(0)}
               </div>
               <div>
-                <h4 className="text-xs font-bold leading-tight truncate max-w-[200px]">
+                <h4 className="text-xs font-bold leading-tight truncate max-w-[210px]">
                   {vendor.businessName}
                 </h4>
-                <span className="text-[10px] text-white/70 block">
+                <span className="text-[10px] text-white/80 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   Trò chuyện trực tiếp &bull; Trực tuyến
                 </span>
               </div>
@@ -1008,6 +1282,19 @@ export default function VendorDetail(props: PageProps) {
             </div>
           </div>
 
+          {/* Package Inquiry Success Notice */}
+          {packageInquirySuccess && (
+            <div className="bg-[#FAF6F0] border-b border-[#dfd5c7] px-3.5 py-2 flex items-center justify-between text-xs text-[#5D0F12]">
+              <div className="flex items-center gap-1.5 truncate">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="truncate">
+                  Đã gửi yêu cầu tư vấn gói <strong>{packageInquirySuccess}</strong>!
+                </span>
+              </div>
+              <span className="text-[10px] text-stone-500 font-sans">Vừa xong</span>
+            </div>
+          )}
+
           {/* Messages Thread */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#f8f4ec]/60 text-xs">
             {chatMessages.length === 0 ? (
@@ -1016,11 +1303,11 @@ export default function VendorDetail(props: PageProps) {
               </div>
             ) : (
               chatMessages.map(msg => {
-                const isMe = msg.senderRole === 'USER';
+                const isMe = msg.senderRole === 'USER' || msg.senderRole === 'CUSTOMER';
                 return (
                   <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                     <span className="text-[9px] text-stone-400 mb-0.5 px-1">{isMe ? 'Bạn' : vendor.businessName}</span>
-                    <div className={`p-3 rounded-2xl max-w-[85%] leading-relaxed ${
+                    <div className={`p-3 rounded-2xl max-w-[85%] leading-relaxed whitespace-pre-wrap ${
                       isMe ? 'bg-[#711218] text-white rounded-br-none shadow-sm' : 'bg-white border border-[#dfd5c7] text-stone-800 rounded-bl-none shadow-sm'
                     }`}>
                       {msg.message}
@@ -1029,6 +1316,26 @@ export default function VendorDetail(props: PageProps) {
                 );
               })
             )}
+          </div>
+
+          {/* Quick Prompt Chips */}
+          <div className="px-3 pt-2 pb-1.5 bg-white border-t border-[#dfd5c7]/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-stone-400 text-[10px] whitespace-nowrap">Hỏi nhanh:</span>
+            {[
+              `Còn trống lịch ${weddingDate || 'ngày cưới'} không?`,
+              'Gói này có ưu đãi gì hiện tại?',
+              'Chính sách đặt cọc ra sao?',
+              'Có phát sinh phí di chuyển?',
+            ].map((chip, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setChatInputText(chip)}
+                className="px-2.5 py-1 rounded-full bg-[#FAF6F0] hover:bg-[#f2ece2] text-stone-700 whitespace-nowrap border border-[#e5dcd3] transition text-[11px] cursor-pointer"
+              >
+                {chip}
+              </button>
+            ))}
           </div>
 
           {/* Chat Input Bar */}
